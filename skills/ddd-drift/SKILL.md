@@ -145,6 +145,21 @@ Drift findings route to appropriate skills:
 | Control drift | `ddd-controls` (recompile) |
 | Code drift | `ddd-ground` (trace new constructs) or `ddd-exception` (if gaps found) |
 
+## Lifecycle re-entry (SPEC.md §8.3)
+
+When drift is detected, the affected change's lifecycle state transitions depend on the drift type:
+
+| Drift type | Transition | Precondition |
+|---|---|---|
+| Evidence drift (contradictory content) | Any active change → `UNSCOPED` | Evidence lock entry invalidated, new content contradicts existing claims |
+| Evidence drift (version refresh only) | Any active change → `EVIDENCE_LOCKED` | Evidence lock entry invalidated, new content is consistent |
+| Documentation drift | Route to `ddd-book` → update references | No lifecycle state change (Book updated in place) |
+| Decision drift | Route to `ddd-decide` → re-evaluate | Change returns to `UNSCOPED` if decision is revised |
+| Control drift | Route to `ddd-controls` → recompile | No lifecycle state change (control updated in place) |
+| Code drift | Route to `ddd-ground` → trace new constructs | Change enters `IMPLEMENTING` → `VERIFYING` cycle |
+
+**Re-entry scope:** Only changes that depend on the invalidated evidence lock entry are affected. Unrelated changes are not disrupted. When an evidence lock entry is superseded, all claims depending on that entry are flagged.
+
 ## CI integration
 
 - Drift checks SHOULD run on a schedule (e.g., daily or weekly)
@@ -152,6 +167,16 @@ Drift findings route to appropriate skills:
 - Critical drift findings SHOULD block Book release
 - Drift summary is stored in `.ddd/reports/`
 
+## Worked example (SPEC.md §20.5)
+
+1. Evidence lock entry EL-003 (vendor API docs) becomes stale (freshness expired)
+2. Drift checker re-fetches source, computes new digest
+3. New content contradicts existing claims about API behavior
+4. Drift report generated: `evidence_drift`, severity `high`
+5. All changes citing EL-003 return to `UNSCOPED`
+6. Knowledge Curator re-acquires and locks new evidence
+7. Claims updated, traces re-validated
+
 ## Spec reference
 
-- SPEC.md §19.3 (Drift Detection), §12 (Executable Controls), §17 (Versioning and Migration)
+- SPEC.md §8.3 (Lifecycle state machine — drift re-entry transitions), §12 (Executable Controls), §17 (Versioning and Migration: §17.1 spec versioning, §17.2 schema versioning), §20.5 (Worked example: stale documentation and content drift)

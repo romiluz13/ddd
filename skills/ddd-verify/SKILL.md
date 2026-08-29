@@ -140,7 +140,18 @@ A DDD conformance test suite SHOULD include:
 - `VERIFYING → WAIVED` (exceptions approved)
 - `VERIFYING → NONCONFORMANT` (verification failed)
 - `VERIFYING → BLOCKED_CONTRADICTION` (sources conflict)
+- `NONCONFORMANT → IMPLEMENTING` (implementation corrected to address violations — rework loop)
+
+### Rework loop (`NONCONFORMANT → IMPLEMENTING`)
+
+When verification produces `NONCONFORMANT`:
+1. The compliance report identifies specific violations (untraced claims, undocumented behavior, citation gaps)
+2. The implementer corrects the code to address each violation
+3. Updated construct-to-claim traces are produced for the corrected code
+4. The change returns to `IMPLEMENTING`, then re-enters `VERIFYING` when ready
+
+This loop continues until all violations are resolved (→ `CONFORMANT`), exceptions are approved (→ `WAIVED`), or a blocking gap is discovered (→ `BLOCKED_EVIDENCE_GAP` or `BLOCKED_CONTRADICTION`).
 
 ## Spec reference
 
-- SPEC.md §8.1 (Compliance Sweep gate), §13 (Traceability and Verification), §16 (Conformance Profiles), §18 (Evaluation)
+- SPEC.md §8.1 (Compliance Sweep gate), §8.3 (Lifecycle state machine), §13 (Traceability and Verification: §13.1 nested model, §13.2 proof tiers, §13.3 bidirectional sweeps, §13.4 citation entailment), §16 (Conformance Profiles), §18 (Evaluation)

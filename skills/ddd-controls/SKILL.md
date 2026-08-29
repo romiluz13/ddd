@@ -54,6 +54,7 @@ residual_risk: "Reflection could bypass"
 | Data invariant | runtime assertions, property-based tests |
 | Performance | lighthouse, benchmark CI |
 | Code style | eslint, prettier |
+| Formal verification | Dafny, TLA+, model checker (Level 5) |
 
 An adapter is NOT trusted until it has been validated (Step 3).
 
@@ -84,17 +85,47 @@ validated_at: 2026-08-29T16:00:00Z
 
 ### Step 4: Set enforcement level
 
+Enforcement levels per SPEC.md §12.2:
+
 | Level | Description |
 |---|---|
-| 1 | Advisory (report only, no block) |
-| 2 | Warning (visible in CI, does not block) |
-| 3 | Soft gate (blocks on certain conditions) |
-| 4 | Blocking automated gate (runs in CI, blocks merge) |
+| 1 | **Documented rationale** — the rule exists in docs only |
+| 2 | **Review checklist** — a reviewer must verify manually |
+| 3 | **Executable assertion** — a test or lint rule checks it |
+| 4 | **Blocking automated gate** — CI fails if violated |
+| 5 | **Formal or model-checked property** — a prover verifies it |
+
+DDD SHOULD compile to the strongest practical level, not automatically demand level 5.
 
 The enforcement level is determined by the obligation's `severity`:
-- `blocking` → Level 4
+- `blocking` → Level 4 (or 5 if a formal verifier is available)
 - `warning` → Level 2
 - `advisory` → Level 1
+
+### Step 4a: Generation boundary (SPEC.md §12.3)
+
+DDD MAY generate the actual control when:
+- A trusted adapter exists for the target toolchain
+- The mapping from obligation to control is deterministic enough
+- The project supports the target tool
+- The generated control can be validated (Step 3)
+
+Otherwise, DDD MUST emit a precise implementation recipe and report the obligation as `uncompiled`:
+
+```yaml
+# Uncompiled obligation
+id: order.no-direct-payment-gateway
+status: uncompiled
+recipe: |
+  1. Add dependency-cruiser rule: from src/domain/order/** to src/adapters/payment/**
+  2. Set severity to 'error' in .dependency-cruiser.js
+  3. Add test fixture: test/fixtures/order-violates-payment.ts
+  4. Run in CI: npx dependency-cruiser src/domain/order
+adapter: null  # no trusted adapter available
+uncompiled_reason: "dependency-cruiser not installed in project"
+```
+
+**Never claim prose has become executable when no gate exists.**
 
 ### Step 5: Register the control
 
@@ -113,7 +144,8 @@ control:
 
 ### Step 6: CI integration
 
-- Level 4 controls MUST run in CI and block on failure
+- Level 4+ controls MUST run in CI and block on failure
+- Level 5 controls (formal verification) SHOULD run in CI when available
 - Control failures MUST reference the obligation ID for traceability
 - Control results feed into the compliance report (via `ddd-verify`)
 
@@ -158,4 +190,4 @@ Residual risks are recorded in the obligation and must be acknowledged by the pr
 
 ## Spec reference
 
-- SPEC.md §12 (Executable Controls), §20.8 (Worked example)
+- SPEC.md §12 (Executable Controls: §12.1 obligation IR, §12.2 enforcement levels, §12.3 generation boundary, §12.4 control validation, §12.5 adapter targets), §20.8 (Worked example)

@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "skills": {
+    "ddd": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "0c4e79218a9168db6ab2743399b410a7238cdcf33fca4af2404876dc88affecc"
+    },
+    "ddd-book": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "b04142605385a165a212721a0eef7f4158252528e7b58dd73a4af3362676c33a"
+    },
+    "ddd-controls": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "f19a507273804ac77981730f072c5ff7fbc34b78788ab8ffadd9f46360297d82"
+    },
+    "ddd-decide": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "996ce60887385751db513527eeba0d238338701f92f1ef875630ab0f36f0ca43"
+    },
+    "ddd-drift": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "8c85bdd13706a7fdd6b876e5ac1ed14c9dd045ddc6706ead54d603e8719eb773"
+    },
+    "ddd-exception": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "1d0944bb67d1dd20a9b36a23070b4ad57f2d91a7713d34845ffbc4cfe32f4560"
+    },
+    "ddd-ground": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "f078c1d152173b510d958f68567e25f50b60c6fb7f11cb8f891a57faee732396"
+    },
+    "ddd-refute": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "380200e6c7aafd7ca578ae2c3fc5f0d853f219c239cea8e9535966c532f43022"
+    },
+    "ddd-scope": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "3220f9e082221ce313473c7e859176f2b40c56c049aad9a1d7194ebd8c175e1a"
+    },
+    "ddd-verify": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "b452c5237f86648d3a90e67dab3dc46ab04e4dcf9c72afcf16b9ae5cbb0e1b4a"
+    }
+  }
+}

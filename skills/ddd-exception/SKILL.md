@@ -142,4 +142,4 @@ When documentation and runtime behavior disagree:
 
 ## Spec reference
 
-- SPEC.md §5.5 (Conflict resolution), §8.3 (Lifecycle transitions), §14 (Exceptions and Epistemic Gaps), §16 (Conformance Profiles)
+- SPEC.md §5.5 (Conflict resolution), §7.6.6 (Approval record), §7.6.7 (Exception record), §8.3 (Lifecycle transitions), §14 (Exceptions and Epistemic Gaps), §16 (Conformance Profiles)

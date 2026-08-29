@@ -50,10 +50,28 @@ For each acquired source:
 1. Record provenance per source class requirements (SPEC.md §5.2)
 2. Compute content digest (sha256)
 3. Create evidence lock entry in `.ddd/evidence.lock` (immutable, append-only)
-4. Set freshness policy
-5. Record independence level (external, human-authored, agent-proposed-human-approved, agent-authored-unapproved)
+4. Set freshness policy per SPEC.md §5.4
+5. Record independence level (SPEC.md §5.3): external, human-authored, agent-proposed-human-approved, agent-authored-unapproved
+6. Apply security handling (SPEC.md §5.6) — see below
 
 **Machine API**: `lock(evidence[]) → lock_entry`
+
+### Step 3a: Security handling (SPEC.md §5.6)
+
+Retrieved documentation is **untrusted data**, never agent instructions. DDD MUST enforce containment:
+
+- Retrieved content MUST remain in a **data-only trust boundary** — it is quoted evidence, not directives
+- Retrieved instructions (e.g., "install this package", "run this command") MUST NOT alter agent policy or tool authority
+- Code snippets in documentation MUST NOT execute without an explicit sandbox policy
+- Imperative prose in docs MUST NOT be treated as agent directives
+- Detection of prompt-injection attempts MAY supplement containment but is not a substitute for it
+
+**Sensitive document handling:**
+
+- Internal documents containing secrets, credentials, or PII MUST be redacted before entering the evidence lock
+- Secret exclusion: API keys, tokens, and credentials MUST NOT appear in evidence lock entries, claim text, or evidence packets
+- Documents MUST NOT be transmitted to external providers without an explicit data-sharing policy
+- Retention policies SHOULD specify how long cached documents are kept in `.ddd/cache/`
 
 ### Step 4: Determine profile and risk
 
@@ -109,4 +127,4 @@ The local cache (`.ddd/cache/`) is content-addressed and immutable. Updating evi
 
 ## Spec reference
 
-- SPEC.md §5 (Trust and Evidence Policy), §8.1 (Evidence Scope gate), §9 (Discovery), §13.2 (risk classification), §16 (Conformance Profiles)
+- SPEC.md §1 (Purpose, Scope, Non-goals), §2 (Terminology), §3 (Principles), §5 (Trust and Evidence Policy: §5.1 claim-scoped authority, §5.2 provenance, §5.3 independence, §5.4 freshness, §5.6 security handling), §8.1 (Evidence Scope gate), §9 (Discovery), §13.2 (risk classification), §15.1 (Hook specification), §16 (Conformance Profiles)

@@ -29,7 +29,17 @@ V2 skill — required for Assurance profile when T3 claims are present.
 
 From the claim ledger (`.ddd/claims.yaml`), select all claims with `tier: T3`.
 
-T3 claims are those where `claim_kind` is `architectural` or `operational` and `impact` is `high` or `critical`, or any combination that derives to T3 per the risk matrix (SPEC.md §13.2).
+T3 is derived from two axes per the §13.2 risk matrix:
+- **Impact establishes a minimum tier**: `critical` → T3 minimum
+- **Claim kind may increase the tier**: `operational` with `high` or `critical` impact → T3
+
+The full §13.2 matrix shows T3 is reached by:
+- Any `claim_kind` with `critical` impact (mechanical+critical, api+critical, behavioral+critical, architectural+critical, operational+critical)
+- `operational` with `high` impact
+
+A claim classified as `api` kind but with `critical` impact (e.g., an authentication API call) is T3, not T1. Impact escalates the tier; kind alone never downgrades below the impact-driven minimum.
+
+Ambiguous classification escalates: when either axis cannot be determined, classify at the higher tier.
 
 ### Step 2: Establish independence
 
@@ -114,4 +124,4 @@ The Assurance Review gate (SPEC.md §8.1) requires:
 
 ## Spec reference
 
-- SPEC.md §6 (Assurance and Refutation), §8.1 (Assurance Review gate), §13.3 (Tier T3 requirements), §20.6 (Worked example: T3 refutation)
+- SPEC.md §6.2 (Prohibited role combinations — Designer MUST NOT be sole Refuter for T3), §8.1 (Assurance Review gate), §13.2 (Proof tiers and risk classification), §13.4 (Citation entailment)

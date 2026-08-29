@@ -135,4 +135,4 @@ DTOs, trivial helpers, generated types, and framework glue inherit coverage from
 
 ## Spec reference
 
-- SPEC.md §4.3 (State sharing), §7 (Artifacts), §11 (Object Passports), §17 (Versioning and Migration)
+- SPEC.md §4.3 (State sharing), §7 (Artifacts: §7.1 directory structure, §7.2 Book manifest schema, §7.7 artifact relationships), §11 (Object Passports), §17 (Versioning and Migration: §17.1 spec versioning, §17.2 schema versioning, §17.3 incremental adoption)

@@ -122,4 +122,4 @@ Caching strategy for product catalog:
 
 ## Spec reference
 
-- SPEC.md §10 (Design Tournament), §20.7 (Worked example)
+- SPEC.md §10 (Design Tournament: §10.1 trigger criteria, §10.2 tournament protocol), §20.7 (Worked example)

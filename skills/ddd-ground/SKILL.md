@@ -133,7 +133,9 @@ The Grounding Check gate (SPEC.md §8.1) fires during implementation:
 
 - `EVIDENCE_LOCKED → IMPLEMENTING` (packet delivered to implementer)
 - During implementation, Grounding Check is active
+- Creates change record (§7.6.1) when packet is assembled
+- Creates lifecycle state record (§7.6.8) tracking state transitions
 
 ## Spec reference
 
-- SPEC.md §7.4-7.6 (Claim, Packet, Construct schemas), §8.1 (Grounding Check gate), §12 (Executable Controls), §13 (Traceability)
+- SPEC.md §7.4 (Claim ledger schema), §7.5 (Evidence packet schema), §7.6.1 (Change record), §7.6.4 (Construct locator), §7.6.8 (Lifecycle state record), §7.6.9 (Evidence packet record), §7.6.10 (Trace entry), §8.1 (Grounding Check gate), §12 (Executable Controls), §13 (Traceability: §13.1 nested model, §13.2 proof tiers)

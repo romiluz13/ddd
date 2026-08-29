@@ -86,4 +86,4 @@ route_to: ddd-ground
 
 ## Spec reference
 
-- SPEC.md §4 (Architecture), §8 (Gates and Lifecycle), §15 (Integration and Adapter Contract), Annex A.1
+- SPEC.md §1 (Purpose, Scope, Non-goals), §2 (Terminology), §3 (Principles), §4 (Architecture: §4.1 engineering intelligence plane, §4.2 mandatory kernel, §4.2.1 enforcement modes), §8 (Gates and Lifecycle: §8.3 state machine), §15 (Integration: §15.1 hook specification, §15.2 workflow integration, §15.3 machine API), Annex A.1

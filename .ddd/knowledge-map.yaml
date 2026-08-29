@@ -1,40 +1,96 @@
 # DDD Knowledge Map
+# Initialized by: ddd-book skill (dogfooding)
 # Maps relevant engineering domains to evidence, gaps, and applicability.
-# Updated by: ddd-scope skill
 
 schema_version: 0.1.0
 
-# 10-dimension knowledge taxonomy (SPEC.md §9.1)
-# Each domain records: trigger, questions, expected decisions, authority type, confidence, risk if omitted
 domains:
-  # - id: api-semantics
-  #   name: "API Semantics"
-  #   trigger: "Change uses external API or library"
-  #   questions:
-  #     - "What does the API guarantee?"
-  #     - "What are the error modes?"
-  #   expected_decisions: ["Error handling pattern", "Retry strategy"]
-  #   authority_type: vendor-docs
-  #   confidence: high
-  #   risk_if_omitted: "Incorrect API usage, silent failures"
-  #   evidence: [EL-001, EL-003]
-  #   gaps: []
-  #
-  # - id: architectural-boundaries
-  #   name: "Architectural Boundaries"
-  #   trigger: "Change crosses module or domain boundary"
-  #   questions:
-  #     - "What are the allowed dependencies?"
-  #     - "What must not cross this boundary?"
-  #   expected_decisions: ["Layer separation", "Dependency direction"]
-  #   authority_type: project-adr
-  #   confidence: medium
-  #   risk_if_omitted: "Coupling, circular dependencies"
-  #   evidence: [EL-002]
-  #   gaps: []
+  - id: agent-skills-spec
+    name: "Agent Skills Specification"
+    trigger: "SKILL.md format, frontmatter, directory structure, progressive disclosure"
+    questions:
+      - "Does the SKILL.md frontmatter conform to agentskills.io spec?"
+      - "Are skills under 500 lines?"
+      - "Should detailed reference material be split into references/?"
+      - "Are name fields matching directory names?"
+    expected_decisions: ["Reference file extraction", "Progressive disclosure optimization"]
+    authority_type: external-spec
+    confidence: high
+    risk_if_omitted: "Skills rejected by skills.sh CLI or not discovered by agents"
+    evidence: []
+    gaps:
+      - "agentskills.io spec not yet locked in evidence lock"
 
-# Known gaps (domains with missing or insufficient evidence)
-gaps: []
+  - id: skills-packaging
+    name: "Skills Packaging and Distribution"
+    trigger: "skills.sh.json, README, repo structure, npx skills add"
+    questions:
+      - "Is skills.sh.json correctly structured?"
+      - "Are groupings accurate?"
+      - "Is the repo discoverable on skills.sh?"
+    expected_decisions: ["Registry grouping", "Publishing workflow"]
+    authority_type: external-tool
+    confidence: high
+    risk_if_omitted: "Skills not discoverable or installable"
+    evidence: []
+    gaps: []
 
-# Last updated
-updated_at: null
+  - id: ddd-methodology
+    name: "DDD Methodology"
+    trigger: "Any change to SPEC.md or skill definitions"
+    questions:
+      - "Do skills accurately implement the spec?"
+      - "Are there spec sections not covered by any skill?"
+      - "Is the machine API complete?"
+      - "Are artifact schemas consistent between spec and skills?"
+    expected_decisions: ["Skill-spec alignment", "Coverage gaps"]
+    authority_type: project-spec
+    confidence: high
+    risk_if_omitted: "Skills diverge from spec, methodology breaks"
+    evidence: [SPEC]
+    gaps:
+      - "No formal cross-check between skill content and spec sections"
+
+  - id: yaml-schema-design
+    name: "YAML Schema Design"
+    trigger: "Artifact schemas in SPEC.md, template files in .ddd/"
+    questions:
+      - "Are all YAML schemas in SPEC.md valid?"
+      - "Do template files match normative schemas?"
+      - "Are schema_version fields consistent?"
+    expected_decisions: ["Schema validation", "Template alignment"]
+    authority_type: project-spec
+    confidence: high
+    risk_if_omitted: "Invalid YAML, broken artifact parsing"
+    evidence: [SPEC]
+    gaps: []
+
+  - id: technical-writing
+    name: "Technical Writing for Agents"
+    trigger: "SKILL.md content quality, instruction clarity"
+    questions:
+      - "Are instructions actionable for an AI agent?"
+      - "Is progressive disclosure used effectively?"
+      - "Are edge cases covered?"
+      - "Do descriptions contain activation keywords?"
+    expected_decisions: ["Content optimization", "Reference extraction"]
+    authority_type: best-practice
+    confidence: medium
+    risk_if_omitted: "Skills don't activate or execute correctly"
+    evidence: []
+    gaps:
+      - "No reference files for any skill (all content inline)"
+
+# Known gaps
+gaps:
+  - domain: agent-skills-spec
+    description: "agentskills.io specification not locked in evidence lock"
+    severity: medium
+  - domain: ddd-methodology
+    description: "No formal cross-check between skill content and spec sections"
+    severity: high
+  - domain: technical-writing
+    description: "No reference files — all content inline in SKILL.md"
+    severity: low
+
+updated_at: "2026-08-30T00:00:00Z"
