@@ -1,0 +1,27 @@
+# DDD Claim Ledger
+# Atomic normative statements extracted from evidence, requiring support.
+# Updated by: ddd-ground skill
+
+schema_version: 0.1.0
+
+# Each claim is an atomic assertion that MUST trace to at least one L0 source
+# OR an explicit exception (SPEC.md §13.1).
+#
+# Sample claim (commented out — uncomment and fill when extracting claims):
+#
+# - id: C-042
+#   schema_version: 0.1.0
+#   statement: "Server components cannot use browser-only APIs"
+#   rationale: "ADR-007: Server components render on the server"
+#   sources:
+#     - ref: EL-001#Server Components
+#       authority_domain: api-semantics
+#   claim_kind: api              # mechanical | api | behavioral | architectural | operational
+#   impact: medium               # low | medium | high | critical
+#   tier: T1                     # derived from claim_kind × impact matrix (SPEC.md §13.2)
+#   status: known-and-supported  # known-and-supported | t0-exempt | exception
+#   constructs: [OrderList.component]
+#   validations: [test:server-component-no-window]
+#   exceptions: []               # exception IDs if any
+
+claims: []

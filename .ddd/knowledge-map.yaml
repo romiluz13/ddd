@@ -1,0 +1,40 @@
+# DDD Knowledge Map
+# Maps relevant engineering domains to evidence, gaps, and applicability.
+# Updated by: ddd-scope skill
+
+schema_version: 0.1.0
+
+# 10-dimension knowledge taxonomy (SPEC.md §9.1)
+# Each domain records: trigger, questions, expected decisions, authority type, confidence, risk if omitted
+domains:
+  # - id: api-semantics
+  #   name: "API Semantics"
+  #   trigger: "Change uses external API or library"
+  #   questions:
+  #     - "What does the API guarantee?"
+  #     - "What are the error modes?"
+  #   expected_decisions: ["Error handling pattern", "Retry strategy"]
+  #   authority_type: vendor-docs
+  #   confidence: high
+  #   risk_if_omitted: "Incorrect API usage, silent failures"
+  #   evidence: [EL-001, EL-003]
+  #   gaps: []
+  #
+  # - id: architectural-boundaries
+  #   name: "Architectural Boundaries"
+  #   trigger: "Change crosses module or domain boundary"
+  #   questions:
+  #     - "What are the allowed dependencies?"
+  #     - "What must not cross this boundary?"
+  #   expected_decisions: ["Layer separation", "Dependency direction"]
+  #   authority_type: project-adr
+  #   confidence: medium
+  #   risk_if_omitted: "Coupling, circular dependencies"
+  #   evidence: [EL-002]
+  #   gaps: []
+
+# Known gaps (domains with missing or insufficient evidence)
+gaps: []
+
+# Last updated
+updated_at: null

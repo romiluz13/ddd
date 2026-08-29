@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Agent directories (installed, not source)
+.factory/
+.claude/
+.cursor/
+.agents/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log

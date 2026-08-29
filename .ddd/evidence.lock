@@ -1,0 +1,31 @@
+# DDD Evidence Lock
+# Immutable, append-only record of external source provenance.
+# Each entry records: source, version, digest, independence, freshness.
+# Updated by: ddd-scope skill (lock step)
+
+# Entries are appended, never modified. Supersession creates a new entry.
+# schema_version: 0.1.0
+
+# Sample entry (commented out — uncomment and fill when locking evidence):
+#
+# - id: EL-001
+#   schema_version: 0.1.0
+#   source_class: standard          # standard | project-doc | experiment | code | human-knowledge
+#   title: "Next.js Server Components"
+#   url: https://nextjs.org/docs/app/building-your-application/rendering/server-components
+#   product: "Next.js"
+#   version: "14.2.0"               # required for standard sources
+#   # doc_version: "v14.2"          # required for project-doc sources (instead of version)
+#   # repository_path: src/         # for project-doc sources
+#   # commit: abc123                # for project-doc sources
+#   # experiment_result_hash: ...   # for experiment sources
+#   content_digest: sha256:...      # sha256 of retrieved content
+#   retrieved_at: 2026-08-29T10:00:00Z
+#   retrieved_by: agent
+#   independence: external          # external | human-authored | agent-proposed-human-approved | agent-authored-unapproved
+#   freshness_policy: 90d           # duration after which evidence is considered stale
+#   freshness_expires_at: 2026-11-29T10:00:00Z
+#   superseded_by: null             # ID of superseding entry, if any
+#   notes: ""
+
+entries: []
