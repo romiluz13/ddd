@@ -11,19 +11,39 @@ entries:
   - id: EL-001
     schema_version: 0.1.0
     source_class: standard
-    source_url: https://agentskills.io
+    source_url: https://agentskills.io/specification
     publisher: agentskills.io
     product: Agent Skills Specification
     version: "1.0"
     retrieved_at: 2026-08-30T00:00:00Z
-    content_digest: sha256:placeholder-agentskills-io-spec
+    content_digest: sha256:93e9a32d45b1136f7a3c3b5bfb122a07cb4788eae80cc19d12413512baaff4b1
     doc_version: "2026-08-30"
-    sections: ["SKILL.md format", "YAML frontmatter", "Progressive disclosure"]
+    sections: ["Directory structure", "SKILL.md format", "Frontmatter", "name field", "description field", "Progressive disclosure", "Validation"]
     status: normative
-    authority_for: [skill-format, packaging]
+    authority_for: [skill-format, packaging, frontmatter-validation]
     freshness: 365d
     adapter: web-fetch
-    license: MIT
+    license: open
     independence: external
     superseded_by: null
-    notes: "Agent Skills specification — defines SKILL.md format, frontmatter requirements, progressive disclosure pattern"
+    notes: "Agent Skills specification — defines SKILL.md format, frontmatter requirements, progressive disclosure pattern, validation"
+
+  - id: EL-002
+    schema_version: 0.1.0
+    source_class: vendor-doc
+    source_url: https://skills.sh
+    publisher: skills.sh
+    product: Skills CLI
+    version: "latest"
+    retrieved_at: 2026-08-30T00:00:00Z
+    content_digest: sha256:cae8ea751cdbd4f0f5df3e2970be8556e7b252059851d19206f6e46ed0ee5dd7
+    doc_version: "2026-08-30"
+    sections: ["Overview", "Installation", "Supported agents", "Registry format"]
+    status: informative
+    authority_for: [skill-distribution, cli-usage]
+    freshness: 90d
+    adapter: web-fetch
+    license: open
+    independence: external
+    superseded_by: null
+    notes: "Skills.sh directory and CLI documentation — npx skills add, --list, --skill flags, supported agents"

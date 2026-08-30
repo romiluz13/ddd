@@ -17,9 +17,8 @@ domains:
     authority_type: external-spec
     confidence: high
     risk_if_omitted: "Skills rejected by skills.sh CLI or not discovered by agents"
-    evidence: []
-    gaps:
-      - "agentskills.io spec not yet locked in evidence lock"
+    evidence: [EL-001, EL-002]
+    gaps: []
 
   - id: skills-packaging
     name: "Skills Packaging and Distribution"
@@ -83,12 +82,11 @@ domains:
 
 # Known gaps
 gaps:
-  - domain: agent-skills-spec
-    description: "agentskills.io specification not locked in evidence lock"
-    severity: medium
   - domain: ddd-methodology
     description: "No formal cross-check between skill content and spec sections"
     severity: high
+    status: resolved
+    resolution: "Audit completed in dogfooding cycle — 20 gaps found and fixed"
   - domain: technical-writing
     description: "No reference files — all content inline in SKILL.md"
     severity: low
