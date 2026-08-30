@@ -1,10 +1,8 @@
 ---
 name: ddd-refute
 description: >
-  Independent adversarial review for T3 claims in DDD. Attempts to refute high-risk claims
-  by challenging citations, evidence, and reasoning. Use when T3 claims exist in a change
-  (Assurance profile), when the Assurance Review gate fires, or when a high-impact decision
-  needs adversarial validation.
+  Use when T3 claims exist in a change (Assurance profile), when the Assurance Review gate
+  fires, or when a high-impact decision needs adversarial validation.
 metadata:
   author: ddd-methodology
   version: "0.3.0"
@@ -14,7 +12,9 @@ metadata:
 
 **THE CLAIM AUTHOR CANNOT REFUTE THEIR OWN CLAIM. INDEPENDENCE IS MANDATORY.**
 
-Conduct independent adversarial review for T3 claims.
+Core principle: Adversarial review finds what self-review cannot. Independence is not a courtesy — it is the mechanism that makes refutation meaningful.
+
+Violating the letter of the rules is violating the spirit of the rules.
 
 ## When to invoke
 
@@ -22,6 +22,12 @@ Conduct independent adversarial review for T3 claims.
 - Compliance Sweep has identified T3 claims requiring independent refutation
 - Assurance Review gate fires (SPEC.md §8.1)
 - A high-impact decision needs adversarial validation
+
+### When NOT to use
+
+- No T3 claims exist in the change — T0/T1/T2 claims do not require refutation
+- The project is Lite profile — only Assurance profile requires refutation
+- You authored the claims under review — independence is mandatory, use a different agent context
 
 ## What it does
 
@@ -83,9 +89,9 @@ recommendation: "Narrow citation, create exception for edge case X"
 
 If refutation reveals a new gap, route to `ddd-exception`.
 
-## Good vs bad refutation
+## Examples
 
-**Good**:
+<Good>
 ```
 Claim C-055: "bcrypt is available in Edge Runtime"
 Refuter: reads EL-003 (Next.js docs), finds "Edge Runtime supports a subset of Node.js APIs"
@@ -94,7 +100,9 @@ Outcome: partially_refuted — bcrypt is NOT available in Edge Runtime
 Action: Remove claim, fix code
 ```
 
-**Bad**:
+</Good>
+
+<Bad>
 ```
 Claim C-055: "bcrypt is available in Edge Runtime"
 Refuter: same agent context that wrote the claim
@@ -102,6 +110,7 @@ Refuter: same agent context that wrote the claim
 Outcome: sustained
 → Independence violation. Refutation is invalid.
 ```
+</Bad>
 
 ## Rationalization table
 

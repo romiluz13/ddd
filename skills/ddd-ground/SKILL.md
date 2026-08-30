@@ -1,10 +1,9 @@
 ---
 name: ddd-ground
 description: >
-  Evidence Lock gate for DDD. Assembles evidence packets, extracts claims and obligations
-  from sources, traces code constructs to claims, and updates object passports. Use after
-  the Evidence Lock gate has passed, before implementation begins, during implementation
-  to extract claims, or when a new control obligation is identified.
+  Use after evidence is locked and before implementation begins, during implementation
+  to extract claims and trace constructs, or when a new control obligation is identified
+  from documentation.
 metadata:
   author: ddd-methodology
   version: "0.3.0"
@@ -14,7 +13,9 @@ metadata:
 
 **EVERY CONSTRUCT TRACES TO A CLAIM. EVERY CLAIM TRACES TO EVIDENCE. NO ORPHANS.**
 
-Extract claims and obligations, create evidence packets, update construct mappings and passports.
+Core principle: Implementation is grounded when every code construct has documentary lineage through claims to evidence.
+
+Violating the letter of the rules is violating the spirit of the rules.
 
 ## When to invoke
 
@@ -22,6 +23,12 @@ Extract claims and obligations, create evidence packets, update construct mappin
 - Before implementation begins (assemble the evidence packet)
 - During implementation (extract claims, trace constructs)
 - When a new control obligation is identified from documentation
+
+### When NOT to use
+
+- Evidence has not been locked yet — route to `ddd-scope` first
+- Implementation is declared complete — route to `ddd-verify` for conformance checking
+- You need to discover new evidence — route to `ddd-scope`
 
 ## What it does
 
@@ -116,9 +123,9 @@ The Grounding Check gate fires during implementation:
 - **Pass condition**: every construct traces to a claim or T0 exemption
 - **Block condition**: unsupported decisions trigger retrieval or an exception
 
-## Good vs bad grounding
+## Examples
 
-**Good**:
+<Good>
 ```
 Construct: src/domain/order/Order.ts#cancelOrder
 Traces to: C-055 ("Order can be cancelled from PENDING or CONFIRMED")
@@ -126,13 +133,16 @@ C-055 traces to: EL-002#domain-model
 Coverage: covered
 ```
 
-**Bad**:
+</Good>
+
+<Bad>
 ```
 Construct: src/domain/order/Order.ts#cancelOrder
 Traces to: nothing
 Coverage: uncovered
 → Grounding Check BLOCKS. Must trace or record exception.
 ```
+</Bad>
 
 ## Rationalization table
 

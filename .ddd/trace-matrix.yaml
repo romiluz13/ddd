@@ -16,7 +16,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "ddd-scope Step 4a references §5.6 security handling"
 
   - id: TR-002
@@ -27,7 +27,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "ddd-controls enforcement levels match §12.2"
 
   - id: TR-003
@@ -38,7 +38,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "book.yaml follows §7.2 schema"
 
   - id: TR-004
@@ -49,7 +49,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "evidence.lock has correct field names per §7.3"
 
   - id: TR-005
@@ -60,7 +60,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "ddd-refute references §13.4 citation entailment"
 
   - id: TR-006
@@ -71,7 +71,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "ddd-verify describes NONCONFORMANT → IMPLEMENTING rework loop"
 
   - id: TR-007
@@ -82,7 +82,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "ddd-drift describes lifecycle re-entry transitions"
 
   - id: TR-008
@@ -93,7 +93,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "ddd-controls references §12.3 generation boundary"
 
   - id: TR-009
@@ -104,7 +104,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "trace-matrix.yaml uses §7.6.10 trace entry schema"
 
   - id: TR-010
@@ -115,7 +115,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "ddd-refute spec references corrected"
 
   - id: TR-011
@@ -126,7 +126,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "ddd-drift spec references corrected"
 
   - id: TR-012
@@ -137,8 +137,8 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
-    notes: null
+    checked_at: "2026-08-30T13:15:00Z"
+    notes: "ddd router spec reference footer includes §1, §2, §3"
 
   - id: TR-013
     schema_version: 0.1.0
@@ -148,8 +148,8 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
-    notes: null
+    checked_at: "2026-08-30T13:15:00Z"
+    notes: "ddd router spec reference footer includes §15.1, §15.2"
 
   - id: TR-014
     schema_version: 0.1.0
@@ -159,7 +159,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: null
 
   # --- v0.3.0 claims (C-015 through C-026) ---
@@ -172,7 +172,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "ddd-scope Step 0 implements stack detection per §9.8"
 
   - id: TR-016
@@ -183,7 +183,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "ddd-book initialize creates project-context.yaml"
 
   - id: TR-017
@@ -194,7 +194,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "ddd-scope Step 2 enumerates dependencies per §9.9"
 
   - id: TR-018
@@ -205,7 +205,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "SPEC.md §9.1 defines 18-dimension taxonomy"
 
   - id: TR-019
@@ -216,8 +216,8 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
-    notes: "knowledge-map.yaml has 10 domains covering 18 dimensions"
+    checked_at: "2026-08-30T13:15:00Z"
+    notes: "knowledge-map.yaml has 11 domains covering 18 dimensions"
 
   - id: TR-020
     schema_version: 0.1.0
@@ -227,7 +227,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "ddd-verify Step 3 implements full citation entailment procedure"
 
   - id: TR-021
@@ -238,7 +238,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "ddd-refute Step 3.2 implements entailment verification"
 
   - id: TR-022
@@ -249,7 +249,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "ddd router includes T1 fast path routing"
 
   - id: TR-023
@@ -260,7 +260,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "ddd-scope Step 5 checks T1 fast path eligibility"
 
   - id: TR-024
@@ -271,8 +271,8 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
-    notes: "ddd-scope Step 7 records cross-document constraints"
+    checked_at: "2026-08-30T13:15:00Z"
+    notes: "ddd-scope Step 6 records cross-document constraints"
 
   - id: TR-025
     schema_version: 0.1.0
@@ -282,7 +282,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "constraints.yaml created per §7.6.13 schema"
 
   - id: TR-026
@@ -293,7 +293,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "ddd-exception includes claim retraction per §14.5"
 
   - id: TR-027
@@ -304,7 +304,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "ddd-drift has 7 drift dimensions including project context and cache"
 
   - id: TR-028
@@ -315,7 +315,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "ddd-model creates domain models in .ddd/models/"
 
   - id: TR-029
@@ -326,7 +326,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "ddd-audit scans brownfield code and produces draft Book"
 
   - id: TR-030
@@ -337,7 +337,7 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "ddd-scope Step 3 lists source code as evidence adapter"
 
   - id: TR-031
@@ -348,8 +348,8 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
-    notes: "ddd-ground extracts claims from code-derived sources"
+    checked_at: "2026-08-30T13:15:00Z"
+    notes: "ddd-ground grounds claims in evidence including code-derived sources per §9.11"
 
   - id: TR-032
     schema_version: 0.1.0
@@ -359,5 +359,73 @@ traces:
     validation_id: null
     direction: forward
     sweep_pass: true
-    checked_at: "2026-08-30T12:00:00Z"
+    checked_at: "2026-08-30T13:15:00Z"
     notes: "SPEC.md §17.4 defines monorepo scoping strategies"
+
+  # --- v0.3.1 claims (ddd-decide + reverse sweeps) ---
+
+  - id: TR-033
+    schema_version: 0.1.0
+    change_id: CH-003
+    claim_id: C-027
+    construct_id: skills/ddd-decide/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T13:15:00Z"
+    notes: "ddd-decide implements tournament protocol per §10 with trigger criteria, alternatives, weighted criteria, and negative knowledge"
+
+  - id: TR-034
+    schema_version: 0.1.0
+    change_id: CH-003
+    claim_id: C-001
+    construct_id: skills/ddd-scope/SKILL.md
+    validation_id: null
+    direction: reverse
+    sweep_pass: true
+    checked_at: "2026-08-30T13:15:00Z"
+    notes: "Reverse: ddd-scope Step 4a security handling is traced to C-001"
+
+  - id: TR-035
+    schema_version: 0.1.0
+    change_id: CH-003
+    claim_id: C-006
+    construct_id: skills/ddd-verify/SKILL.md
+    validation_id: null
+    direction: reverse
+    sweep_pass: true
+    checked_at: "2026-08-30T13:15:00Z"
+    notes: "Reverse: ddd-verify rework loop is traced to C-006"
+
+  - id: TR-036
+    schema_version: 0.1.0
+    change_id: CH-003
+    claim_id: C-007
+    construct_id: skills/ddd-drift/SKILL.md
+    validation_id: null
+    direction: reverse
+    sweep_pass: true
+    checked_at: "2026-08-30T13:15:00Z"
+    notes: "Reverse: ddd-drift lifecycle re-entry is traced to C-007"
+
+  - id: TR-037
+    schema_version: 0.1.0
+    change_id: CH-003
+    claim_id: C-022
+    construct_id: skills/ddd-drift/SKILL.md
+    validation_id: null
+    direction: reverse
+    sweep_pass: true
+    checked_at: "2026-08-30T13:15:00Z"
+    notes: "Reverse: ddd-drift 7-dimension model is traced to C-022 (§8.4)"
+
+  - id: TR-038
+    schema_version: 0.1.0
+    change_id: CH-003
+    claim_id: C-027
+    construct_id: skills/ddd-decide/SKILL.md
+    validation_id: null
+    direction: reverse
+    sweep_pass: true
+    checked_at: "2026-08-30T13:15:00Z"
+    notes: "Reverse: ddd-decide tournament protocol is traced to C-027"

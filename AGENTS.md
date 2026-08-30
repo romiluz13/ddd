@@ -4,7 +4,7 @@ A harness-agnostic methodology for agentic engineering where documentation is th
 
 ## Status
 
-- **Spec version**: 0.3.0-draft (implementable)
+- **Spec version**: 0.3.1-draft (implementable)
 - **Skills**: 12 skills across 3 maturity versions (V1: 8, V2: 2, V3: 2)
 - **Scaffolding**: `.ddd/` directory with template files
 - **CLI**: `cli/` directory with machine API primitives (TypeScript/Bun)
@@ -13,7 +13,7 @@ A harness-agnostic methodology for agentic engineering where documentation is th
 
 ```
 DDD/
-├── SPEC.md              # Normative specification (v0.3.0-draft)
+├── SPEC.md              # Normative specification (v0.3.1-draft)
 ├── CONTEXT.md           # Project glossary and context
 ├── AGENTS.md            # This file — agent runtime instructions
 ├── README.md            # Package README for skills.sh
@@ -34,7 +34,7 @@ DDD/
 │   ├── ddd-refute/      # Adversarial review (V2)
 │   ├── ddd-controls/    # Control compilation (V3)
 │   └── ddd-drift/       # Drift detection (V3)
-│   (each skill has references/ for progressive disclosure)
+│   (skills use references/ for progressive disclosure where needed)
 ├── cli/                 # Machine API CLI (TypeScript/Bun)
 └── .ddd/                # Project engineering book (runtime state)
     ├── book.yaml        # Book manifest (root)

@@ -1,11 +1,10 @@
 ---
 name: ddd
 description: >
-  Router skill for Docs-Driven Development (DDD). Determines the appropriate DDD
-  operation for a change and reports project status. Routes to T0/T1 fast paths when
-  eligible. Use when starting a new change in a DDD-conformant project, when asked
-  "what DDD step should I do next?", or when a workflow hook fires (Evidence Scope,
-  Evidence Lock, Grounding Check, Compliance Sweep, Assurance Review).
+  Use when starting a change in a DDD-conformant project, when asked "what DDD step
+  should I do next?", when a workflow hook fires (Evidence Scope, Evidence Lock,
+  Grounding Check, Compliance Sweep, Assurance Review), or when adopting DDD on a
+  brownfield codebase.
 metadata:
   author: ddd-methodology
   version: "0.3.0"
@@ -15,7 +14,7 @@ metadata:
 
 **NO CODE WITHOUT EVIDENCE. NO CLAIMS WITHOUT TRACES. NO MERGE WITHOUT CONFORMANCE.**
 
-The router for Docs-Driven Development. It tells the story of a change traveling from scope to ship, and routes you to the right skill at each gate.
+Core principle: Every change travels scope → ground → implement → verify → ship. The gates between stages are what make DDD more than "read docs and code."
 
 ## When to invoke
 
@@ -23,6 +22,11 @@ The router for Docs-Driven Development. It tells the story of a change traveling
 - Someone asks "what DDD state is this project in?" or "what DDD step should I do next?"
 - A workflow hook fires (Evidence Scope, Evidence Lock, Grounding Check, Compliance Sweep, Assurance Review)
 - Adopting DDD on an existing (brownfield) codebase
+
+### When NOT to use
+
+- The project has no `.ddd/` directory — route to `ddd-book` to initialize first
+- The change only affects non-governed (grandfathered) code and no new governance is needed
 
 ## The story of a change
 
@@ -131,4 +135,4 @@ route_to: ddd-ground
 
 ## Spec reference
 
-- SPEC.md §4 (Architecture), §8 (Gates and Lifecycle), §15.3 (Machine API)
+- SPEC.md §1 (Purpose), §2 (Terminology), §3 (Principles), §4 (Architecture), §8 (Gates and Lifecycle), §15.1 (Hook specification), §15.2 (Workflow integration), §15.3 (Machine API)

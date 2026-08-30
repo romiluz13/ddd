@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-DDD is a methodology where documentation is the source of truth and code must be provable against docs. The DDD project itself consists of a normative specification (SPEC.md) and 10 Agent Skills that implement it. To improve DDD, we should use DDD on itself — treating the SKILL.md files as "code" that must be traced to claims in SPEC.md.
+DDD is a methodology where documentation is the source of truth and code must be provable against docs. The DDD project itself consists of a normative specification (SPEC.md) and 12 Agent Skills that implement it. To improve DDD, we should use DDD on itself — treating the SKILL.md files as "code" that must be traced to claims in SPEC.md.
 
 This is meta-recursion: DDD governs its own improvement. The skills are installed to `.factory/skills/` and are available for Droid to invoke.
 

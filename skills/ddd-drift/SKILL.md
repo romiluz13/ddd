@@ -1,9 +1,7 @@
 ---
 name: ddd-drift
 description: >
-  Drift detection for DDD. Scans seven dimensions: evidence, documentation, decision, control,
-  code, project context, and cache drift. Produces severity-classified drift reports with
-  routing recommendations. Use for scheduled drift checks, after external documentation
+  Use for scheduled drift checks (CI cron, pre-commit, on-demand), after external documentation
   updates, before Book release, or when troubleshooting unexplained behavior.
 metadata:
   author: ddd-methodology
@@ -14,7 +12,7 @@ metadata:
 
 **DRIFT IS INEVITABLE. UNDETECTED DRIFT IS A SILENT CONFORMANCE FAILURE.**
 
-Detect evidence, documentation, decision, control, code, project context, and cache drift.
+Core principle: Evidence, docs, and code drift apart over time. Detecting drift early prevents silent conformance failure.
 
 ## When to invoke
 
@@ -23,6 +21,11 @@ Detect evidence, documentation, decision, control, code, project context, and ca
 - After significant code changes outside DDD scope
 - When troubleshooting unexplained behavior
 - Before releasing a new Book version
+
+### When NOT to use
+
+- As a substitute for compliance verification — use `ddd-verify` for change-level checking
+- For a single change's conformance — drift is systemic and scheduled, not per-change
 
 ## What it does
 
@@ -64,9 +67,9 @@ recommended_action: "Re-evaluate claims citing EL-003. Update evidence lock."
 | `medium` | Freshness expired, minor doc mismatch, uncompiled obligation |
 | `low` | Cosmetic drift, grandfathered code minor change |
 
-## Good vs bad drift check
+## Examples
 
-**Good**:
+<Good>
 ```
 Evidence drift: EL-003 (Next.js docs) — re-fetched, digest changed
 → New content contradicts C-055 ("fetch caches by default")
@@ -75,7 +78,9 @@ Evidence drift: EL-003 (Next.js docs) — re-fetched, digest changed
 → Route to ddd-scope for re-acquisition
 ```
 
-**Bad**:
+</Good>
+
+<Bad>
 ```
 Evidence drift: EL-003 — "source probably changed, I'll just re-lock it"
 → No digest comparison
@@ -83,6 +88,7 @@ Evidence drift: EL-003 — "source probably changed, I'll just re-lock it"
 → No lifecycle re-entry
 → Silent conformance failure: claims may be unfounded but still active
 ```
+</Bad>
 
 ## Rationalization table
 

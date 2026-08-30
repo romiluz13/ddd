@@ -1,6 +1,6 @@
 # DDD: Docs-Driven Development for Agentic Engineering
 
-**Version:** 0.3.0-draft
+**Version:** 0.3.1-draft
 **Status:** Draft for review
 **Date:** 2026-08-30
 **Machine identifier:** `docs-driven-development`
@@ -411,6 +411,8 @@ constraints: constraints.yaml
 ```
 
 A released Book version is identifiable by its manifest and content digests. A code revision MAY declare which Book version governed it.
+
+**Manifest digest computation:** The `manifest_digest` is the SHA-256 hash of the canonical serialization of all referenced artifact digests. The canonical serialization is: for each artifact referenced in the manifest (in the order: SPEC.md, CONTEXT.md, AGENTS.md, SKILLS.md, then each skill in directory order, then each reference file in directory order), output the raw SHA-256 hex digest (without the `sha256:` prefix) followed by a newline character (`\n`). Compute `sha256:` + SHA-256 of the resulting bytes. The manifest digest line itself is excluded from the computation.
 
 ### 7.3 Evidence lock (`evidence.lock`)
 
@@ -958,6 +960,21 @@ UNSCOPED → EVIDENCE_REQUIRED → EVIDENCE_LOCKED → IMPLEMENTING → VERIFYIN
 **Re-entry after evidence changes:** Only changes that depend on the invalidated evidence lock entry are affected. Unrelated changes are not disrupted. When an evidence lock entry is superseded, all claims depending on that entry are flagged. The affected change returns to `UNSCOPED` if the new content contradicts existing claims, or to `EVIDENCE_LOCKED` if the new content is consistent (just a version refresh).
 
 A CI gate MAY verify that every change reaches `CONFORMANT` or `WAIVED` before merge in the Lite profile. In the Assurance profile, a CI gate MUST verify this.
+
+### 8.4 Drift dimensions
+Drift detection (`ddd-drift`) scans seven dimensions. Each dimension has a trigger, a check, and a remediation:
+
+| # | Dimension | Trigger | Check | Remediation |
+|---|---|---|---|---|
+| D1 | Evidence | Evidence lock entry freshness expired | Compare `retrieved_at` + `freshness` against current date; re-fetch and compare `content_digest` | Re-lock if content unchanged; re-scope if content changed |
+| D2 | Documentation | Spec or skill content changed since last sweep | Compare artifact digests in `book.yaml` against current file digests | Re-run compliance sweep; update traces |
+| D3 | Decision | ADRs or tournament records contradicted by newer decisions | Check for `superseded_by` chains and unresolved contradictions | Re-open decision or record exception |
+| D4 | Control | Compiled controls diverged from obligation IR | Re-compile controls and compare against deployed versions | Recompile and redeploy |
+| D5 | Code | Code constructs no longer match traced claims | Reverse sweep: enumerate constructs, check each has a valid trace | Re-ground or retract |
+| D6 | Project context | `project-context.yaml` diverged from actual stack | Re-run stack detection and compare against recorded context | Re-scope affected evidence and claims |
+| D7 | Cache | Cache entries corrupted or mismatched against evidence lock | Compare cache file hashes against evidence lock `content_digest` values | Evict and re-fetch corrupted entries |
+
+A drift check MUST scan all seven dimensions. Critical drift findings (D1 content mismatch, D5 undocumented construct, D7 cache corruption) SHOULD block Book release. Drift checks MUST run before Book release in the Assurance profile.
 
 ---
 
@@ -1744,6 +1761,7 @@ For teams and high-risk work:
 - CI-enforced gates (Compliance Sweep must pass)
 - Role separation enforced (6.2)
 - Continuous drift monitoring (V3; V1 and V2 use scheduled freshness checks only)
+- Drift check MUST run before Book release; critical findings SHOULD block release (§8.4)
 
 ### 16.3 Risk override
 
@@ -1940,7 +1958,7 @@ A DDD conformance test suite SHOULD include:
 - Control Obligation IR
 - Toolchain adapters (ESLint, Semgrep, ArchUnit, contract tests, OPA, CI gates)
 - Mutation validation of generated controls
-- Drift monitoring (evidence, documentation, decisions, controls, code) — supersedes V1 scheduled freshness checks with continuous detection
+- Drift monitoring across 7 dimensions (see §8.4) — supersedes V1 scheduled freshness checks with continuous detection
 - Selective formal verification for T3 claims
 
 **Value delivered:** Documentary rules become machine-enforceable. Drift between docs and code is detected automatically. High-risk claims have formal or adversarial verification.
@@ -2167,7 +2185,7 @@ These are two distinct events:
 | Skill | Capabilities |
 |---|---|
 | `ddd-controls` | Compile and validate Control Obligations into executable guardrails |
-| `ddd-drift` | Detect evidence, documentation, decision, control, and code drift |
+| `ddd-drift` | Detect drift across 7 dimensions: evidence, documentation, decision, control, code, project context, and cache |
 
 ### A.5 Design notes
 
@@ -2175,6 +2193,28 @@ These are two distinct events:
 - Consolidating the public skills does not produce monolithic prompts
 - Adapters are integrations, not skills
 - A stable machine API beneath skills allows existing harnesses to invoke individual primitives
+
+### A.6 Skill-authoring conventions
+
+Every DDD skill MUST follow these structural conventions. They are normative — a skill that omits any of them is non-conformant.
+
+1. **Iron-law banner**: The first content after the frontmatter is a one-line, all-caps banner stating the skill's governing rule (e.g., "NO CODE WITHOUT STACK-DETECTED, VERSION-MATCHED EVIDENCE."). This is the skill's non-negotiable constraint.
+
+2. **Core principle**: Immediately after the iron-law banner, a one-line `Core principle:` statement distilling the skill's essential insight. This is the single sentence an agent should internalize.
+
+3. **"Use when..." description**: The frontmatter `description` field MUST be a pure trigger condition ("Use when..."), not a workflow summary. This enables skill discovery optimization (SDO) — agents match on situational triggers, not capability lists.
+
+4. **"When NOT to use" section**: Every skill MUST include a `### When NOT to use` subsection with exclusion criteria and routing guidance to the correct skill. This prevents misapplication.
+
+5. **Examples with `<Good>`/`<Bad>` tags**: Every skill that has behavioral examples MUST format them as `<Good>`...`</Good>` and `<Bad>`...`</Bad>` blocks under an `## Examples` heading. This makes correct and incorrect patterns visually unambiguous.
+
+6. **Rationalization table**: Every skill MUST include a `## Rationalization table` mapping common excuses to reality. This operationalizes the anti-Goodhart principle (§14.4) at the skill level.
+
+7. **Self-improvement loop**: Every skill MUST include a `## Self-improvement` section with 2-3 questions the agent asks itself after execution. This closes the feedback loop per §18.1.
+
+8. **Spec reference footer**: Every skill MUST include a `## Spec reference` section listing the SPEC.md sections it implements. This is the mechanism making skill→spec traceability auditable.
+
+9. **Spirit-vs-letter principle**: Gate-enforcing skills (ddd-scope, ddd-ground, ddd-verify, ddd-exception, ddd-refute, ddd-controls) MUST state: "Violating the letter of the rules is violating the spirit of the rules." This prevents rules-lawyering that technically complies but undermines intent.
 
 ---
 
@@ -2218,3 +2258,4 @@ Key statistics motivating this methodology, with bibliographic provenance:
 | 0.2.5-draft | 2026-08-29 | Applied 3 final freeze blockers: fixed CONFORMANT definition to permit T0/T1 non-blocking exceptions, revised §5.4 to accept repository_path+commit or experiment_result_hash as version record for project-doc and experiment sources (not just version field), added t0_classification (claim_kind, impact, derived_tier) to T0 scope record schema for auditability. |
 | 0.2.6-draft | 2026-08-29 | Aligned §5.2 provenance table with §5.4: version now required for standard sources, doc_version now required for project-doc sources. |
 | 0.3.0-draft | 2026-08-30 | Major update from adversarial review (5 devil's advocate subagents). Added: §4.2.2 T1 fast path, §5.1 cross-document constraints and dependency version conflict claim domains, §5.2 code-derived source class, §7.2 project_context and constraints pointers, §7.6.11 project context record, §7.6.12 domain model record, §7.6.13 cross-document constraint record, §9.1 expanded taxonomy (10→18 dimensions), §9.1a taxonomy extension process, §9.7 expanded adapters + cache policy + access-control provenance, §9.8 stack detection, §9.9 dependency enumeration, §9.10 tribal knowledge elicitation, §9.11 code-derived artifacts as L0 evidence, §9.3 knowledge map package linking fields, §13.4 operationalized citation entailment procedure, §13.6 test-code traceability, §14.5 claim retraction, §17.4 monorepo scoping, §17.5 incident/postmortem feedback loop, §7.7 README/onboarding governance. Added ddd-model and ddd-audit skills to Annex A. |
+| 0.3.1-draft | 2026-08-30 | Dogfooding fixes from 5 subagent reviewers (ddd-scope, ddd-verify, ddd-refute, ddd-drift, ddd-audit). Added: §8.4 drift dimensions (7-dimension normative model with remediation table), §A.6 skill-authoring conventions (9 mandatory patterns: iron-law banner, core principle, Use-when description, When NOT to use, Good/Bad examples, rationalization table, self-improvement loop, spec reference footer, spirit-vs-letter principle), manifest_digest canonical serialization definition in §7.2, pre-release drift gate in §16.2. Fixed: C-022 citation re-anchored to §8.4, C-024 source ref anchored to §17.3, C-012/C-013 spec reference footer expanded, C-027 added for ddd-decide tournament protocol. |

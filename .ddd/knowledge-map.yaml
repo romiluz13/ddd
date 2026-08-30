@@ -31,7 +31,7 @@ domains:
     authority_type: external-tool
     confidence: high
     risk_if_omitted: "Skills not discoverable or installable"
-    evidence: []
+    evidence: [EL-002]
     gaps: []
 
   - id: ddd-methodology
@@ -76,9 +76,8 @@ domains:
     authority_type: best-practice
     confidence: medium
     risk_if_omitted: "Skills don't activate or execute correctly"
-    evidence: []
-    gaps:
-      - "No reference files for any skill (all content inline)"
+    evidence: [EL-001]
+    gaps: []
 
   - id: stack-detection
     name: "Stack Detection and Project Context"
@@ -133,8 +132,7 @@ domains:
     authority_type: project-spec
     confidence: high
     risk_if_omitted: "Agent uses wrong API version, hallucinates deprecated methods"
-    package: null
-    installed_version: null
+    linked_packages: []
     evidence: []
     gaps: []
 
@@ -158,7 +156,7 @@ domains:
     questions:
       - "Has any evidence source become stale?"
       - "Has the project context changed without Book update?"
-      "Has the cache become inconsistent?"
+      - "Has the cache become inconsistent?"
     expected_decisions: ["Drift remediation", "Re-scoping"]
     authority_type: project-spec
     confidence: high
@@ -176,5 +174,7 @@ gaps:
   - domain: technical-writing
     description: "No reference files — all content inline in SKILL.md"
     severity: low
+    status: resolved
+    resolution: "9 reference files created across skills in v0.3.0 leaner-and-guiding update"
 
-updated_at: "2026-08-30T00:00:00Z"
+updated_at: "2026-08-30T13:00:00Z"

@@ -155,7 +155,7 @@ A minimal CLI implementing these primitives is in [`cli/`](./cli/).
 
 ## Specification
 
-The full normative specification is in [`SPEC.md`](./SPEC.md) (v0.3.0-draft). It includes:
+The full normative specification is in [`SPEC.md`](./SPEC.md) (v0.3.1-draft). It includes:
 
 - 20 sections + 2 annexes
 - Two-axis risk model (claim_kind × impact → tier T0–T3)

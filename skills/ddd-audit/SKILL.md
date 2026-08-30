@@ -1,10 +1,9 @@
 ---
 name: ddd-audit
 description: >
-  Retroactive audit skill for DDD. Builds a constitution draft for existing (brownfield) code
-  by extracting claims from code behavior, matching them to existing docs and ADRs, and
-  flagging gaps and contradictions. Use when adopting DDD on an existing codebase, when
-  assessing legacy documentation debt, or when producing a coverage report for brownfield code.
+  Use when adopting DDD on an existing codebase, assessing legacy documentation debt,
+  producing a coverage report for brownfield code, or preparing a migration plan from
+  non-DDD to DDD-governed development.
 metadata:
   author: ddd-methodology
   version: "0.3.0"
@@ -14,7 +13,7 @@ metadata:
 
 **EXISTING CODE HAS BEHAVIOR. BEHAVIOR WITHOUT DOCUMENTATION IS A GAP. GAPS MUST BE VISIBLE.**
 
-Retroactively build a DDD constitution draft for existing (brownfield) code.
+Core principle: Brownfield code already has behavior. The audit makes that behavior visible as claims, then checks if documentation supports them.
 
 ## When to invoke
 
@@ -23,6 +22,12 @@ Retroactively build a DDD constitution draft for existing (brownfield) code.
 - Producing a coverage report for grandfathered code
 - When `ddd-book` initialization finds existing code without DDD coverage
 - When preparing a migration plan from non-DDD to DDD-governed development
+
+### When NOT to use
+
+- Greenfield projects with no existing code — use `ddd-book` to initialize instead
+- Code already under DDD governance — use `ddd-verify` for conformance checking
+- A single change's compliance — use `ddd-verify`
 
 ## What it does
 
@@ -72,9 +77,9 @@ From the audit results: create `book.yaml`, `knowledge-map.yaml`, `claims.yaml`,
 | **P2** | Medium-severity gaps, missing docs for internal utilities |
 | **P3** | Low-severity gaps in non-consequential code |
 
-## Good vs bad audit
+## Examples
 
-**Good**:
+<Good>
 ```
 Total symbols: 450, significant: 120, claims extracted: 85
 Coverage: 38% (32 with evidence, 53 without)
@@ -84,7 +89,9 @@ P1: Acquire retry pattern docs for OrderRepository
 → Draft Book created, exceptions for all gaps, remediation plan clear
 ```
 
-**Bad**:
+</Good>
+
+<Bad>
 ```
 Total symbols: 450, claims extracted: 10 (only "obvious" ones)
 Coverage: "looks good" (no percentage)
@@ -92,6 +99,7 @@ Contradictions: "none" (didn't check ADRs against code)
 No prioritization
 → Audit missed 90% of constructs, gaps invisible, contradictions hidden
 ```
+</Bad>
 
 ## Rationalization table
 

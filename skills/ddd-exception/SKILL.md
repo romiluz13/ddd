@@ -1,10 +1,9 @@
 ---
 name: ddd-exception
 description: >
-  Exception management for DDD. Records, reviews, escalates, and resolves epistemic gaps
-  using a risk-based escalation model. Use when a consequential claim has no supporting
-  documentation, sources conflict, runtime behavior differs from documented behavior,
-  or a gap is discovered during reverse sweep.
+  Use when a consequential claim has no supporting documentation, sources conflict,
+  runtime behavior differs from documented behavior, or a gap is discovered during
+  reverse sweep.
 metadata:
   author: ddd-methodology
   version: "0.3.0"
@@ -14,7 +13,9 @@ metadata:
 
 **HONEST GAPS BEAT FABRICATED CITATIONS. EVERY EXCEPTION RECORDS WHAT WAS SEARCHED.**
 
-Record, review, escalate, and resolve epistemic gaps.
+Core principle: Gaps are inevitable. Hidden gaps are conformance failures. Recording what was searched makes gaps honest and actionable.
+
+Violating the letter of the rules is violating the spirit of the rules.
 
 ## When to invoke
 
@@ -24,6 +25,12 @@ Record, review, escalate, and resolve epistemic gaps.
 - A gap is discovered during reverse sweep
 - An experiment produces behavior not covered by official docs
 - A human approves proceeding under known risk
+
+### When NOT to use
+
+- The claim has supporting evidence — no gap means no exception needed
+- As a shortcut to avoid evidence gathering — run `ddd-scope` instead
+- For T0 claims with no impact — T0 exceptions are non-blocking but still require a search record
 
 ## What it does
 
@@ -76,9 +83,9 @@ Create approval record with approver, rationale, and `risk_accepted: true`. Upda
 - Design changes to eliminate gap → supersede exception
 - Exception rejected → set `status: rejected`
 
-## Good vs bad exceptions
+## Examples
 
-**Good**:
+<Good>
 ```
 Type: unknown
 Search record: "Checked: Next.js docs v15.1, React docs, GitHub issues #1234, Stack Overflow. None mention this edge case."
@@ -86,7 +93,9 @@ Rationale: "Behavior observed in production but not documented. Risk accepted fo
 Status: approved (agent, T1 non-blocking)
 ```
 
-**Bad**:
+</Good>
+
+<Bad>
 ```
 Type: unknown
 Search record: "" (empty)
@@ -94,6 +103,7 @@ Rationale: "Couldn't find docs"
 Status: pending-approval
 → Conformance failure: no search_record. This is citation fabrication, not an honest gap.
 ```
+</Bad>
 
 ## Rationalization table
 

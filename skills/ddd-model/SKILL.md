@@ -1,10 +1,8 @@
 ---
 name: ddd-model
 description: >
-  Domain modeling skill for DDD. Creates and maintains domain models (state machines,
-  aggregates, entities, value objects, threat models, architecture models) in .ddd/models/.
-  Use when designing domain logic, modeling state transitions, creating aggregate boundaries,
-  performing threat analysis, or documenting system architecture.
+  Use when designing domain logic with state transitions or invariants, creating aggregate
+  boundaries, performing threat analysis (STRIDE), or documenting system architecture.
 metadata:
   author: ddd-methodology
   version: "0.3.0"
@@ -14,7 +12,7 @@ metadata:
 
 **MODELS GROUND DECISIONS. DECISIONS GROUND CLAIMS. CLAIMS GROUND CODE. NO MODEL WITHOUT EVIDENCE.**
 
-Create and maintain domain models in `.ddd/models/`.
+Core principle: Models are the bridge between domain knowledge and code. They make state, invariants, and threats explicit and traceable.
 
 ## When to invoke
 
@@ -25,6 +23,12 @@ Create and maintain domain models in `.ddd/models/`.
 - When `ddd-scope` identifies domain-modeling or threat-modeling knowledge domains
 - When `ddd-book` initialization detects domain code without existing models
 - When `ddd-ground` needs a model to ground claims about domain behavior
+
+### When NOT to use
+
+- Simple CRUD without state transitions or invariants — no model needed
+- No evidence exists for the domain — route to `ddd-scope` to acquire evidence first
+- The model would duplicate an existing model in `.ddd/models/` — update the existing one instead
 
 ## What it does
 
@@ -78,9 +82,9 @@ Claims about state transitions, invariants, and domain rules MUST reference the 
 
 Record the domain model in the knowledge map with domain, evidence, and gaps.
 
-## Good vs bad models
+## Examples
 
-**Good**:
+<Good>
 ```
 Model: DM-001 "Order lifecycle" (state-machine)
 Sources: EL-002#domain-model (authoritative), CONTEXT.md#Order (product)
@@ -91,7 +95,9 @@ Linked passport: order.aggregate
 Evidence: version-matched, domain-authoritative
 ```
 
-**Bad**:
+</Good>
+
+<Bad>
 ```
 Model: DM-001 "Order lifecycle" (state-machine)
 Sources: none (designed from memory)
@@ -102,6 +108,7 @@ Linked passport: none
 → No evidence, contradicts domain rules (SHIPPED orders can't be cancelled),
   no links to claims or passports. Model is ungrounded and wrong.
 ```
+</Bad>
 
 ## Rationalization table
 

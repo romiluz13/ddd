@@ -7,15 +7,15 @@ version: 0.1.0
 released_at: null
 
 # Manifest digest — computed from all referenced artifact digests
-manifest_digest: sha256:2041ec62b87c932c1d71b1f521dab458c645bff993c6c21882e70937f6a04b3d
+manifest_digest: sha256:906e0a17dd6c0eb2ed8b70d04de5b6d9d5f0cd8ac4f5cadefa4b80808fad097d
 
 # Project requirements (human-approved product/engineering docs)
 requirements:
   - path: SPEC.md
     authority: product-approved
     independence: agent-proposed-human-approved
-    digest: sha256:629de7d1e504dfd10474a9775f9e48aac9d3ee5f70a5dc29346175d1a1ab34fa
-    description: "Normative DDD specification, v0.3.0-draft"
+    digest: sha256:ab6b53d16d71a00ffc446a6455f6a4c476f102f56a4e74cd1cee87ac5fd16743
+    description: "Normative DDD specification, v0.3.1-draft"
 
   - path: CONTEXT.md
     authority: product-approved
@@ -35,7 +35,7 @@ agent_context:
   - path: AGENTS.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:554fbed780c28571dfc79a8ffbc34ab497f74934abf30070d1d117f3e55d275e
+    digest: sha256:20f64b8b918c266a250351dce7d94c2b8dcd0c3e7bb4109a43eb85c379e28e89
     description: "Agent runtime instructions and project structure"
 
   - path: SKILLS.md
@@ -47,13 +47,13 @@ agent_context:
   - path: skills/ddd/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:8d6b9c451d8fa98872a048546b2987c15238e35776d3e4386f1dfc8528606ad3
+    digest: sha256:227745b79742622596208945ffd33a3b5a4f67c30f733f4bff02deb7fb53db3f
     description: "Router skill (narrative, iron law, rationalization table)"
 
   - path: skills/ddd-scope/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:98c684b8ffb582c88b358802f59f88ca6f2800e02575929fdae91fc5d3b65b0d
+    digest: sha256:0a58b1d7ae7356fc115751d7817925a66061c929ef2e88989c10ae8c76109812
     description: "Evidence Scope gate (lean, references for detail)"
 
   - path: skills/ddd-scope/references/stack-detection.md
@@ -71,7 +71,7 @@ agent_context:
   - path: skills/ddd-book/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:d2b3a1a0c3e095195f3c6ce1596b2b002f7bb3d3508f0a46c6caa9e2cbc862ea
+    digest: sha256:d6503c6f2eb658aaae81ab1d1787d75cee52c84c43e2f0bd09875bfeb601a367
     description: "Book management + project context (lean, references for detail)"
 
   - path: skills/ddd-book/references/passport-schema.md
@@ -83,13 +83,13 @@ agent_context:
   - path: skills/ddd-ground/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:1b9820fee53aeb56de5064187c25b5faf554e3c7a3e1c73fa283b9ce3d9a1294
+    digest: sha256:4ecaf8ff423f4756cd9f85fd61a0db22c1bca4ab9ac3dc3c5b5fdf286104f452
     description: "Evidence Lock gate (iron law, examples, rationalization)"
 
   - path: skills/ddd-verify/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:e136e8e5f81012e81c3dc7e66a6af3b41910e917d2dca28b0bf4908af854822d
+    digest: sha256:6883b477476127fb52c3338c9a5cc093ed2f1cc25e146b9b002868c502c49a67
     description: "Compliance Sweep gate (lean, references for detail)"
 
   - path: skills/ddd-verify/references/citation-entailment.md
@@ -107,7 +107,7 @@ agent_context:
   - path: skills/ddd-exception/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:77cfe96f98036b14eb08f2ce01efaf15761912fd458c8af5eb23e72de1e970e7
+    digest: sha256:725e18d49feb282227c872007214af6dd58c56917ac564051fdaec8c5a83d391
     description: "Exception management + claim retraction (lean, references for detail)"
 
   - path: skills/ddd-exception/references/exception-types.md
@@ -119,25 +119,25 @@ agent_context:
   - path: skills/ddd-decide/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:8537e175e6871c2f595459d2f53bd907769bbccd28881e2abc708d803d061286
+    digest: sha256:5ce6a2e0b395efd255326ff098d6f1baf2fc85f2807860ccd952b60ee0426838
     description: "Design tournament (V2, iron law, examples, rationalization)"
 
   - path: skills/ddd-refute/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:39ee5b9c72d800e9bfe1fa24a62c3d9748cd622c32e9b4693c0560a1d44a67ae
+    digest: sha256:f0c7881a4fd45abc2b5276c79e47b932123d33dde83cfff9f13d0fc5a179abe6
     description: "Adversarial review (V2, iron law, examples, rationalization)"
 
   - path: skills/ddd-controls/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:e34bd2c3d91c0242fadd31969bb24278e00a86af2dffcdda8c55f63dbdbe559d
+    digest: sha256:558029c08c112185b63450eead2bc7a780c23c233984e9e6e158b7bf1f5739f5
     description: "Control compilation (V3, iron law, examples, rationalization)"
 
   - path: skills/ddd-drift/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:5c6f2811503735834ea4e36f26d964f91d1a541e461b8f5dc0365f51d34dffc2
+    digest: sha256:a91b61f58a848cd65ce65023aeff46113770db0fea424d50e9bc62c26b60ff02
     description: "Drift detection (V3, lean, references for detail, 7 dimensions)"
 
   - path: skills/ddd-drift/references/drift-dimensions.md
@@ -149,7 +149,7 @@ agent_context:
   - path: skills/ddd-model/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:45a050e159faec816e53e90d9a099193448d0fd173938148db14c5744c0f0fdb
+    digest: sha256:e87c44c6096bcbbfb63c35c9407913c2244cf00951f373ed7c93577735b6f53d
     description: "Domain modeling (V1, lean, references for detail)"
 
   - path: skills/ddd-model/references/model-schemas.md
@@ -161,7 +161,7 @@ agent_context:
   - path: skills/ddd-audit/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:ffe84b9b5a5eca59d61d07446be02a68126b6afac8e45e5359c40d4d491becd7
+    digest: sha256:2b9abf65b482422489a6b97654ecf058d3cbd1fe698cbeff05cc3390afe092e1
     description: "Brownfield code audit (V1, lean, references for detail)"
 
   - path: skills/ddd-audit/references/audit-phases.md
@@ -178,7 +178,7 @@ project_context: project-context.yaml
 constraints: constraints.yaml
 
 # DDD metadata
-ddd_spec_version: 0.3.0
+ddd_spec_version: 0.3.1
 profile: assurance
 
 # Coverage — all symbols are DDD-governed (this IS the DDD project)

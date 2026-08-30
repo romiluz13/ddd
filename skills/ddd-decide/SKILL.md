@@ -1,10 +1,9 @@
 ---
 name: ddd-decide
 description: >
-  Grounded design tournament for DDD. Runs a structured multi-alternative evaluation with
-  predeclared weighted criteria, jury structure, and negative knowledge preservation.
   Use when a decision is architecturally consequential, security-sensitive, expensive to
-  reverse, or supported by multiple plausible methodologies.
+  reverse, supported by multiple plausible methodologies, or based on uncertain or
+  conflicting evidence.
 metadata:
   author: ddd-methodology
   version: "0.3.0"
@@ -14,7 +13,7 @@ metadata:
 
 **NO DECISION WITHOUT ALTERNATIVES. NO ALTERNATIVE WITHOUT EVIDENCE. NO SELECTION WITHOUT CRITERIA.**
 
-Run a grounded design tournament, produce the selected ADR and rejected alternatives.
+Core principle: Consequential decisions deserve structured evaluation, not intuitive selection. Alternatives and predeclared criteria prevent rationalization.
 
 ## When to invoke
 
@@ -27,6 +26,12 @@ A tournament is **required** when a decision is (SPEC.md §10.1):
 - Likely to shape many future objects
 
 A tournament MUST NOT run for naming variables, ordinary CRUD, or settled project conventions.
+
+### When NOT to use
+
+- Naming variables, choosing utility names, or ordinary CRUD operations
+- The decision has only one viable option that satisfies all constraints — document it as an ADR without a tournament
+- Settled project conventions already covered by an existing ADR
 
 ## What it does
 
@@ -81,9 +86,9 @@ When evidence cannot settle a dispute, authorize a bounded spike, benchmark, or 
 
 Rejected designs are summarized in the ADR: why they lost, which assumptions mattered, under what future conditions they should be reconsidered.
 
-## Good vs bad tournament
+## Examples
 
-**Good**:
+<Good>
 ```
 Decision: Caching strategy for product catalog
 Alternatives: (1) in-memory TTL, (2) Redis with invalidation, (3) stale-while-revalidate with ISR
@@ -93,7 +98,9 @@ Winner: (3) — satisfies constraint, best balance, strongest docs
 Negative knowledge: Redis rejected due to V1 infra boundary, reconsider when Redis adopted
 ```
 
-**Bad**:
+</Good>
+
+<Bad>
 ```
 Decision: Caching strategy
 Alternatives: (1) "use Redis" (2) "use cache" (vague, no evidence)
@@ -103,6 +110,7 @@ Winner: (1) because "Redis is popular"
 No negative knowledge recorded
 → No evidence, no criteria, no learning. Tournament violated.
 ```
+</Bad>
 
 ## Rationalization table
 

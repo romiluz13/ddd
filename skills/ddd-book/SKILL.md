@@ -1,10 +1,8 @@
 ---
 name: ddd-book
 description: >
-  Initialize, synchronize, validate, and release the DDD Project Engineering Book.
-  Manages the Book manifest, project context (tech stack detection), Knowledge Map,
-  object passports, and artifact references. Use when initializing DDD on a new project,
-  adding or updating Book references, releasing a Book version, or managing object passports.
+  Use when initializing DDD on a new project, adding or updating Book references,
+  releasing a Book version, managing object passports, or when the project stack changes.
 metadata:
   author: ddd-methodology
   version: "0.3.0"
@@ -14,7 +12,7 @@ metadata:
 
 **THE BOOK IS THE SOURCE OF TRUTH. IF IT'S NOT IN THE BOOK, IT DOESN'T EXIST.**
 
-Initialize, synchronize, validate, and release the Project Engineering Book. Detect project stack, manage project context, Knowledge Map, passports, and artifact references.
+Core principle: The Book is the single index of all engineering knowledge. If it's not indexed, it's not governed.
 
 ## When to invoke
 
@@ -25,6 +23,12 @@ Initialize, synchronize, validate, and release the Project Engineering Book. Det
 - Synchronizing the Book with existing project artifacts (ADRs, CONTEXT.md, AGENTS.md)
 - Validating Book integrity
 - When the project stack changes (new dependency, framework upgrade, database change)
+
+### When NOT to use
+
+- Managing a specific change's evidence — use `ddd-scope`
+- Verifying conformance of a change — use `ddd-verify`
+- Auditing existing code for documentation debt — use `ddd-audit`
 
 ## What it does
 
@@ -79,9 +83,9 @@ Passports SHOULD reference domain models via `domain_sources` when a model exist
 | Decisions | `.ddd/decisions/` | DDD decisions (ADRs) |
 | Models | `.ddd/models/` | Domain, state, threat, architecture models |
 
-## Good vs bad initialization
+## Examples
 
-**Good**:
+<Good>
 ```
 Stack detection: package.json → next@15.1.0, package-lock.json → exact versions
 project-context.yaml: { language: TypeScript, framework: Next.js 15.1.0, database: PostgreSQL 16 }
@@ -89,13 +93,16 @@ Independence levels: ADR-007 → project-authoritative, vendor docs → external
 Profile: Lite (no T3 claims expected)
 ```
 
-**Bad**:
+</Good>
+
+<Bad>
 ```
 Stack detection: "It's a React app" (from memory, no file scan)
 project-context.yaml: { language: JavaScript, framework: React } (no versions)
 Independence levels: all "agent-proposed" (no authority distinction)
 Profile: unset
 ```
+</Bad>
 
 ## Rationalization table
 

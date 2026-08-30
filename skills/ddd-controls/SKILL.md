@@ -1,10 +1,9 @@
 ---
 name: ddd-controls
 description: >
-  Compiles and validates DDD Control Obligations into executable guardrails. Selects trusted
-  adapters, generates controls, runs the three-check validation protocol, and sets enforcement
-  levels. Use when a control obligation needs enforcement, new obligations are created from ADRs,
-  or drift detection identifies control drift.
+  Use when a control obligation needs enforcement, new obligations are created from ADRs or
+  documentation, existing controls need recompilation, or drift detection identifies control
+  drift.
 metadata:
   author: ddd-methodology
   version: "0.3.0"
@@ -14,7 +13,9 @@ metadata:
 
 **NEVER CLAIM PROSE HAS BECOME EXECUTABLE WHEN NO GATE EXISTS.**
 
-Compile and validate Control Obligations into executable guardrails.
+Core principle: Documentation rules become enforceable only when compiled into automated gates. Uncompiled obligations are recipes, not controls.
+
+Violating the letter of the rules is violating the spirit of the rules.
 
 ## When to invoke
 
@@ -22,6 +23,11 @@ Compile and validate Control Obligations into executable guardrails.
 - New obligations are created from ADRs or documentation
 - Existing controls need recompilation after obligation changes
 - Drift detection (`ddd-drift`) identifies control drift
+
+### When NOT to use
+
+- Obligations have not been extracted yet — route to `ddd-ground` first
+- No trusted adapter is available — emit a recipe and mark as `uncompiled` instead of claiming enforcement
 
 ## What it does
 
@@ -94,9 +100,9 @@ uncompiled_reason: "dependency-cruiser not installed in project"
 
 Update obligation record with compilation status. Level 4+ controls MUST run in CI and block on failure. Control failures MUST reference the obligation ID.
 
-## Good vs bad controls
+## Examples
 
-**Good**:
+<Good>
 ```
 Obligation: order.no-direct-payment-gateway
 Adapter: dependency-cruiser (installed, trusted)
@@ -106,7 +112,9 @@ Level: 4 (blocking in CI)
 Status: compiled
 ```
 
-**Bad**:
+</Good>
+
+<Bad>
 ```
 Obligation: order.no-direct-payment-gateway
 Adapter: "we'll check in code review" (no tool)
@@ -116,6 +124,7 @@ Level: 1 (documented only)
 Status: "compiled" (claimed but no gate exists)
 → Generation boundary violation. Prose is not executable.
 ```
+</Bad>
 
 ## Rationalization table
 

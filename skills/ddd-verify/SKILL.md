@@ -1,10 +1,8 @@
 ---
 name: ddd-verify
 description: >
-  Compliance Sweep gate for DDD. Performs forward and reverse traceability sweeps,
-  citation entailment checks, and conformance determination. Use when implementation
-  is declared complete, before merge to verify conformance, when auditing DDD
-  compliance, or after evidence changes.
+  Use when implementation is declared complete, before merge to verify conformance,
+  when auditing DDD compliance, or after evidence changes require re-verification.
 metadata:
   author: ddd-methodology
   version: "0.3.0"
@@ -14,7 +12,9 @@ metadata:
 
 **IF IT'S NOT TRACED, IT DOESN'T EXIST. IF IT'S NOT ENTAILED, IT'S NOT SUPPORTED.**
 
-Forward trace, reverse sweep, evidence entailment, gate and conformance audit.
+Core principle: Conformance is verified by bidirectional sweep — forward (claims → code) and reverse (code → claims) — plus citation entailment.
+
+Violating the letter of the rules is violating the spirit of the rules.
 
 ## When to invoke
 
@@ -22,6 +22,12 @@ Forward trace, reverse sweep, evidence entailment, gate and conformance audit.
 - Before merge to verify conformance
 - When auditing a project's DDD compliance
 - After evidence changes (re-verification)
+
+### When NOT to use
+
+- Implementation is not yet declared complete — wait, then verify
+- Gathering evidence — use `ddd-scope`
+- Recording a gap — use `ddd-exception`
 
 ## What it does
 
@@ -94,9 +100,9 @@ verdict: CONFORMANT
 
 Assurance profile additionally requires: Assurance Review passed, human approval for high-impact decisions, role separation verified.
 
-## Good vs bad verification
+## Examples
 
-**Good**:
+<Good>
 ```
 Forward: 3 claims, 3 traced, 0 untraced
 Reverse: 5 constructs, 5 documented, 0 undocumented
@@ -104,7 +110,9 @@ Citations: 4 checked, 4 explicit, 0 not-entailed
 Verdict: CONFORMANT
 ```
 
-**Bad**:
+</Good>
+
+<Bad>
 ```
 Forward: 3 claims, 2 traced, 1 untraced (C-055 has no construct)
 Reverse: 5 constructs, 4 documented, 1 undocumented (retry logic has no claim)
@@ -112,6 +120,7 @@ Citations: 4 checked, 3 explicit, 1 not-entailed (source doesn't mention retry)
 Verdict: NONCONFORMANT
 → Fix: add construct for C-055, create claim for retry logic, fix citation for retry
 ```
+</Bad>
 
 ## Rationalization table
 

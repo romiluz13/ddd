@@ -332,7 +332,7 @@ entries:
     statement: "Drift detection MUST check 7 dimensions: evidence, documentation, decision, control, code, project context, and cache"
     rationale: "The original 5 dimensions missed project-context drift and cache corruption"
     sources:
-      - ref: SPEC.md#8.3
+      - ref: SPEC.md#8.4
         authority_domain: traceability
     claim_kind: behavioral
     impact: medium
@@ -362,7 +362,7 @@ entries:
     statement: "Brownfield code adoption MUST use ddd-audit to scan existing code, extract implicit claims, and produce a draft Book"
     rationale: "Existing code makes implicit claims that need to be surfaced and verified"
     sources:
-      - ref: SPEC.md
+      - ref: SPEC.md#17.3
         authority_domain: traceability
     claim_kind: behavioral
     impact: medium
@@ -399,5 +399,20 @@ entries:
     tier: T2
     status: known-and-supported
     constructs: [SPEC.md]
+    validations: []
+    exceptions: []
+
+  - id: C-027
+    schema_version: 0.1.0
+    statement: "Design decisions meeting tournament trigger criteria MUST use a grounded design tournament with 2-3 alternatives, predeclared weighted criteria, and negative-knowledge retention per §10"
+    rationale: "Architecturally consequential decisions evaluated against evidence prevent pattern soup and prefer the simplest sufficient design"
+    sources:
+      - ref: SPEC.md#10
+        authority_domain: decision-intelligence
+    claim_kind: behavioral
+    impact: high
+    tier: T2
+    status: known-and-supported
+    constructs: [skills/ddd-decide/SKILL.md]
     validations: []
     exceptions: []
