@@ -7,7 +7,7 @@ description: >
   or a gap is discovered during reverse sweep.
 metadata:
   author: ddd-methodology
-  version: "0.2.6"
+  version: "0.3.0"
 ---
 
 # ddd-exception
@@ -140,6 +140,22 @@ When documentation and runtime behavior disagree:
 - Approval records in `.ddd/exceptions/` (or inline)
 - Updated claim status in `.ddd/claims.yaml`
 
+## Claim retraction (SPEC.md §14.5)
+
+A claim MAY be retracted when discovered to be false, superseded, or no longer applicable:
+
+1. Mark the claim with `status: retracted` and add `retracted_at` timestamp
+2. Record `retraction_reason` (e.g., "Evidence source superseded", "Claim found false during refutation")
+3. Identify all constructs tracing to the retracted claim (via trace matrix)
+4. For each affected construct:
+   - If behavior still needed: find or create a replacement claim with valid evidence
+   - If behavior no longer needed: mark construct for removal
+   - If neither: record an exception (type: `unknown`) for the construct
+5. Update the trace matrix
+6. Any change citing the retracted claim MUST return to `UNSCOPED` for re-scoping
+
+A retracted claim MUST NOT be cited by any active construct. A construct still citing a retracted claim is a conformance failure.
+
 ## Spec reference
 
-- SPEC.md §5.5 (Conflict resolution), §7.6.6 (Approval record), §7.6.7 (Exception record), §8.3 (Lifecycle transitions), §14 (Exceptions and Epistemic Gaps), §16 (Conformance Profiles)
+- SPEC.md §5.5 (Conflict resolution), §7.6.6 (Approval record), §7.6.7 (Exception record), §8.3 (Lifecycle transitions), §14 (Exceptions and Epistemic Gaps: §14.1-§14.4 exception types, §14.5 claim retraction), §16 (Conformance Profiles)

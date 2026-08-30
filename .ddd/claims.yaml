@@ -219,3 +219,185 @@ entries:
     constructs: [skills/ddd-book/SKILL.md]
     validations: []
     exceptions: []
+
+  # --- v0.3.0 claims (project personalization + adversarial findings) ---
+
+  - id: C-015
+    schema_version: 0.1.0
+    statement: "DDD MUST detect the project tech stack before classifying changes, recording it in project-context.yaml per §9.8"
+    rationale: "Without stack detection, evidence is acquired for wrong versions and agents hallucinate APIs"
+    sources:
+      - ref: SPEC.md#9.8
+        authority_domain: artifact-schema
+    claim_kind: behavioral
+    impact: high
+    tier: T2
+    status: known-and-supported
+    constructs: [skills/ddd-scope/SKILL.md, skills/ddd-book/SKILL.md]
+    validations: []
+    exceptions: []
+
+  - id: C-016
+    schema_version: 0.1.0
+    statement: "Every direct dependency used by a DDD-governed change MUST have version-matched evidence or an explicit exception per §9.9"
+    rationale: "Dependencies without version-matched evidence lead to hallucinated API usage"
+    sources:
+      - ref: SPEC.md#9.9
+        authority_domain: artifact-schema
+    claim_kind: behavioral
+    impact: high
+    tier: T2
+    status: known-and-supported
+    constructs: [skills/ddd-scope/SKILL.md]
+    validations: []
+    exceptions: []
+
+  - id: C-017
+    schema_version: 0.1.0
+    statement: "The knowledge taxonomy MUST support 18 dimensions per §9.1, with an extension process per §9.1a"
+    rationale: "The original 10 dimensions missed domains like dependency-management, domain-modeling, and drift-detection"
+    sources:
+      - ref: SPEC.md#9.1
+        authority_domain: artifact-schema
+    claim_kind: architectural
+    impact: medium
+    tier: T2
+    status: known-and-supported
+    constructs: [SPEC.md, .ddd/knowledge-map.yaml]
+    validations: []
+    exceptions: []
+
+  - id: C-018
+    schema_version: 0.1.0
+    statement: "Citation entailment MUST be verified by reading the source content directly, not relying on the claim author's summary per §13.4"
+    rationale: "Claims can appear supported but actually misrepresent their sources"
+    sources:
+      - ref: SPEC.md#13.4
+        authority_domain: traceability
+    claim_kind: behavioral
+    impact: high
+    tier: T2
+    status: known-and-supported
+    constructs: [skills/ddd-verify/SKILL.md, skills/ddd-refute/SKILL.md]
+    validations: []
+    exceptions: []
+
+  - id: C-019
+    schema_version: 0.1.0
+    statement: "A T1 fast path MUST be available for changes where all claims are API-level per §4.2.2"
+    rationale: "Full pipeline overhead for simple API calls creates adoption friction"
+    sources:
+      - ref: SPEC.md#4.2.2
+        authority_domain: traceability
+    claim_kind: behavioral
+    impact: medium
+    tier: T2
+    status: known-and-supported
+    constructs: [skills/ddd/SKILL.md, skills/ddd-scope/SKILL.md]
+    validations: []
+    exceptions: []
+
+  - id: C-020
+    schema_version: 0.1.0
+    statement: "Cross-document constraints (runtime incompatibilities, version conflicts) MUST be recorded in constraints.yaml per §7.6.13"
+    rationale: "Undiscovered cross-document constraints cause runtime failures"
+    sources:
+      - ref: SPEC.md#7.6.13
+        authority_domain: artifact-schema
+    claim_kind: behavioral
+    impact: high
+    tier: T2
+    status: known-and-supported
+    constructs: [skills/ddd-scope/SKILL.md, .ddd/constraints.yaml]
+    validations: []
+    exceptions: []
+
+  - id: C-021
+    schema_version: 0.1.0
+    statement: "Claim retraction MUST mark the claim as retracted and re-scope all constructs that cited it per §14.5"
+    rationale: "Retracted claims that remain cited create false conformance"
+    sources:
+      - ref: SPEC.md#14.5
+        authority_domain: traceability
+    claim_kind: behavioral
+    impact: high
+    tier: T2
+    status: known-and-supported
+    constructs: [skills/ddd-exception/SKILL.md]
+    validations: []
+    exceptions: []
+
+  - id: C-022
+    schema_version: 0.1.0
+    statement: "Drift detection MUST check 7 dimensions: evidence, documentation, decision, control, code, project context, and cache"
+    rationale: "The original 5 dimensions missed project-context drift and cache corruption"
+    sources:
+      - ref: SPEC.md#8.3
+        authority_domain: traceability
+    claim_kind: behavioral
+    impact: medium
+    tier: T2
+    status: known-and-supported
+    constructs: [skills/ddd-drift/SKILL.md]
+    validations: []
+    exceptions: []
+
+  - id: C-023
+    schema_version: 0.1.0
+    statement: "Domain models (state machines, aggregates, entities, threat models) MUST be recorded in .ddd/models/ per §7.6.12"
+    rationale: "Unrecorded models are lost knowledge; passports reference models for provenance"
+    sources:
+      - ref: SPEC.md#7.6.12
+        authority_domain: artifact-schema
+    claim_kind: architectural
+    impact: medium
+    tier: T2
+    status: known-and-supported
+    constructs: [skills/ddd-model/SKILL.md]
+    validations: []
+    exceptions: []
+
+  - id: C-024
+    schema_version: 0.1.0
+    statement: "Brownfield code adoption MUST use ddd-audit to scan existing code, extract implicit claims, and produce a draft Book"
+    rationale: "Existing code makes implicit claims that need to be surfaced and verified"
+    sources:
+      - ref: SPEC.md
+        authority_domain: traceability
+    claim_kind: behavioral
+    impact: medium
+    tier: T2
+    status: known-and-supported
+    constructs: [skills/ddd-audit/SKILL.md]
+    validations: []
+    exceptions: []
+
+  - id: C-025
+    schema_version: 0.1.0
+    statement: "Code-derived artifacts (source code, test suites, schemas) MAY serve as L0 evidence per §9.11 and §5.2"
+    rationale: "Source code is ground truth for API behavior; tests are ground truth for expected behavior"
+    sources:
+      - ref: SPEC.md#9.11
+        authority_domain: traceability
+    claim_kind: behavioral
+    impact: medium
+    tier: T2
+    status: known-and-supported
+    constructs: [skills/ddd-scope/SKILL.md, skills/ddd-ground/SKILL.md]
+    validations: []
+    exceptions: []
+
+  - id: C-026
+    schema_version: 0.1.0
+    statement: "DDD MUST support monorepo scoping via federated, per-package, or hybrid strategies per §17.4"
+    rationale: "Monorepo projects need scoped Books to avoid evidence bloat and maintain package-level conformance"
+    sources:
+      - ref: SPEC.md#17.4
+        authority_domain: versioning
+    claim_kind: architectural
+    impact: medium
+    tier: T2
+    status: known-and-supported
+    constructs: [SPEC.md]
+    validations: []
+    exceptions: []

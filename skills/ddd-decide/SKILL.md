@@ -7,7 +7,7 @@ description: >
   reverse, or supported by multiple plausible methodologies.
 metadata:
   author: ddd-methodology
-  version: "0.2.6"
+  version: "0.3.0"
 ---
 
 # ddd-decide

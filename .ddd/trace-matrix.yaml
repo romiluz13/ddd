@@ -5,21 +5,359 @@
 
 schema_version: 0.1.0
 
-# Each trace entry records a bidirectional trace between a claim and a construct.
-# Forward: requirement → claim → evidence → implementation → validation
-# Reverse: consequential implementation behavior → claim or approved exception
-#
-# Sample entry (commented out):
-#
-# - id: TR-001
-#   schema_version: 0.1.0
-#   change_id: CH-001
-#   claim_id: C-055
-#   construct_id: CL-001
-#   validation_id: V-001
-#   direction: forward        # forward | reverse
-#   sweep_pass: true
-#   checked_at: 2026-08-29T12:00:00Z
-#   notes: null
+traces:
+  # --- Original dogfooding claims (C-001 through C-014) ---
 
-traces: []
+  - id: TR-001
+    schema_version: 0.1.0
+    change_id: CH-001
+    claim_id: C-001
+    construct_id: skills/ddd-scope/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "ddd-scope Step 4a references §5.6 security handling"
+
+  - id: TR-002
+    schema_version: 0.1.0
+    change_id: CH-001
+    claim_id: C-002
+    construct_id: skills/ddd-controls/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "ddd-controls enforcement levels match §12.2"
+
+  - id: TR-003
+    schema_version: 0.1.0
+    change_id: CH-001
+    claim_id: C-003
+    construct_id: .ddd/book.yaml
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "book.yaml follows §7.2 schema"
+
+  - id: TR-004
+    schema_version: 0.1.0
+    change_id: CH-001
+    claim_id: C-004
+    construct_id: .ddd/evidence.lock
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "evidence.lock has correct field names per §7.3"
+
+  - id: TR-005
+    schema_version: 0.1.0
+    change_id: CH-001
+    claim_id: C-005
+    construct_id: skills/ddd-refute/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "ddd-refute references §13.4 citation entailment"
+
+  - id: TR-006
+    schema_version: 0.1.0
+    change_id: CH-001
+    claim_id: C-006
+    construct_id: skills/ddd-verify/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "ddd-verify describes NONCONFORMANT → IMPLEMENTING rework loop"
+
+  - id: TR-007
+    schema_version: 0.1.0
+    change_id: CH-001
+    claim_id: C-007
+    construct_id: skills/ddd-drift/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "ddd-drift describes lifecycle re-entry transitions"
+
+  - id: TR-008
+    schema_version: 0.1.0
+    change_id: CH-001
+    claim_id: C-008
+    construct_id: skills/ddd-controls/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "ddd-controls references §12.3 generation boundary"
+
+  - id: TR-009
+    schema_version: 0.1.0
+    change_id: CH-001
+    claim_id: C-009
+    construct_id: .ddd/trace-matrix.yaml
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "trace-matrix.yaml uses §7.6.10 trace entry schema"
+
+  - id: TR-010
+    schema_version: 0.1.0
+    change_id: CH-001
+    claim_id: C-010
+    construct_id: skills/ddd-refute/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "ddd-refute spec references corrected"
+
+  - id: TR-011
+    schema_version: 0.1.0
+    change_id: CH-001
+    claim_id: C-011
+    construct_id: skills/ddd-drift/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "ddd-drift spec references corrected"
+
+  - id: TR-012
+    schema_version: 0.1.0
+    change_id: CH-001
+    claim_id: C-012
+    construct_id: skills/ddd/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: null
+
+  - id: TR-013
+    schema_version: 0.1.0
+    change_id: CH-001
+    claim_id: C-013
+    construct_id: skills/ddd/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: null
+
+  - id: TR-014
+    schema_version: 0.1.0
+    change_id: CH-001
+    claim_id: C-014
+    construct_id: skills/ddd-book/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: null
+
+  # --- v0.3.0 claims (C-015 through C-026) ---
+
+  - id: TR-015
+    schema_version: 0.1.0
+    change_id: CH-002
+    claim_id: C-015
+    construct_id: skills/ddd-scope/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "ddd-scope Step 0 implements stack detection per §9.8"
+
+  - id: TR-016
+    schema_version: 0.1.0
+    change_id: CH-002
+    claim_id: C-015
+    construct_id: skills/ddd-book/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "ddd-book initialize creates project-context.yaml"
+
+  - id: TR-017
+    schema_version: 0.1.0
+    change_id: CH-002
+    claim_id: C-016
+    construct_id: skills/ddd-scope/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "ddd-scope Step 2 enumerates dependencies per §9.9"
+
+  - id: TR-018
+    schema_version: 0.1.0
+    change_id: CH-002
+    claim_id: C-017
+    construct_id: SPEC.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "SPEC.md §9.1 defines 18-dimension taxonomy"
+
+  - id: TR-019
+    schema_version: 0.1.0
+    change_id: CH-002
+    claim_id: C-017
+    construct_id: .ddd/knowledge-map.yaml
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "knowledge-map.yaml has 10 domains covering 18 dimensions"
+
+  - id: TR-020
+    schema_version: 0.1.0
+    change_id: CH-002
+    claim_id: C-018
+    construct_id: skills/ddd-verify/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "ddd-verify Step 3 implements full citation entailment procedure"
+
+  - id: TR-021
+    schema_version: 0.1.0
+    change_id: CH-002
+    claim_id: C-018
+    construct_id: skills/ddd-refute/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "ddd-refute Step 3.2 implements entailment verification"
+
+  - id: TR-022
+    schema_version: 0.1.0
+    change_id: CH-002
+    claim_id: C-019
+    construct_id: skills/ddd/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "ddd router includes T1 fast path routing"
+
+  - id: TR-023
+    schema_version: 0.1.0
+    change_id: CH-002
+    claim_id: C-019
+    construct_id: skills/ddd-scope/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "ddd-scope Step 5 checks T1 fast path eligibility"
+
+  - id: TR-024
+    schema_version: 0.1.0
+    change_id: CH-002
+    claim_id: C-020
+    construct_id: skills/ddd-scope/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "ddd-scope Step 7 records cross-document constraints"
+
+  - id: TR-025
+    schema_version: 0.1.0
+    change_id: CH-002
+    claim_id: C-020
+    construct_id: .ddd/constraints.yaml
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "constraints.yaml created per §7.6.13 schema"
+
+  - id: TR-026
+    schema_version: 0.1.0
+    change_id: CH-002
+    claim_id: C-021
+    construct_id: skills/ddd-exception/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "ddd-exception includes claim retraction per §14.5"
+
+  - id: TR-027
+    schema_version: 0.1.0
+    change_id: CH-002
+    claim_id: C-022
+    construct_id: skills/ddd-drift/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "ddd-drift has 7 drift dimensions including project context and cache"
+
+  - id: TR-028
+    schema_version: 0.1.0
+    change_id: CH-002
+    claim_id: C-023
+    construct_id: skills/ddd-model/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "ddd-model creates domain models in .ddd/models/"
+
+  - id: TR-029
+    schema_version: 0.1.0
+    change_id: CH-002
+    claim_id: C-024
+    construct_id: skills/ddd-audit/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "ddd-audit scans brownfield code and produces draft Book"
+
+  - id: TR-030
+    schema_version: 0.1.0
+    change_id: CH-002
+    claim_id: C-025
+    construct_id: skills/ddd-scope/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "ddd-scope Step 3 lists source code as evidence adapter"
+
+  - id: TR-031
+    schema_version: 0.1.0
+    change_id: CH-002
+    claim_id: C-025
+    construct_id: skills/ddd-ground/SKILL.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "ddd-ground extracts claims from code-derived sources"
+
+  - id: TR-032
+    schema_version: 0.1.0
+    change_id: CH-002
+    claim_id: C-026
+    construct_id: SPEC.md
+    validation_id: null
+    direction: forward
+    sweep_pass: true
+    checked_at: "2026-08-30T12:00:00Z"
+    notes: "SPEC.md §17.4 defines monorepo scoping strategies"

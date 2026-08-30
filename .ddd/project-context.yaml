@@ -1,0 +1,77 @@
+# DDD Project Context — detected stack (SPEC.md §7.6.11, §9.8)
+# This file records the DDD project's own technology stack.
+# Detection method: manual + file scan (2026-08-30)
+
+schema_version: 0.1.0
+detected_at: "2026-08-30T11:40:00Z"
+detection_method: "manual + file-scan"
+
+# ── Language(s) ──────────────────────────────────────────────
+languages:
+  - name: TypeScript
+    role: CLI tool implementation
+    version: "5.x"  # Bun's TypeScript support, no explicit tsconfig
+    detection_note: "cli/src/*.ts files present"
+  - name: Markdown
+    role: Specification and skill definitions
+    detection_note: "SPEC.md, skills/*/SKILL.md, README.md"
+  - name: YAML
+    role: Artifact schemas and runtime state
+    detection_note: ".ddd/*.yaml, skills.sh.json"
+
+# ── Runtime ──────────────────────────────────────────────────
+runtime:
+  name: Bun
+  version: "unknown"
+  detection_note: "No bun.lock or package.json at root. CLI uses .ts files directly."
+  config_files: []
+
+# ── Frameworks ───────────────────────────────────────────────
+frameworks: []
+# No web or application framework — this is a methodology/spec project.
+
+# ── Database(s) ──────────────────────────────────────────────
+databases: []
+# No database — all state is in YAML files.
+
+# ── Dependencies ─────────────────────────────────────────────
+dependencies:
+  - name: Bun
+    installed_version: "unknown"
+    role: runtime
+    evidence_lock_entry: null
+    detection_note: "No lockfile found. Version to be determined via `bun --version`."
+
+# ── Architecture ─────────────────────────────────────────────
+architecture:
+  style: "methodology-specification"
+  description: "Normative specification (SPEC.md) with skill definitions and a .ddd/ runtime state directory. CLI tool provides machine API primitives."
+  entry_points:
+    - path: SPEC.md
+      type: specification
+    - path: skills/
+      type: skill-definitions
+    - path: cli/src/
+      type: cli-tool
+  directory_structure:
+    - "SPEC.md — normative specification"
+    - "skills/ — 12 skill definitions (Agent Skills format)"
+    - ".ddd/ — runtime state (Book, evidence, claims, traces)"
+    - "cli/ — machine API CLI (TypeScript/Bun)"
+
+# ── Monorepo ─────────────────────────────────────────────────
+monorepo: false
+
+# ── Config files scanned ─────────────────────────────────────
+config_files_scanned:
+  - path: skills.sh.json
+    purpose: "Skills.sh registry grouping"
+  - path: AGENTS.md
+    purpose: "Agent runtime instructions"
+
+# ── Gaps ─────────────────────────────────────────────────────
+detection_gaps:
+  - field: "runtime.version"
+    reason: "No bun.lock or package.json. Run `bun --version` to fill."
+  - field: "dependencies"
+    reason: "No lockfile found. CLI may have dependencies not recorded here."

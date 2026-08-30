@@ -7,7 +7,7 @@ description: >
   or drift detection identifies control drift.
 metadata:
   author: ddd-methodology
-  version: "0.2.6"
+  version: "0.3.0"
 ---
 
 # ddd-controls

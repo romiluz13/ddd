@@ -1,0 +1,96 @@
+/**
+ * trace(claim_id, construct) -> trace_entry
+ *
+ * Appends a trace entry (SPEC.md §7.6.10) to .ddd/trace-matrix.yaml linking a
+ * claim to a construct, in the given direction.
+ */
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import type { TraceEntry } from "./types";
+import { nextId, nowIso, parseYaml, readText, writeText, yamlScalar } from "./utils";
+
+const TRACE_HEADER = `# DDD Trace Matrix
+# Generated view of the evidence graph: trace entries mapping claims <-> constructs.
+# Schema: SPEC.md §7.6.10 (Trace entry)
+
+schema_version: 0.1.0
+
+traces: []
+`;
+
+export interface TraceOptions {
+  changeId?: string;
+  direction?: "forward" | "reverse";
+  validationId?: string;
+  notes?: string;
+}
+
+function serializeTrace(t: TraceEntry): string {
+  return (
+    [
+      `  - id: ${t.id}`,
+      `    schema_version: ${yamlScalar(t.schema_version)}`,
+      `    change_id: ${t.change_id ? yamlScalar(t.change_id) : "null"}`,
+      `    claim_id: ${yamlScalar(t.claim_id)}`,
+      `    construct_id: ${yamlScalar(t.construct_id)}`,
+      `    validation_id: ${t.validation_id ? yamlScalar(t.validation_id) : "null"}`,
+      `    direction: ${yamlScalar(t.direction)}`,
+      `    sweep_pass: ${t.sweep_pass}`,
+      `    checked_at: ${yamlScalar(t.checked_at)}`,
+      `    notes: ${t.notes ? yamlScalar(t.notes) : "null"}`,
+    ].join("\n") + "\n"
+  );
+}
+
+/**
+ * Create a trace entry linking `claimId` to `construct`. Verifies the claim
+ * exists in claims.yaml when that file is present. Returns the entry.
+ */
+export function addTrace(
+  dddDir: string,
+  claimId: string,
+  construct: string,
+  opts: TraceOptions = {},
+): TraceEntry {
+  // Validate the claim exists (when a claim ledger is present).
+  const claimsPath = join(dddDir, "claims.yaml");
+  if (existsSync(claimsPath)) {
+    const claimsDoc = (parseYaml(readText(claimsPath)) as { entries?: Array<{ id?: string }> }) ?? {};
+    const ids = new Set((claimsDoc.entries ?? []).map((c) => c.id));
+    if (ids.size > 0 && !ids.has(claimId)) {
+      throw new Error(`Claim ${claimId} not found in ${claimsPath}`);
+    }
+  }
+
+  const tracePath = join(dddDir, "trace-matrix.yaml");
+  let text = existsSync(tracePath) ? readText(tracePath) : TRACE_HEADER;
+  const doc = (parseYaml(text) as { traces?: TraceEntry[] }) ?? {};
+  const traces = Array.isArray(doc.traces) ? doc.traces : [];
+
+  const entry: TraceEntry = {
+    id: nextId(traces, "TR"),
+    schema_version: "0.1.0",
+    change_id: opts.changeId ?? null,
+    claim_id: claimId,
+    construct_id: construct,
+    validation_id: opts.validationId ?? null,
+    direction: opts.direction ?? "forward",
+    sweep_pass: false,
+    checked_at: nowIso(),
+    notes: opts.notes ?? null,
+  };
+
+  // Convert an empty inline sequence ("traces: []") into a block sequence
+  // header so the new entry can be appended beneath it.
+  if (/^traces:\s*\[\]\s*$/m.test(text)) {
+    text = text.replace(/^traces:\s*\[\]\s*$/m, "traces:");
+  } else if (!/^\s*traces:/m.test(text)) {
+    if (!text.endsWith("\n")) text += "\n";
+    text += "\ntraces:\n";
+  }
+  if (!text.endsWith("\n")) text += "\n";
+  text += serializeTrace(entry);
+  writeText(tracePath, text);
+
+  return entry;
+}

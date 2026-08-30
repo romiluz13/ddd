@@ -7,7 +7,7 @@ description: >
   or when troubleshooting unexplained behavior.
 metadata:
   author: ddd-methodology
-  version: "0.2.6"
+  version: "0.3.0"
 ---
 
 # ddd-drift
@@ -92,6 +92,38 @@ Code drift occurs when:
 - Reverse sweep violations have accumulated since last check
 
 **Check**: Run reverse sweep on changed code. Check passport coverage.
+
+### Drift dimension 6: Project context drift
+
+Project context drifts when the detected stack no longer matches what is recorded:
+
+- A new dependency was added but `project-context.yaml` was not updated
+- A dependency version was upgraded but the recorded version is stale
+- A framework was added or removed but `project-context.yaml` doesn't reflect it
+- A database was changed but the context still shows the old one
+
+**Check**: Re-run stack detection (§9.8) and compare against `project-context.yaml`. Flag any mismatches.
+
+**Drift report**:
+```yaml
+schema_version: 0.1.0
+id: DRFT-006
+type: project_context_drift
+field: "dependencies"
+description: "project-context.yaml lists zod@3.23.0 but package-lock.json has zod@3.24.0"
+severity: medium
+recommended_action: "Update project-context.yaml. Re-verify evidence lock entries for zod — version may have changed."
+detected_at: "2026-08-29T18:00:00Z"
+```
+
+### Drift dimension 7: Cache drift
+
+Cache drift occurs when:
+- Cache files are not content-addressed (named by slug instead of hash)
+- Cache entries are missing (evicted but still referenced by evidence lock)
+- Cache content doesn't match the evidence lock digest (corruption)
+
+**Check**: Verify cache file naming, check that all evidence lock entries have corresponding cache files, verify digest consistency.
 
 ## Drift report summary
 
@@ -179,4 +211,4 @@ When drift is detected, the affected change's lifecycle state transitions depend
 
 ## Spec reference
 
-- SPEC.md §8.3 (Lifecycle state machine — drift re-entry transitions), §12 (Executable Controls), §17 (Versioning and Migration: §17.1 spec versioning, §17.2 schema versioning), §20.5 (Worked example: stale documentation and content drift)
+- SPEC.md §8.3 (Lifecycle state machine — drift re-entry transitions), §9.8 (Stack detection — project context drift baseline), §12 (Executable Controls), §17 (Versioning and Migration: §17.1 spec versioning, §17.2 schema versioning), §20.5 (Worked example: stale documentation and content drift)

@@ -1,8 +1,8 @@
 # DDD: Docs-Driven Development for Agentic Engineering
 
-**Version:** 0.2.6-draft
+**Version:** 0.3.0-draft
 **Status:** Draft for review
-**Date:** 2026-08-29
+**Date:** 2026-08-30
 **Machine identifier:** `docs-driven-development`
 
 > *Not to be confused with Domain-Driven Design (Eric Evans, 2003). When both concepts appear in the same context, write "Docs-Driven Development" and "Domain-Driven Design" in full.*
@@ -191,6 +191,18 @@ Each check records its enforcement mode and confidence level. V1 SHOULD NOT impl
 
 **T0-only changes**: a change that touches only code whose claims all derive to T0 after classification (§13.2) — meaning `mechanical` kind with `low` impact — MAY produce a minimal scope record instead of a full evidence packet. The scope record identifies the change boundary and states "T0-only, no consequential claims." If classification reveals any claim above T0, a full evidence packet is required.
 
+### 4.2.2 T1 fast path
+
+A change that touches only code whose claims all derive to T1 (API-level: imports, configuration, framework conventions, library usage with `low` or `medium` impact) MAY use a **lightweight evidence record** instead of a full evidence packet. The lightweight record:
+
+- Identifies the change boundary and all affected API surfaces
+- Lists each API/library used with its version-matched evidence lock entry (or creates one)
+- Records the classification (claim_kind: `api`, impact, derived tier: T1)
+- Does NOT require passports, design tournament, or control obligations
+- Requires symbol-level traceability (each usage mapped to versioned evidence) per §13.2 T1 requirements
+
+If classification reveals any claim above T1, a full evidence packet is required. The lightweight record is a simplified form of the change record (§7.6.1) with `profile: lite` and `t1_fast_path: true`.
+
 ### 4.3 State sharing
 
 All DDD skills and operations share durable project state in the `.ddd/` directory. Skills are independently invocable but operate on the same Book, evidence lock, claim ledger, and trace graph. A stable machine API beneath skills allows existing harnesses to invoke individual primitives programmatically.
@@ -212,6 +224,8 @@ There is no universal total ordering of sources. Authority is determined by the 
 | Project architecture | Approved ADRs and architecture constitution | Vendor docs, framework conventions |
 | Observed runtime behavior | Reproducible experiment | Official documentation (as intent, not observed behavior) |
 | Security and compliance | Applicable standard (OWASP, NIST) or regulatory requirement | Vendor docs, project ADRs |
+| Cross-document constraints | Combination of authoritative sources for each constrained domain | Project ADRs (recording the constraint) |
+| Dependency version conflicts | Package registry metadata (npm, PyPI, crates.io) and peerDependency declarations | Vendor docs, compatibility matrices |
 | Accepted unsupported behavior | Waiver (explicitly not evidence) | N/A — waiver authorizes risk acceptance |
 
 **Key principles:**
@@ -235,34 +249,35 @@ Every evidence source MUST record provenance. Required fields vary by **source c
 | `standard` | RFC, W3C, OWASP, NIST |
 | `project-doc` | Requirements, ADRs, architecture docs, domain models |
 | `source-code` | Official types, schemas, test suites, package source |
+| `code-derived` | Artifacts derived from the project's own code: generated types, inferred schemas, OpenAPI specs, DB migrations, build output |
 | `experiment` | Reproducible runtime experiment |
 | `waiver` | Human-approved risk acceptance (not evidence) |
 
 **Required fields by source class** (✓ = required, ○ = optional, — = not applicable):
 
-| Field | `vendor-doc` | `standard` | `project-doc` | `source-code` | `experiment` | `waiver` |
-|---|---|---|---|---|---|---|
-| `id` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `source_class` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `source_url` | ✓ | ✓ | ○ | ✓ | — | — |
-| `repository_path` | ○ | — | ✓ | ✓ | — | — |
-| `publisher` | ✓ | ✓ | — | ○ | — | — |
-| `product` | ✓ | — | — | ✓ | — | — |
-| `version` | ✓ | ✓ | — | ✓ | — | — |
-| `doc_version` | ✓ | ○ | ✓ | ✓ | — | — |
-| `retrieved_at` | ✓ | ✓ | — | ✓ | — | — |
-| `content_digest` | ✓ | ✓ | ✓ | ✓ | ✓ | — |
-| `sections` | ✓ | ✓ | ✓ | ○ | — | — |
-| `status` (normative/informative) | ✓ | ✓ | ○ | — | — | — |
-| `authority_for` (claim domains) | ✓ | ✓ | ✓ | ✓ | ✓ | — |
-| `freshness` | ✓ | ○ | — | ○ | — | — |
-| `adapter` | ✓ | ✓ | — | ○ | — | — |
-| `license` | ✓ | ✓ | — | ✓ | — | — |
-| `independence` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `approved_by` | — | — | ✓ (if agent-proposed) | — | — | ✓ |
-| `approval_rationale` | — | — | ✓ (if agent-proposed) | — | — | ✓ |
-| `experiment_steps` | — | — | — | — | ✓ | — |
-| `experiment_result_hash` | — | — | — | — | ✓ | — |
+| Field | `vendor-doc` | `standard` | `project-doc` | `source-code` | `code-derived` | `experiment` | `waiver` |
+|---|---|---|---|---|---|---|---|
+| `id` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `source_class` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `source_url` | ✓ | ✓ | ○ | ✓ | — | — | — |
+| `repository_path` | ○ | — | ✓ | ✓ | ✓ | — | — |
+| `publisher` | ✓ | ✓ | — | ○ | — | — | — |
+| `product` | ✓ | — | — | ✓ | — | — | — |
+| `version` | ✓ | ✓ | — | ✓ | — | — | — |
+| `doc_version` | ✓ | ○ | ✓ | ✓ | ✓ | — | — |
+| `retrieved_at` | ✓ | ✓ | — | ✓ | ✓ | — | — |
+| `content_digest` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — |
+| `sections` | ✓ | ✓ | ✓ | ○ | ○ | — | — |
+| `status` (normative/informative) | ✓ | ✓ | ○ | — | — | — | — |
+| `authority_for` (claim domains) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — |
+| `freshness` | ✓ | ○ | — | ○ | — | — | — |
+| `adapter` | ✓ | ✓ | — | ○ | — | — | — |
+| `license` | ✓ | ✓ | — | ✓ | — | — | — |
+| `independence` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `approved_by` | — | — | ✓ (if agent-proposed) | — | — | — | ✓ |
+| `approval_rationale` | — | — | ✓ (if agent-proposed) | — | — | — | ✓ |
+| `experiment_steps` | — | — | — | — | — | ✓ | — |
+| `experiment_result_hash` | — | — | — | — | — | ✓ | — |
 
 ### 5.3 Independence levels
 
@@ -347,10 +362,12 @@ For T3 (critical) claims:
 ```
 .ddd/
   book.yaml              # Manifest, versions, claim-scoped authority
-  knowledge-map.yaml     # Relevant engineering domains and gaps
+  project-context.yaml   # Governed tech stack, runtime, dependencies, architecture
+  knowledge-map.yaml     # Relevant engineering domains, gaps, and package links
   evidence.lock          # Immutable external-source provenance
   claims.yaml            # Claim ledger (atomic assertions)
   trace-matrix.yaml      # Generated view of the evidence graph
+  constraints.yaml       # Cross-document join constraints
   decisions/             # DDD decisions where existing ADRs don't exist
   models/                # Domain, state, threat, and architecture models
   passports/             # Object/design-unit passports
@@ -389,6 +406,8 @@ agent_context:
 evidence_lock: evidence.lock
 knowledge_map: knowledge-map.yaml
 claims: claims.yaml
+project_context: project-context.yaml
+constraints: constraints.yaml
 ```
 
 A released Book version is identifiable by its manifest and content digests. A code revision MAY declare which Book version governed it.
@@ -680,6 +699,178 @@ checked_at: 2026-08-29T12:00:00Z
 notes: null
 ```
 
+#### 7.6.11 Project context record (`project-context.yaml`)
+
+A governed record of the project's technology stack, runtime, dependencies, and architecture. This is NOT a glossary — it is the authoritative record of what the project IS, technically. It MUST be populated during Book initialization and updated whenever the stack changes.
+
+```yaml
+schema_version: 0.1.0
+project_name: "my-app"
+project_type: "web-application"  # web-application | api | cli | library | mobile | desktop | embedded | monorepo
+language:
+  primary: "TypeScript"
+  version: "5.5.0"
+runtime:
+  name: "Node.js"
+  version: "22.0.0"
+  target: "es2022"
+frameworks:
+  - name: "Next.js"
+    version: "15.1.0"
+    role: "fullstack"
+  - name: "React"
+    version: "19.0.0"
+    role: "ui"
+package_manager: "npm"
+lockfile: "package-lock.json"
+dependencies:
+  - name: "drizzle-orm"
+    version: "0.36.0"
+    type: "direct"
+    evidence: "EL-003"
+  - name: "zod"
+    version: "3.23.0"
+    type: "direct"
+    evidence: "EL-004"
+  - name: "next-auth"
+    version: "5.0.0-beta"
+    type: "direct"
+    evidence: "EL-005"
+databases:
+  - name: "PostgreSQL"
+    version: "16.0"
+    role: "primary"
+    connection: "env:DATABASE_URL"
+deployment:
+  platform: "Vercel"
+  region: "us-east-1"
+  build_command: "next build"
+architecture:
+  pattern: "modular-monolith"
+  layers: ["app", "domain", "infrastructure"]
+  boundaries: ["src/domain/**", "src/adapters/**"]
+generated_at: "2026-08-29T10:00:00Z"
+last_updated: "2026-08-29T10:00:00Z"
+detection_method: "auto-scan"  # auto-scan | manual | hybrid
+```
+
+**Population rules:**
+- During Book initialization, `ddd-book` MUST scan the project for `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`, `build.gradle`, `composer.json`, `Gemfile`, and other standard manifest files
+- Lockfiles (`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `poetry.lock`, `Cargo.lock`) MUST be parsed to resolve installed versions
+- Config files (`tsconfig.json`, `next.config.js`, `vite.config.ts`, `.env.example`, `Dockerfile`, `docker-compose.yml`) SHOULD be scanned for runtime, build, and deployment information
+- Framework detection MUST examine dependencies and config files, not just file names
+- If auto-detection fails for any field, the field MUST be marked `unknown` with a `detection_note` — never silently left empty or guessed from parametric memory
+
+#### 7.6.12 Domain model record
+
+Domain models in `.ddd/models/` capture the structural and behavioral model of the problem domain. Each model file:
+
+```yaml
+schema_version: 0.1.0
+id: DM-001
+name: "Order lifecycle"
+model_kind: state-machine  # state-machine | aggregate | entity | value-object | domain-service | event | context-map | threat-model | architecture
+description: "State transitions for order processing"
+sources:
+  - ref: EL-002#domain-model
+    authority_domain: domain-rules
+  - ref: CONTEXT.md#Order
+    authority_domain: product-behavior
+
+# State machine model
+states:
+  - name: PENDING
+    description: "Order created but not confirmed"
+    allowed_transitions: [CONFIRMED, CANCELLED]
+  - name: CONFIRMED
+    description: "Order confirmed by customer"
+    allowed_transitions: [SHIPPED, CANCELLED]
+  - name: SHIPPED
+    description: "Order dispatched"
+    allowed_transitions: [DELIVERED]
+  - name: DELIVERED
+    description: "Order delivered to customer"
+    allowed_transitions: []
+  - name: CANCELLED
+    description: "Order cancelled"
+    allowed_transitions: []
+
+invariants:
+  - "Order cannot transition from SHIPPED to CANCELLED"
+  - "Order total MUST equal sum of line item prices"
+
+entities: [Order, LineItem, OrderEvent]
+value_objects: [Money, Address]
+aggregates: [Order]
+domain_events: [OrderCreated, OrderConfirmed, OrderShipped, OrderCancelled]
+
+# For threat models
+# threats: [...]
+# mitigations: [...]
+
+# For architecture models
+# components: [...]
+# boundaries: [...]
+# data_flows: [...]
+
+created_at: "2026-08-29T10:00:00Z"
+created_by: "agent"
+independence: agent-proposed-human-approved
+linked_passports: [order.aggregate]
+linked_claims: [C-017, C-055]
+```
+
+**Model kinds:**
+| Kind | Description |
+|---|---|
+| `state-machine` | State transitions, allowed/forbidden transitions, invariants |
+| `aggregate` | Aggregate root, entities, value objects, invariants |
+| `entity` | Entity definition with identity, lifecycle, relationships |
+| `value-object` | Immutable value object with equality semantics |
+| `domain-service` | Stateless domain operation spanning multiple aggregates |
+| `event` | Domain event definition with payload schema |
+| `context-map` | Bounded context relationships (upstream/downstream, anti-corruption layer) |
+| `threat-model` | STRIDE or similar threat analysis with mitigations |
+| `architecture` | Component, boundary, and data-flow diagram |
+
+#### 7.6.13 Cross-document constraint record (`constraints.yaml`)
+
+Records constraints that emerge from the interaction of multiple documents or sources. These cannot be expressed as claims from a single source.
+
+```yaml
+schema_version: 0.1.0
+entries:
+  - id: XC-001
+    name: "edge-runtime-no-bcrypt"
+    description: "bcrypt is not available in Edge Runtime; auth must use Web Crypto API"
+    constraint_type: runtime-incompatibility  # runtime-incompatibility | version-conflict | platform-limitation | peer-dependency
+    sources:
+      - ref: EL-003#edge-runtime
+        authority_domain: api-semantics
+        constraint_role: "Edge Runtime does not support Node.js native modules"
+      - ref: EL-004#bcrypt-requirements
+        authority_domain: dependency-version-conflicts
+        constraint_role: "bcrypt requires Node.js native bindings"
+    affected_packages:
+      - name: "bcrypt"
+        version: "5.1.1"
+        conflict: "requires Node.js native bindings, unavailable in Edge Runtime"
+    affected_code_paths: ["src/middleware/auth.ts"]
+    severity: blocking
+    mitigation: "Use argon2 via Web Crypto API or move auth to Node.js runtime"
+    recorded_at: "2026-08-29T10:00:00Z"
+    linked_claims: [C-072]
+    linked_exceptions: []
+```
+
+**Constraint types:**
+| Type | Description |
+|---|---|
+| `runtime-incompatibility` | A dependency or API is unavailable in the target runtime |
+| `version-conflict` | Two dependencies require incompatible versions of a shared dependency |
+| `platform-limitation` | A feature is unavailable on the target platform (browser, server, edge, mobile) |
+| `peer-dependency` | A peer dependency requirement conflicts with the project's installed version |
+
 ### 7.7 Existing artifact relationships
 
 | Artifact | Relationship to DDD |
@@ -688,6 +879,8 @@ notes: null
 | ADRs | First-class Book decisions. Referenced by the manifest. |
 | `AGENTS.md` | Compact runtime index generated from the Book. Points agents to the Book and relevant artifacts. |
 | Existing project docs | Remain canonical. Referenced, not copied. |
+| `README.md` / onboarding docs | Discovery surface for new contributors and agents. SHOULD be governed: claims about project capabilities, architecture, and setup MUST trace to Book references. Factually incorrect README claims are a conformance failure when DDD governs the project. |
+| `GETTING_STARTED.md` | Quick-start guide for DDD adoption. SHOULD be maintained alongside the Book. |
 | Database/vector store | Rebuildable retrieval cache. Never the source of truth. |
 | Trace matrix | Generated view of the Book's evidence graph. Not hand-maintained. |
 
@@ -770,9 +963,9 @@ A CI gate MAY verify that every change reaches `CONFORMANT` or `WAIVED` before m
 
 ## 9. Discovery
 
-### 9.1 Knowledge taxonomy (v1)
+### 9.1 Knowledge taxonomy (v2)
 
-Ten initial dimensions:
+Eighteen dimensions:
 
 1. Product and domain
 2. Language, runtime, and framework
@@ -784,6 +977,24 @@ Ten initial dimensions:
 8. Testing and verification
 9. Delivery, migration, and compatibility
 10. Organization and ownership
+11. Observability and monitoring
+12. Concurrency and async
+13. Deployment, infrastructure, and IaC
+14. Configuration and secrets management
+15. Dependency and supply chain
+16. Resilience and error handling
+17. Internationalization and localization
+18. Developer experience and tooling
+
+### 9.1a Taxonomy extension
+
+The taxonomy is extensible. A project MAY add domain dimensions specific to its context (e.g., mobile/PWA, browser compatibility, cost engineering, data governance). Extension rules:
+
+1. A new dimension MUST have a unique `id`, `name`, and `trigger` signal
+2. A new dimension MUST be recorded in the Knowledge Map with its applicability hypothesis
+3. A new dimension SHOULD have at least one authoritative source class defined
+4. Extension dimensions are project-scoped — they do not automatically propagate to other projects
+5. A dimension that overlaps >70% with an existing dimension SHOULD be merged rather than added
 
 ### 9.2 Classification signals
 
@@ -809,6 +1020,31 @@ For each relevant domain, the agent records:
 - **Confidence**: how certain is the applicability
 - **Risk if omitted**: what goes wrong without this knowledge
 - **Inclusion/exclusion reason**: why this domain is or isn't being pursued
+- **Linked packages**: which project dependencies (from `project-context.yaml`) are relevant to this domain, with installed versions
+- **Evidence**: which evidence lock entries cover this domain
+
+**Knowledge map domain entry schema:**
+```yaml
+- id: api-semantics
+  name: "API Semantics"
+  trigger: "Authentication API calls in middleware"
+  questions: ["Does the auth API support Edge Runtime?", "What session strategy is available?"]
+  expected_decisions: ["Session strategy selection", "Runtime selection for auth"]
+  authority_type: vendor-doc
+  confidence: high
+  risk_if_omitted: "Auth fails in production on Edge Runtime"
+  inclusion_reason: "Change touches authentication middleware"
+  linked_packages:
+    - package: "next-auth"
+      installed_version: "5.0.0-beta"
+      evidence: "EL-005"
+    - package: "bcrypt"
+      installed_version: "5.1.1"
+      evidence: null  # gap — no evidence locked yet
+  evidence: [EL-003, EL-005]
+  gaps:
+    - "bcrypt compatibility with Edge Runtime not documented"
+```
 
 ### 9.4 Discovery loop
 
@@ -847,8 +1083,128 @@ DDD defines an abstract doc-provider interface. Any tool that produces provenanc
 - Local files and package-bundled docs
 - `llms.txt` sources
 - Official source code, types, and test suites
+- Package registries (npm, PyPI, crates.io, Maven Central, RubyGems, Go module proxy) for metadata, peer dependencies, and compatibility info
+- OpenAPI / Swagger / GraphQL schemas as API contract evidence
+- Database schema files (Prisma schema, SQL migrations, Drizzle schema) as persistence evidence
+- Language core documentation (MDN, Python docs, Rust std docs, Go docs)
+- Internal/authenticated docs (Confluence, Notion, internal wikis) with access-control provenance
 
-The local cache (`.ddd/cache/`) is content-addressed and immutable. Updating evidence creates a new lock entry, not a silent replacement.
+**Cache policy:**
+
+The local cache (`.ddd/cache/`) is content-addressed and immutable:
+
+- Cache files MUST be named by their content hash: `.ddd/cache/{sha256-prefix}.md` (first 16 hex chars of the sha256 digest)
+- This ensures identical content from different URLs deduplicates automatically
+- Cache files SHOULD be gitignored (they are rebuildable from evidence lock entries)
+- Eviction policy: cache entries older than their source's `freshness` period AND not referenced by any active evidence lock entry MAY be evicted
+- Retention: cache entries referenced by active evidence lock entries MUST NOT be evicted
+- Re-fetching: when a cache entry is evicted and later needed, the adapter MUST re-fetch, re-hash, and create a new cache file
+
+**Access-control provenance:**
+
+For authenticated or internal documents:
+- The evidence lock entry MUST record `access_method` (e.g., `api-key`, `session-cookie`, `oauth`, `internal-network`)
+- The evidence lock entry MUST NOT record credentials, tokens, or secrets
+- Documents behind authentication MUST be cached locally after retrieval to avoid re-authentication
+- The `independence` level for internal docs is `human-authored` or `agent-proposed-human-approved` (never `external`)
+
+### 9.8 Stack detection
+
+Before evidence discovery can begin, DDD MUST detect and record the project's technology stack. This is a mandatory step in `ddd-book` initialization and `ddd-scope` classification.
+
+**Detection procedure:**
+
+1. **Manifest files**: Scan for and parse `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`, `build.gradle`, `composer.json`, `Gemfile`, `mix.exs`, `deno.json`, and other standard project manifest files. Extract: language, runtime, frameworks, direct dependencies.
+
+2. **Lockfiles**: Parse `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `poetry.lock`, `Cargo.lock`, `go.sum`, `Gemfile.lock`, and other lockfiles to resolve installed versions (not just declared ranges).
+
+3. **Config files**: Scan `tsconfig.json`, `jsconfig.json`, `next.config.*`, `vite.config.*`, `webpack.config.*`, `Dockerfile`, `docker-compose.yml`, `.env.example`, `wrangler.toml`, `vercel.json`, and other config files for: runtime target, build settings, deployment platform, environment variables (names only, never values).
+
+4. **Framework detection**: Identify frameworks by examining dependencies AND config files (not just file names). For example: Next.js requires `next` in dependencies AND a `next.config` file; Django requires `django` in dependencies AND a `manage.py` or `settings.py`.
+
+5. **Database detection**: Scan for ORM/schema files (`prisma/schema.prisma`, `drizzle.config.ts`, `migrations/`, `alembic/`, `knexfile.js`) and connection strings in `.env.example` to identify databases and their versions.
+
+6. **Architecture inference**: Examine directory structure (`src/domain/`, `src/adapters/`, `src/app/`, etc.) and import patterns to infer architecture pattern (layered, modular monolith, microservices, etc.).
+
+7. **Populate `project-context.yaml`**: Record all detected values per §7.6.11. Fields that cannot be auto-detected MUST be marked `unknown` with a `detection_note` — never guessed from parametric memory.
+
+**Fallback ladder for obscure/private/forked dependencies:**
+
+1. Check the package registry (npm, PyPI, etc.) for the package name
+2. If not found, check the project's own `node_modules/` or equivalent for bundled docs
+3. If not found, search for the package source repository (GitHub, GitLab)
+4. If not found, check if it's a private/internal package and follow authenticated doc acquisition (§9.7)
+5. If still not found, record an exception (type: `unknown`) for the dependency — it MUST NOT be used without evidence or an approved waiver
+
+### 9.9 Dependency enumeration
+
+Every direct dependency used by a change MUST have version-matched evidence in the evidence lock. This is a mandatory step in `ddd-scope`.
+
+**Enumeration procedure:**
+
+1. Read `project-context.yaml` to get the full dependency list with installed versions
+2. For each dependency whose code is touched by the change:
+   a. Check if an evidence lock entry exists for the installed version
+   b. If yes: verify the lock entry's `version` field matches the installed version
+   c. If no: acquire documentation for the installed version via doc acquisition adapters (§9.7)
+   d. If documentation cannot be acquired: record an exception (type: `unknown`)
+3. For each new dependency introduced by the change (in `new_dependencies` per §7.6.1):
+   a. Acquire version-matched documentation BEFORE implementation
+   b. Check for peer dependency conflicts using registry metadata
+   c. Check for cross-document constraints (§7.6.13) with existing dependencies
+   d. Record the evidence lock entry or an exception
+4. For transitive dependencies affected by the change:
+   a. Flag them in the change record
+   b. Evidence is SHOULD (not MUST) — transitive dependencies are typically covered by the direct dependency's docs
+
+**Evidence lock entry for dependencies MUST include:**
+- `product`: the package name
+- `version`: the installed version (from lockfile, not the declared range)
+- `source_url`: the documentation URL
+- `authority_for`: at minimum `[api-semantics, dependency-version-conflicts]`
+
+### 9.10 Tribal knowledge elicitation
+
+Some project knowledge exists only in the minds of team members and is not documented. DDD MUST surface this rather than let it remain as hidden parametric memory.
+
+**Elicitation protocol:**
+
+1. After stack detection and evidence discovery, identify knowledge gaps where the agent would normally rely on parametric memory
+2. For each gap, formulate a specific question (not "tell me everything about the project")
+3. Present questions to the human collaborator
+4. Record answers as `human-authored` evidence (independence: `human-authored`) with the collaborator identified
+5. Tribal knowledge that cannot be elicited (no one available, no answer) MUST be recorded as an exception (type: `unknown`)
+
+**Tribal knowledge evidence record:**
+```yaml
+schema_version: 0.1.0
+id: EL-020
+source_class: project-doc
+repository_path: ".ddd/tribal-knowledge/auth-design-decisions.md"
+doc_version: "commit:abc123..."
+retrieved_at: "2026-08-29T14:00:00Z"
+content_digest: sha256:...
+sections: ["Why we chose JWT over sessions", "Why auth runs on Edge Runtime"]
+authority_for: [project-architecture, product-behavior]
+independence: human-authored
+approved_by: "jane.doe"
+```
+
+### 9.11 Code-derived artifacts as L0 evidence
+
+Some evidence is derived from the project's own code rather than external documentation. These are `code-derived` source class (§5.2) and MAY serve as L0 sources for specific claim domains.
+
+**Valid uses:**
+- Generated OpenAPI/GraphQL schemas as evidence for API contract claims
+- Database migration files as evidence for schema evolution claims
+- Type definitions as evidence for interface contracts
+- Build output / bundle analysis as evidence for performance claims
+- Inferred dependency graph as evidence for architecture boundary claims
+
+**Constraints:**
+- `code-derived` sources have `independence: agent-proposed-human-approved` (they are derived by tooling, not authored by a human) unless a human explicitly reviews and approves them
+- `code-derived` sources MUST NOT be the sole evidence for `behavioral` or `operational` claims — they can supplement but not replace authoritative documentation
+- `code-derived` sources MUST record `repository_path` and `doc_version` (commit hash) for reproducibility
 
 ---
 
@@ -1156,6 +1512,42 @@ Verification MUST ask: "Does this source entail this claim?" — not merely "Doe
 
 A citation that does not support its claim is a conformance failure, not a valid trace.
 
+**Entailment verification procedure:**
+
+For each claim-source pair, the verifier performs the following steps:
+
+1. **Locate the cited section**: Open the evidence lock entry and navigate to the specific `sections` referenced by the claim's `ref` field (e.g., `EL-001#Server Components`). If the section cannot be located, the citation fails.
+
+2. **Read the source content**: Read the actual cached content at the cited section. Do NOT rely on the claim author's summary — read the source text directly.
+
+3. **Extract the source's assertions**: Identify what the source text explicitly states. Distinguish between:
+   - **Explicit statement**: the source directly says X
+   - **Implicit entailment**: the source says A and B, from which X logically follows
+   - **Not addressed**: the source does not mention X or anything that entails X
+
+4. **Compare claim to source assertions**: For each claim:
+   - If the claim is an **explicit statement** of the source: entailed ✓
+   - If the claim is an **implicit entailment** (derivable from source statements): entailed ✓, but the claim's `rationale` field MUST explain the derivation
+   - If the claim is a **paraphrase** of the source: entailed ✓ if semantically equivalent
+   - If the claim is **not addressed** by the source: NOT entailed ✗ — conformance failure
+   - If the claim **contradicts** the source: NOT entailed ✗ — conformance failure, and a conflict is recorded
+
+5. **Record the entailment result**: Each claim-source pair records:
+   ```yaml
+   claim_id: C-042
+   source_ref: EL-001#Server Components
+   entailment: explicit  # explicit | implicit | paraphrase | not-entailed | contradicts
+   verifier_notes: "Source states 'Server Components cannot use browser-only APIs such as window or document' — claim is a direct paraphrase"
+   ```
+
+6. **Batch verification**: For changes with many citations, prioritize verification by tier:
+   - T3 claims: every citation MUST be verified
+   - T2 claims: every citation MUST be verified
+   - T1 claims: sample verification is acceptable (at least 30% of citations)
+   - T0 claims: no individual citation required
+
+7. **Stopping rule**: Citation entailment verification is complete when all T2+ citations have been individually checked and the sample of T1 citations has been verified.
+
 ### 13.5 Risk rubric
 
 The following terms are used throughout this specification to determine when risk-triggered features activate. Each term has an operational definition:
@@ -1186,6 +1578,22 @@ The following terms are used throughout this specification to determine when ris
 | Uncertainty | How confident is the evidence? Are there conflicts or gaps? |
 
 **Ambiguity escalates risk.** When a factor cannot be determined, the claim or change is classified at the higher risk level.
+
+### 13.6 Test-code traceability
+
+Test code is itself code and MUST be classified within the traceability model:
+
+| Test category | Claim kind | Typical tier | Traceability requirement |
+|---|---|---|---|
+| Unit test for a traced claim | `mechanical` (validation artifact) | T0 | Covered by the claim it validates |
+| Integration test for a behavioral claim | `behavioral` | T2 | MUST trace to the behavioral claim it validates |
+| Contract test for an API claim | `api` | T1 | MUST trace to the API claim and the evidence lock entry for the API spec |
+| Property-based test for an invariant | `behavioral` | T2 | MUST trace to the invariant claim |
+| Security test for an operational claim | `operational` | T3 | MUST trace to the operational claim and have independent refutation |
+| Smoke/sanity test | `mechanical` | T0 | Covered by enclosing claim |
+| Test fixture/setup code | `mechanical` | T0 | Covered by the test's claim |
+
+**Key principle:** Tests are L3 validations (§13.1). They verify that L2 constructs satisfy L1 claims. A test that validates no claim (or validates a claim not in the ledger) is itself a reverse-sweep violation — it is consequential behavior with no documentary lineage.
 
 ---
 
@@ -1232,6 +1640,36 @@ superseded_by: null
 - Exceptions MUST cite what was searched and why no evidence was found
 - An exception without a search record is a conformance failure
 - The goal is honest gaps, not exception inflation or citation fabrication
+
+### 14.5 Claim retraction
+
+A claim MAY be retracted when it is discovered to be false, superseded, or no longer applicable. Retraction is NOT deletion — the claim remains in the ledger with `status: retracted`.
+
+**Retraction procedure:**
+
+1. Mark the claim with `status: retracted` and add `retracted_at` timestamp
+2. Record `retraction_reason`: why the claim is being retracted (e.g., "Evidence source superseded", "Claim found to be false during refutation", "Feature removed from product")
+3. Identify all constructs that trace to the retracted claim (via the trace matrix)
+4. For each affected construct:
+   a. If the construct's behavior is still needed: find or create a replacement claim with valid evidence
+   b. If the construct's behavior is no longer needed: mark the construct for removal
+   c. If neither: record an exception (type: `unknown`) for the construct
+5. Update the trace matrix to reflect the retraction
+6. Any change that cited the retracted claim MUST return to `UNSCOPED` for re-scoping
+
+**Retracted claim record:**
+```yaml
+schema_version: 0.1.0
+id: C-042
+statement: "Server components cannot use browser-only APIs"
+# ... (original fields preserved) ...
+status: retracted
+retracted_at: "2026-08-29T16:00:00Z"
+retraction_reason: "Evidence source EL-001 superseded by EL-009 which clarifies server components CAN use some browser APIs via polyfills"
+replacement_claim: C-078  # if a replacement exists
+```
+
+A retracted claim MUST NOT be cited by any active construct. A construct still citing a retracted claim is a conformance failure.
 
 ---
 
@@ -1382,6 +1820,55 @@ An optional `ddd-audit` can retroactively build a constitution draft for existin
 - Matching them to existing docs, ADRs, and domain models
 - Flagging gaps and contradictions
 - Producing a draft Book for human review
+
+### 17.4 Monorepo scoping
+
+In a monorepo, DDD scope is per-package, not per-repository. Each package (workspace, crate, module, app) MAY have its own Book or share a federated Book.
+
+**Monorepo book strategies:**
+
+| Strategy | When to use | Structure |
+|---|---|---|
+| **Federated** | Packages share architecture, team, and dependencies | Root `.ddd/` with `project-context.yaml` covering all packages; per-package claim subsets |
+| **Per-package** | Packages are independent or owned by different teams | `.ddd/` in each package directory; each has its own Book, evidence lock, and claims |
+| **Hybrid** | Some packages are tightly coupled, others are independent | Root `.ddd/` for shared concerns (architecture, security); per-package `.ddd/` for package-specific claims |
+
+**Scoping rules:**
+
+1. A change that touches multiple packages MUST define a scope per package
+2. Cross-package dependencies are `transitively_affected` constructs in each package's change record
+3. A cross-package constraint (e.g., "package A must not import from package B's internals") is recorded as a cross-document constraint (§7.6.13)
+4. The reverse sweep scope is limited to the change boundary within each affected package
+5. Coverage reports MAY be per-package or aggregate
+
+### 17.5 Incident and postmortem feedback loop
+
+Incidents reveal gaps in the documentary basis of the system. DDD SHOULD capture incident learnings as evidence:
+
+**Feedback procedure:**
+
+1. When an incident occurs, the postmortem/root-cause-analysis is recorded as a `project-doc` evidence source
+2. Claims derived from the postmortem (e.g., "Retry logic MUST use jittered backoff") are added to the claim ledger
+3. If the incident reveals a documentation gap (no existing claim covers the failure mode), an exception is recorded
+4. If the incident reveals a documentation error (existing claim is wrong), the claim is retracted (§14.5) and replaced
+5. Control obligations derived from postmortem recommendations are created and compiled (§12)
+6. The Knowledge Map is updated with any newly discovered risk domain
+
+**Postmortem evidence record:**
+```yaml
+schema_version: 0.1.0
+id: EL-030
+source_class: project-doc
+repository_path: "docs/postmortems/2026-08-29-order-service-outage.md"
+doc_version: "commit:abc123..."
+retrieved_at: "2026-08-30T10:00:00Z"
+content_digest: sha256:...
+sections: ["Root cause", "Action items", "Lessons learned"]
+authority_for: [reliability, operational]
+independence: human-authored
+```
+
+This creates a closed loop: incidents → evidence → claims → controls → prevention → fewer incidents.
 
 ---
 
@@ -1660,11 +2147,13 @@ These are two distinct events:
 
 | Skill | Capabilities |
 |---|---|
-| `ddd-scope` | Classify the change, determine applicable knowledge domains, discover evidence, produce or refresh the evidence lock |
-| `ddd-book` | Initialize, synchronize, validate, and release the Book. Manage Knowledge Map entries. Manage passports and artifact references. |
+| `ddd-scope` | Classify the change, detect stack, enumerate dependencies, determine applicable knowledge domains, discover evidence, produce or refresh the evidence lock |
+| `ddd-book` | Initialize (including stack detection), synchronize, validate, and release the Book. Manage Knowledge Map entries, project context, passports, and artifact references. |
 | `ddd-ground` | Extract claims and obligations, create evidence packets, update construct mappings and passports |
 | `ddd-verify` | Forward trace, reverse sweep, evidence entailment, gate and conformance audit |
 | `ddd-exception` | Record, review, escalate, and resolve epistemic gaps |
+| `ddd-model` | Create and maintain domain models (state machines, aggregates, entities, threat models, architecture models) in `.ddd/models/` |
+| `ddd-audit` | Retroactively build a constitution draft for existing (brownfield) code by extracting claims, matching to docs, and flagging gaps |
 
 ### A.3 V2 skills
 
@@ -1728,3 +2217,4 @@ Key statistics motivating this methodology, with bibliographic provenance:
 | 0.2.4-draft | 2026-08-29 | Applied 4 final freeze blockers: added T0 alternative to IMPLEMENTING→VERIFYING transition, clarified T0-only means all claims derive to T0 after classification (not just mechanical kind), defined lifecycle behavior for non-blocking T0/T1 exceptions (remain in current state, do not prevent CONFORMANT), made content_digest required for project-doc sources to comply with §5.4 durable-citation requirement. |
 | 0.2.5-draft | 2026-08-29 | Applied 3 final freeze blockers: fixed CONFORMANT definition to permit T0/T1 non-blocking exceptions, revised §5.4 to accept repository_path+commit or experiment_result_hash as version record for project-doc and experiment sources (not just version field), added t0_classification (claim_kind, impact, derived_tier) to T0 scope record schema for auditability. |
 | 0.2.6-draft | 2026-08-29 | Aligned §5.2 provenance table with §5.4: version now required for standard sources, doc_version now required for project-doc sources. |
+| 0.3.0-draft | 2026-08-30 | Major update from adversarial review (5 devil's advocate subagents). Added: §4.2.2 T1 fast path, §5.1 cross-document constraints and dependency version conflict claim domains, §5.2 code-derived source class, §7.2 project_context and constraints pointers, §7.6.11 project context record, §7.6.12 domain model record, §7.6.13 cross-document constraint record, §9.1 expanded taxonomy (10→18 dimensions), §9.1a taxonomy extension process, §9.7 expanded adapters + cache policy + access-control provenance, §9.8 stack detection, §9.9 dependency enumeration, §9.10 tribal knowledge elicitation, §9.11 code-derived artifacts as L0 evidence, §9.3 knowledge map package linking fields, §13.4 operationalized citation entailment procedure, §13.6 test-code traceability, §14.5 claim retraction, §17.4 monorepo scoping, §17.5 incident/postmortem feedback loop, §7.7 README/onboarding governance. Added ddd-model and ddd-audit skills to Annex A. |

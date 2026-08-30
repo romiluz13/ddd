@@ -7,7 +7,7 @@ description: >
   compliance, or after evidence changes.
 metadata:
   author: ddd-methodology
-  version: "0.2.6"
+  version: "0.3.0"
 ---
 
 # ddd-verify
@@ -55,13 +55,37 @@ This is what prevents undocumented functionality and citation laundering.
 
 **Machine API**: `sweep(direction: reverse) → violations[]`
 
-### Step 3: Citation entailment
+### Step 3: Citation entailment (SPEC.md §13.4)
 
-For each claim-source pair, verify: "Does this source actually entail this claim?"
+For each claim-source pair, perform the full entailment verification procedure:
 
-- A citation that does not support its claim is a conformance failure, not a valid trace
-- Check the specific section anchors, not just the URL
-- Verify the claim statement is supported by the source content
+1. **Locate the cited section**: Open the evidence lock entry and navigate to the specific `sections` referenced by the claim's `ref` field. If the section cannot be located, the citation fails.
+
+2. **Read the source content**: Read the actual cached content at the cited section. Do NOT rely on the claim author's summary.
+
+3. **Classify the entailment**:
+   - `explicit`: the source directly states the claim
+   - `implicit`: the source says A and B, from which the claim logically follows (rationale MUST explain derivation)
+   - `paraphrase`: the claim is a semantically equivalent restatement
+   - `not-entailed`: the source does not address the claim — conformance failure
+   - `contradicts`: the source states the opposite — conformance failure
+
+4. **Record results**: Each claim-source pair records the entailment classification with verifier notes.
+
+5. **Prioritize by tier**:
+   - T3 claims: every citation MUST be verified
+   - T2 claims: every citation MUST be verified
+   - T1 claims: sample verification (at least 30% of citations)
+   - T0 claims: no individual citation required
+
+### Step 3a: Test-code traceability (SPEC.md §13.6)
+
+Tests are L3 validations but are also code. Classify test code:
+- Unit tests for traced claims: T0, covered by the claim they validate
+- Integration tests for behavioral claims: T2, MUST trace to the behavioral claim
+- Contract tests for API claims: T1, MUST trace to the API claim
+- Security tests for operational claims: T3, MUST trace to the operational claim
+- A test that validates no claim in the ledger is a reverse-sweep violation
 
 ### Step 4: Compliance report
 
@@ -154,4 +178,4 @@ This loop continues until all violations are resolved (→ `CONFORMANT`), except
 
 ## Spec reference
 
-- SPEC.md §8.1 (Compliance Sweep gate), §8.3 (Lifecycle state machine), §13 (Traceability and Verification: §13.1 nested model, §13.2 proof tiers, §13.3 bidirectional sweeps, §13.4 citation entailment), §16 (Conformance Profiles), §18 (Evaluation)
+- SPEC.md §8.1 (Compliance Sweep gate), §8.3 (Lifecycle state machine), §13 (Traceability and Verification: §13.1 nested model, §13.2 proof tiers, §13.3 bidirectional sweeps, §13.4 citation entailment, §13.6 test-code traceability), §16 (Conformance Profiles), §18 (Evaluation)

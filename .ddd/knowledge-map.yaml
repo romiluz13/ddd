@@ -80,6 +80,92 @@ domains:
     gaps:
       - "No reference files for any skill (all content inline)"
 
+  - id: stack-detection
+    name: "Stack Detection and Project Context"
+    trigger: "New project initialization, dependency changes, framework upgrades"
+    questions:
+      - "Is the detected stack accurate and version-matched?"
+      - "Are all dependencies enumerated with installed versions?"
+      - "Are cross-document constraints identified?"
+    expected_decisions: ["Project context initialization", "Dependency evidence acquisition"]
+    authority_type: project-spec
+    confidence: high
+    risk_if_omitted: "Evidence lock entries for wrong versions, hallucinated API usage"
+    evidence: [SPEC]
+    gaps: []
+
+  - id: domain-modeling
+    name: "Domain Modeling (State Machines, Aggregates, Threat Models)"
+    trigger: "Behavioral claims, state transitions, invariant protection, security boundaries"
+    questions:
+      - "Are state machine models complete for all stateful entities?"
+      - "Are aggregate boundaries correctly identified?"
+      - "Are threat models present for security-relevant components?"
+    expected_decisions: ["Model creation", "Passport refinement"]
+    authority_type: project-spec
+    confidence: high
+    risk_if_omitted: "Unmodeled state transitions, missing invariants, security blind spots"
+    evidence: [SPEC]
+    gaps: []
+
+  - id: brownfield-audit
+    name: "Brownfield Code Audit"
+    trigger: "Adopting DDD on existing codebase, legacy code integration"
+    questions:
+      - "What implicit claims does existing code make?"
+      - "Which claims have matching evidence?"
+      - "Which claims are unsupported?"
+    expected_decisions: ["Remediation prioritization", "Draft Book creation"]
+    authority_type: project-spec
+    confidence: high
+    risk_if_omitted: "Adoption friction, unknown gaps in legacy code"
+    evidence: [SPEC]
+    gaps: []
+
+  - id: dependency-management
+    name: "Dependency Enumeration and Version Matching"
+    trigger: "package.json changes, lockfile updates, new imports"
+    questions:
+      - "Does every dependency have version-matched evidence?"
+      - "Are peer dependency conflicts detected?"
+      - "Are cross-document constraints between dependencies recorded?"
+    expected_decisions: ["Evidence acquisition", "Constraint recording"]
+    authority_type: project-spec
+    confidence: high
+    risk_if_omitted: "Agent uses wrong API version, hallucinates deprecated methods"
+    package: null
+    installed_version: null
+    evidence: []
+    gaps: []
+
+  - id: citation-entailment
+    name: "Citation Entailment Verification"
+    trigger: "Compliance sweep, adversarial review, any claim verification"
+    questions:
+      - "Does the cited source actually entail the claim?"
+      - "Is the entailment explicit, implicit, or paraphrase?"
+      - "Are there claims citing sections that don't support them?"
+    expected_decisions: ["Entailment classification", "Citation correction"]
+    authority_type: project-spec
+    confidence: high
+    risk_if_omitted: "Claims appear supported but aren't — false conformance"
+    evidence: [SPEC]
+    gaps: []
+
+  - id: drift-detection
+    name: "Drift Detection (7 Dimensions)"
+    trigger: "Scheduled drift check, post-upgrade, dependency change"
+    questions:
+      - "Has any evidence source become stale?"
+      - "Has the project context changed without Book update?"
+      "Has the cache become inconsistent?"
+    expected_decisions: ["Drift remediation", "Re-scoping"]
+    authority_type: project-spec
+    confidence: high
+    risk_if_omitted: "Book diverges from reality, false conformance"
+    evidence: [SPEC]
+    gaps: []
+
 # Known gaps
 gaps:
   - domain: ddd-methodology

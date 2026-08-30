@@ -7,7 +7,7 @@ description: >
   to extract claims, or when a new control obligation is identified.
 metadata:
   author: ddd-methodology
-  version: "0.2.6"
+  version: "0.3.0"
 ---
 
 # ddd-ground

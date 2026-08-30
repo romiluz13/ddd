@@ -6,26 +6,28 @@ Maps DDD skills to versions, capabilities, and SPEC.md references.
 
 | Skill | Gate | Capabilities | Machine API Primitives |
 |---|---|---|---|
-| `ddd` | Router | Determine appropriate DDD operation, report project status | All (routing) |
-| `ddd-scope` | Evidence Scope | Classify change, discover evidence, lock evidence, determine profile/risk, update Knowledge Map | `classify`, `discover`, `lock` |
-| `ddd-book` | — | Initialize/sync/validate/release Book, manage Knowledge Map, passports, artifact references | — |
+| `ddd` | Router | Determine appropriate DDD operation, route to fast paths, report project status with stack summary | All (routing) |
+| `ddd-scope` | Evidence Scope | Detect stack, classify change, enumerate dependencies, discover evidence, lock evidence, determine profile/risk, update Knowledge Map, record cross-document constraints | `classify`, `discover`, `lock` |
+| `ddd-book` | — | Initialize/sync/validate/release Book, detect project context, manage Knowledge Map, passports, artifact references | — |
 | `ddd-ground` | Evidence Lock → Grounding Check | Assemble evidence packets, extract claims, trace constructs, extract obligations, update passports | `packet`, `claim`, `trace`, `obligation` |
-| `ddd-verify` | Compliance Sweep | Forward sweep, reverse sweep, citation entailment, compliance report, conformance determination, CI integration | `sweep` |
-| `ddd-exception` | — | Classify gaps, risk-based escalation, approval workflow, conflict resolution, anti-Goodhart measures | `exception` |
+| `ddd-verify` | Compliance Sweep | Forward sweep, reverse sweep, citation entailment verification, test-code traceability, compliance report, conformance determination, CI integration | `sweep` |
+| `ddd-exception` | — | Classify gaps, risk-based escalation, approval workflow, conflict resolution, claim retraction, anti-Goodhart measures | `exception` |
+| `ddd-model` | — | Domain modeling: state machines, aggregates, entities, value objects, domain services, events, context maps, threat models, architecture models | — |
+| `ddd-audit` | — | Brownfield code audit: scan code, extract implicit claims, match to docs, flag gaps, produce draft Book, prioritize remediation | — |
 
 ## V2 Skills (Assurance)
 
 | Skill | Gate | Capabilities | Machine API Primitives |
 |---|---|---|---|
 | `ddd-decide` | — | Grounded design tournament: brief, alternatives, cards, weighted criteria, jury, negative knowledge | — |
-| `ddd-refute` | Assurance Review | Independent adversarial review for T3 claims, citation entailment challenge, counter-evidence search | `refute` |
+| `ddd-refute` | Assurance Review | Independent adversarial review for T3 claims, citation entailment challenge with full verification procedure, counter-evidence search | `refute` |
 
 ## V3 Skills (Engineering Intelligence)
 
 | Skill | Gate | Capabilities | Machine API Primitives |
 |---|---|---|---|
 | `ddd-controls` | — | Compile obligations to controls, adapter selection, validation protocol, enforcement levels, CI integration | `compile` |
-| `ddd-drift` | — | Detect evidence, documentation, decision, control, and code drift; severity classification; routing | `drift_check` |
+| `ddd-drift` | — | Detect 7 drift dimensions (evidence, documentation, decision, control, code, project context, cache); severity classification; routing | `drift_check` |
 
 ## Lifecycle Gates → Skills
 

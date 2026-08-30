@@ -11,7 +11,9 @@
         "ddd-book",
         "ddd-ground",
         "ddd-verify",
-        "ddd-exception"
+        "ddd-exception",
+        "ddd-model",
+        "ddd-audit"
       ]
     },
     {

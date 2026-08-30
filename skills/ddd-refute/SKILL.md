@@ -7,7 +7,7 @@ description: >
   needs adversarial validation.
 metadata:
   author: ddd-methodology
-  version: "0.2.6"
+  version: "0.3.0"
 ---
 
 # ddd-refute
@@ -57,7 +57,13 @@ For each T3 claim, the refutation agent:
 
 1. **Challenge the claim statement**: Is the claim accurately extracted from the source? Is the source authoritative for this claim domain?
 
-2. **Challenge citation entailment**: Does the cited source actually entail the claim? Check the specific section, not just the URL. A citation that does not support its claim is a conformance failure.
+2. **Challenge citation entailment**: Does the cited source actually entail the claim? Follow the full entailment verification procedure (SPEC.md §13.4):
+   - Locate the cited section in the evidence lock entry's cached content
+   - Read the source text directly — do NOT rely on the claim author's summary
+   - Classify the entailment: explicit statement, implicit entailment, paraphrase, not-entailed, or contradicts
+   - If the claim is an implicit entailment, verify the `rationale` field explains the derivation
+   - A citation that does not support its claim is a conformance failure
+   - Record the entailment result (explicit/implicit/paraphrase/not-entailed/contradicts) with verifier notes
 
 3. **Challenge the evidence**: Is the evidence stale, superseded, or from a non-authoritative source for this domain? Are there newer sources that contradict it?
 

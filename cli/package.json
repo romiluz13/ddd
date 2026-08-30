@@ -1,0 +1,14 @@
+{
+  "name": "ddd-cli",
+  "version": "0.1.0",
+  "description": "Minimal CLI implementing the DDD (Docs-Driven Development) machine API primitives (SPEC.md §15.3)",
+  "type": "module",
+  "bin": {
+    "ddd": "./bin/ddd.ts"
+  },
+  "scripts": {
+    "ddd": "bun run bin/ddd.ts",
+    "test": "bun test"
+  },
+  "license": "MIT"
+}
