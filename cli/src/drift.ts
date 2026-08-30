@@ -54,12 +54,13 @@ export function driftCheck(dddDir: string, now: Date = new Date()): DriftReport 
       return { ...base, age_days: ageDays, status: "unknown", reason: "no parseable freshness window" };
     }
 
+    const expired = now.getTime() >= retrieved + base.freshness_days * DAY_MS;
     return {
       ...base,
       age_days: ageDays,
-      status: ageDays > base.freshness_days ? "stale" : "fresh",
+      status: expired ? "stale" : "fresh",
       reason:
-        ageDays > base.freshness_days
+        expired
           ? `age ${ageDays}d exceeds freshness window ${base.freshness_days}d`
           : undefined,
     };

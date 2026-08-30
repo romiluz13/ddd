@@ -32,21 +32,40 @@ Core principle: The Book is the single index of all engineering knowledge. If it
 
 ## What it does
 
-### Initialize
+### Initialize — greenfield (new project, no existing code)
 
 1. Create `.ddd/` directory structure (see SPEC.md §7.1 for layout)
 2. Create initial `book.yaml` manifest with `schema_version: 0.1.0`
 3. **Detect and record project stack** — scan manifest files, lockfiles, config files. **See `references/stack-detection.md`** (in `ddd-scope`) for the full procedure. Populate `.ddd/project-context.yaml`. NEVER guess from parametric memory.
 4. Index existing project artifacts (requirements, ADRs, CONTEXT.md) as Book references with independence levels
 5. Generate initial `knowledge-map.yaml` with domains derived from detected stack
-6. Determine conformance profile (Lite or Assurance)
+6. Inventory internal artifacts relevant to the initial governed scope. Record
+   unmatched areas as not evaluated; do not block an external-API-only adoption.
+7. Determine conformance profile (Lite or Assurance)
+8. Forward evidence flow: claims are written first, evidence acquired, then code implements against claims
+
+### Initialize — brownfield (existing codebase)
+
+1. Create `.ddd/` directory structure
+2. Create initial `book.yaml` manifest
+3. **Detect and record project stack** (same as greenfield)
+4. **Route to `ddd-audit`** — audit extracts implicit claims from existing code, matches them to existing docs, and produces a draft Book
+5. Inventory internal artifacts relevant to the adopted scope. Treat discovered
+   artifacts as descriptive candidates until their epistemic role is approved.
+6. Generate `knowledge-map.yaml` from audit results + detected artifacts
+7. Determine conformance profile
+8. Backward evidence flow: claims extracted from code, evidence found or locked, verification confirms alignment
+9. Grandfather existing code outside any change scope — it enters governance gradually as it is modified (§17.3)
+
+**Convergence:** After initialization, greenfield and brownfield follow the same 5-stage pipeline. The difference is only in how the Book is initially populated. See SPEC.md §4.3.
 
 ### Synchronize
 
 1. Scan for new or updated ADRs, requirements, and project docs
 2. Re-scan project stack if dependencies or config files changed — update `project-context.yaml`, flag dependencies without matching evidence lock entries
-3. Update Book manifest references with correct independence levels
-4. Regenerate `trace-matrix.yaml` as a view of the evidence graph
+3. **Re-run internal artifact discovery (§9.12)** — new schemas, configs, or policies may have been added since last sync. Update `artifact_inventory`.
+4. Update Book manifest references with correct independence levels
+5. Regenerate `trace-matrix.yaml` as a view of the evidence graph
 
 ### Validate
 
@@ -121,4 +140,4 @@ Profile: unset
 
 ## Spec reference
 
-- SPEC.md §7 (Artifacts), §9.8 (Stack detection), §11 (Object Passports), §17 (Versioning and Migration)
+- SPEC.md §7 (Artifacts), §4.3 (Greenfield vs Brownfield), §9.8 (Stack detection), §9.12 (Internal Artifact Discovery), §11 (Object Passports), §17 (Versioning and Migration)

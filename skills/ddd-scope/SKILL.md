@@ -60,6 +60,26 @@ For each dependency whose code is touched:
 
 Every direct dependency MUST have version-matched evidence or an explicit exception.
 
+### Optional extension: inventory internal artifacts
+
+Use this extension when internal schemas, configs, or infrastructure are relevant
+to the change. It is not required for the external-API-docs fast path.
+
+1. Read the project's detected stack from `project-context.yaml`
+2. Run **only the ecosystem-matched detection patterns** from `references/artifact-registry.md`
+   - A JS/TS project skips all Python, Rust, Go, etc. patterns — no Python parser runs on a JS project
+   - For each pattern match: record `artifact_class`, `framework_or_library`, `file_path`, `detected_via`
+3. Classify each artifact by its `authority_for` domains (from the registry)
+4. Treat matches as candidates, not automatic normative authority. Record whether
+   each artifact is normative, descriptive, observed, or derived before locking it.
+5. Record all discovered artifacts in `project-context.yaml → artifact_inventory` (§7.6.11)
+6. Link artifacts to Knowledge Map domains — if a `validation-schema` is found, the `data-validation` domain is in scope
+
+**Why this step exists:** External library docs tell you how to call an API. Internal artifacts tell you what the project already constrains, validates, and promises. Both are evidence. A change that touches a Zod schema without checking what it constrains is ungrounded.
+
+**CLI limitation:** `discover(domains)` is currently a stub. Agents perform this
+inventory manually and record the detection method and uncertainty.
+
 ### Step 3: Discover evidence
 
 For each relevant domain:
@@ -144,10 +164,12 @@ Result: Conformance failure — no evidence lock, no stack detection
 ## Gate pass condition
 
 - Project stack detected and recorded
+- Internal artifacts relevant to the current change are inventoried, or the scope
+  explicitly states that only external API documentation is relevant
 - All direct dependencies have version-matched evidence or exceptions
 - Evidence lock entries created with full provenance
 - Change profile determined (Lite or Assurance)
-- Lifecycle state: `UNSCOPED → EVIDENCE_REQUIRED`
+- Lifecycle state: `UNSCOPED → EVIDENCE_REQUIRED → EVIDENCE_LOCKED`
 
 ## Self-improvement
 
@@ -157,4 +179,4 @@ Result: Conformance failure — no evidence lock, no stack detection
 
 ## Spec reference
 
-- SPEC.md §5 (Trust and Evidence Policy), §8.1 (Evidence Scope gate), §9 (Discovery), §13.2 (risk classification), §16 (Conformance Profiles)
+- SPEC.md §5 (Trust and Evidence Policy), §8.1 (Evidence Scope gate), §9 (Discovery), §9.12 (Internal Artifact Discovery), §13.2 (risk classification), §16 (Conformance Profiles)

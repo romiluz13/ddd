@@ -14,6 +14,11 @@ export interface EvidenceLockEntry {
   retrieved_at: string; // ISO 8601
   content_digest: string; // sha256:...
   doc_version: string;
+  cache_path?: string;
+  content_type?: string;
+  canonical_url?: string;
+  etag?: string;
+  last_modified?: string;
   sections: string[];
   status: string; // normative | informative
   authority_for: string[];
@@ -37,6 +42,7 @@ export interface EvidenceLock {
 export interface ClaimSource {
   ref: string;
   authority_domain: string;
+  entailment?: "explicit" | "implicit" | "paraphrase" | "not-entailed" | "contradicts" | "not-evaluated";
 }
 
 export interface Claim {
@@ -81,7 +87,37 @@ export interface TraceMatrix {
 /** Sweep violation reported by the Compliance Sweep primitive */
 export interface SweepViolation {
   type:
+    | "empty-scope"
+    | "book-manifest-missing"
+    | "manifest-artifact-missing"
+    | "manifest-artifact-digest-mismatch"
+    | "manifest-digest-mismatch"
     | "claim-without-source"
+    | "claim-without-construct"
+    | "claim-with-missing-evidence"
+    | "claim-with-inactive-evidence"
+    | "claim-with-uncaptured-evidence"
+    | "claim-with-corrupt-evidence"
+    | "claim-with-unversioned-evidence"
+    | "invalid-evidence-class"
+    | "invalid-evidence-provenance"
+    | "authority-domain-mismatch"
+    | "citation-section-missing"
+    | "citation-not-verified"
+    | "citation-failed"
+    | "implicit-entailment-without-rationale"
+    | "unapproved-evidence"
+    | "retracted-claim-cited"
+    | "claim-without-validation"
+    | "claim-tier-mismatch"
+    | "validation-link-mismatch"
+    | "validation-record-missing"
+    | "validation-failed"
+    | "validation-record-invalid"
+    | "trace-without-validation"
+    | "t3-not-allowed-in-lite"
+    | "t3-without-refutation"
+    | "t3-without-rationale"
     | "untraced-construct"
     | "orphan-trace"
     | "trace-without-construct";
@@ -98,6 +134,17 @@ export interface SweepReport {
   claims_checked: number;
   traces_checked: number;
   violations: SweepViolation[];
+  verdict: "CONFORMANT_DECLARED_SCOPE" | "NONCONFORMANT" | "NOT_EVALUATED";
+  scope: "declared-constructs";
+  capabilities: {
+    evidence_integrity: "tool-enforced";
+    trace_graph: "tool-enforced";
+    tier_requirements: "tool-enforced";
+    entailment: "recorded-attestation";
+    reverse_sweep: "declared-constructs-only";
+    validation_records: "tool-enforced";
+    refutation_independence: "recorded-metadata";
+  };
   pass: boolean;
 }
 

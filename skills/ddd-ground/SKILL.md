@@ -32,7 +32,12 @@ Violating the letter of the rules is violating the spirit of the rules.
 
 ## What it does
 
-### Step 1: Assemble evidence packet
+### Step 1: Extract claims
+
+For each locked source, extract atomic normative statements as shown in Step 2
+below. Claims must exist before the CLI can select them for a packet.
+
+### Step 2: Assemble evidence packet
 
 Create a bounded, change-specific context bundle (SPEC.md §7.5):
 
@@ -45,14 +50,14 @@ passports: [order.aggregate]
 obligations: [order.no-direct-payment-gateway]
 invariants: ["Order can only be cancelled if status is PENDING or CONFIRMED"]
 forbidden: ["Cancelling a SHIPPED order"]
-context_budget: { max_tokens: 50000, sections_selected: 12 }
+context_budget: { max_chars: 200000, content_chars: 48720, sections_selected: 12 }
 ```
 
 **Machine API**: `packet(change, lock) → evidence_packet`
 
 Evidence packets prevent context rot by delivering only the relevant slice of the Book.
 
-### Step 2: Extract claims
+### Claim record
 
 For each source, extract atomic normative statements:
 

@@ -7,15 +7,15 @@ version: 0.1.0
 released_at: null
 
 # Manifest digest — computed from all referenced artifact digests
-manifest_digest: sha256:906e0a17dd6c0eb2ed8b70d04de5b6d9d5f0cd8ac4f5cadefa4b80808fad097d
+manifest_digest: sha256:b9242545d0baad7d41364c161867fd6ecda6dd5aa5ce3aa8610ba93a5991cda2
 
 # Project requirements (human-approved product/engineering docs)
 requirements:
   - path: SPEC.md
     authority: product-approved
     independence: agent-proposed-human-approved
-    digest: sha256:ab6b53d16d71a00ffc446a6455f6a4c476f102f56a4e74cd1cee87ac5fd16743
-    description: "Normative DDD specification, v0.3.1-draft"
+    digest: sha256:bf8a80c6265248d84a600aaf49bf658c95742a18392d8d78cbd9641a3f4c419b
+    description: "Normative DDD specification, v0.3.2-draft"
 
   - path: CONTEXT.md
     authority: product-approved
@@ -28,6 +28,7 @@ decisions:
   - path: .ddd/decisions/ADR-001-dogfood-ddd.md
     authority: team-approved
     independence: agent-proposed-human-approved
+    digest: sha256:29ceafaf96e76628fdf8b39c69ce22962eb79106356168f516ee9afe245848e7
     description: "ADR-001: Dogfood DDD to improve DDD"
 
 # Agent context (runtime configuration, skill manifests)
@@ -35,13 +36,13 @@ agent_context:
   - path: AGENTS.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:20f64b8b918c266a250351dce7d94c2b8dcd0c3e7bb4109a43eb85c379e28e89
+    digest: sha256:f5cb5208856591aed2305e3647a2060d2a60af26819e23ad467a87ae5612d3a3
     description: "Agent runtime instructions and project structure"
 
   - path: SKILLS.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:775afd651d6ac4e1cb346fc9b23b24d272d6fb6c057f043a9a2aa6acbda74b1c
+    digest: sha256:08555370e7032940df64efadddb3f53a9fbed556d4d7296c40afae0408e7713a
     description: "Skills manifest mapping skills to versions, gates, and machine API"
 
   - path: skills/ddd/SKILL.md
@@ -53,8 +54,8 @@ agent_context:
   - path: skills/ddd-scope/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:0a58b1d7ae7356fc115751d7817925a66061c929ef2e88989c10ae8c76109812
-    description: "Evidence Scope gate (lean, references for detail)"
+    digest: sha256:cdc930476660c671607e3a7035ac10e16b850d66c681d0255b1324eb46a5a234
+    description: "Evidence Scope gate (lean, references for detail, internal artifact discovery)"
 
   - path: skills/ddd-scope/references/stack-detection.md
     status: working-document
@@ -68,11 +69,17 @@ agent_context:
     digest: sha256:3c2188d5a45d782290c55f9639d1eb269533bdfa1594b64f5ad9c45c4c46fc1b
     description: "Doc acquisition adapters reference"
 
+  - path: skills/ddd-scope/references/artifact-registry.md
+    status: working-document
+    independence: agent-proposed-human-approved
+    digest: sha256:4e61c96c7e337eebf2bd77737fc2d55b2a23965d4092bb779263762f34e6e601
+    description: "Internal artifact registry — 15 groups, 40+ classes with per-language detection patterns"
+
   - path: skills/ddd-book/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:d6503c6f2eb658aaae81ab1d1787d75cee52c84c43e2f0bd09875bfeb601a367
-    description: "Book management + project context (lean, references for detail)"
+    digest: sha256:24211130cb8b5937fe982ddc6296a0ea46d2eb799ffbbcd264251e4680633594
+    description: "Book management + project context (greenfield/brownfield init, artifact inventory sync)"
 
   - path: skills/ddd-book/references/passport-schema.md
     status: working-document
@@ -83,13 +90,13 @@ agent_context:
   - path: skills/ddd-ground/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:4ecaf8ff423f4756cd9f85fd61a0db22c1bca4ab9ac3dc3c5b5fdf286104f452
+    digest: sha256:e681378c827b0102f41f291adb665c11f049e5dbb9206748fbfb666900e27b31
     description: "Evidence Lock gate (iron law, examples, rationalization)"
 
   - path: skills/ddd-verify/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:6883b477476127fb52c3338c9a5cc093ed2f1cc25e146b9b002868c502c49a67
+    digest: sha256:13344b2ea1662c9034c7905a728384b2010c42db0db9d5a3a1d8dcd19b316c8a
     description: "Compliance Sweep gate (lean, references for detail)"
 
   - path: skills/ddd-verify/references/citation-entailment.md
@@ -125,7 +132,7 @@ agent_context:
   - path: skills/ddd-refute/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:f0c7881a4fd45abc2b5276c79e47b932123d33dde83cfff9f13d0fc5a179abe6
+    digest: sha256:8ef58840c04718f3255e9fed19a2e1e63d7cd0fa8b0624d9f5b468d123917b84
     description: "Adversarial review (V2, iron law, examples, rationalization)"
 
   - path: skills/ddd-controls/SKILL.md
@@ -137,7 +144,7 @@ agent_context:
   - path: skills/ddd-drift/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:a91b61f58a848cd65ce65023aeff46113770db0fea424d50e9bc62c26b60ff02
+    digest: sha256:55bd643faa65e6a91675fd1ede44e51aeaff3363249458a688fe2ea41368947c
     description: "Drift detection (V3, lean, references for detail, 7 dimensions)"
 
   - path: skills/ddd-drift/references/drift-dimensions.md
@@ -178,15 +185,15 @@ project_context: project-context.yaml
 constraints: constraints.yaml
 
 # DDD metadata
-ddd_spec_version: 0.3.1
-profile: assurance
+ddd_spec_version: 0.3.2
+profile: lite
 
-# Coverage — all symbols are DDD-governed (this IS the DDD project)
+# Coverage is limited to constructs explicitly declared in claims and traces.
 coverage:
-  ddd_governed_symbols: 12
-  total_symbols: 12
-  grandfathered_symbols: 0
-  grandfathered_percentage: 0
+  mode: declared-constructs
+  ddd_governed_constructs: 3
+  repository_construct_inventory: not-evaluated
+  grandfathered_constructs: not-evaluated
 
 # Lifecycle
 initialized_at: "2026-08-30T00:00:00Z"

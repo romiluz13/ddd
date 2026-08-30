@@ -119,4 +119,4 @@ When drift is detected, affected changes re-enter the lifecycle — **see `refer
 
 ## Spec reference
 
-- SPEC.md §8.3 (Lifecycle re-entry), §12 (Executable Controls), §20.5 (Worked example)
+- SPEC.md §8.3 (Lifecycle re-entry), §8.4 (Drift dimensions), §12 (Executable Controls), §20.5 (Worked example)

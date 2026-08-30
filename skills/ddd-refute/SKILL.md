@@ -69,8 +69,9 @@ For each T3 claim:
 ```yaml
 id: REF-001
 claim_id: C-055
-refuter_context: "independent-agent-context-id"
-refuter_independence_verified: true
+refuter_id: "independent-agent-context-id"
+implementer_id: "implementation-agent-context-id"
+independence_verified: true
 outcome: sustained  # sustained | refuted | partially_refuted
 findings:
   - type: citation_gap
@@ -78,6 +79,10 @@ findings:
     severity: high
 recommendation: "Narrow citation, create exception for edge case X"
 ```
+
+`refuter_id` and `implementer_id` MUST both be present and MUST differ. The
+refuter records `independence_verified: true` only after confirming that role
+separation.
 
 ### Step 5: Act on results
 

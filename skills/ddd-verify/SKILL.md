@@ -61,7 +61,12 @@ This is what prevents undocumented functionality and citation laundering.
 2. For each, find a corresponding claim or approved exception
 3. Flag any behavior with no claim and no exception as a violation
 
-**Machine API**: `sweep(direction: reverse) → violations[]`
+The current CLI reverse sweep checks only constructs already declared in claims
+and traces. Before invoking it, the verifier MUST enumerate consequential
+behaviors in the changed files and add those constructs to the Book. Record the
+enumeration method in the report.
+
+**Machine API**: `sweep(direction: reverse) → violations[]` (declared constructs only)
 
 ### Step 3: Citation entailment
 
@@ -86,6 +91,10 @@ reverse_sweep: { total_constructs: 5, documented: 5, undocumented: 0 }
 citation_entailment: { total_citations: 4, entailed: 4, not_entailed: 0 }
 exceptions: { blocking: 0, non_blocking: 0, pending_approval: 0 }
 verdict: CONFORMANT
+scope: changed-code-enumerated
+enforcement:
+  reverse_sweep: agent-assisted
+  entailment: agent-verified
 ```
 
 ### Step 5: Conformance determination
@@ -99,6 +108,11 @@ verdict: CONFORMANT
 | Trace incomplete, citation not entailed, undocumented behavior | `NONCONFORMANT` |
 
 Assurance profile additionally requires: Assurance Review passed, human approval for high-impact decisions, role separation verified.
+
+The CLI emits `CONFORMANT_DECLARED_SCOPE` when its checks pass. Promote that
+result to change-level `CONFORMANT` only after the agent-assisted changed-code
+enumeration and semantic entailment review above are recorded. Never interpret
+an empty scope or an unsupported capability as a pass.
 
 ## Examples
 

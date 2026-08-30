@@ -5,13 +5,13 @@
 schema_version: 0.1.0
 initialized_at: "2026-08-30T11:40:00Z"
 
-constraints: []
+entries: []
 # No cross-document constraints identified yet for the DDD project itself.
 #
 # Example entries (for reference when adopting on a real project):
 #
 # - id: XC-001
-#   type: runtime-incompatibility
+#   constraint_type: runtime-incompatibility
 #   description: "bcrypt requires Node.js runtime; not available in Edge Runtime"
 #   sources:
 #     - evidence_lock_entry: EL-NNN

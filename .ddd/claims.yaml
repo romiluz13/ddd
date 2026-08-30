@@ -1,418 +1,54 @@
 # DDD Claim Ledger
-# Atomic normative statements extracted from evidence, requiring support.
-# Updated by: ddd-ground skill
-# Schema: SPEC.md §7.4
+# Scope: the external Agent Skills format used by the router skill.
+# This is intentionally small; it does not claim whole-repository coverage.
 
 schema_version: 0.1.0
 
 entries:
-  # --- Critical gap claims (from dogfooding audit) ---
-
   - id: C-001
     schema_version: 0.1.0
-    statement: "ddd-scope MUST reference §5.6 (Security handling) — retrieved documentation is untrusted data requiring containment, secret redaction, and prompt-injection defense"
-    rationale: "Audit gap 1: §5.6 is completely unreferenced by any skill, creating a safety gap"
+    statement: "A skill's SKILL.md file contains YAML frontmatter followed by Markdown content."
+    rationale: "The router skill must be loadable by Agent Skills-compatible harnesses."
     sources:
-      - ref: SPEC.md#5.6
-        authority_domain: security
-    claim_kind: operational
-    impact: critical
-    tier: T3
+      - ref: EL-001#Frontmatter
+        authority_domain: skill-format
+        entailment: explicit
+    claim_kind: api
+    impact: medium
+    tier: T1
     status: known-and-supported
-    constructs: [skills/ddd-scope/SKILL.md]
+    constructs: [skills/ddd/SKILL.md#frontmatter]
     validations: []
     exceptions: []
 
   - id: C-002
     schema_version: 0.1.0
-    statement: "ddd-controls enforcement levels MUST match §12.2 (levels 1-5 including formal verification), not the current 1-4"
-    rationale: "Audit gap 2: skill defines levels 1-4 with different names, contradicting spec §12.2 which defines levels 1-5"
+    statement: "The skill name uses lowercase letters, numbers, and hyphens and matches its parent directory."
+    rationale: "The router skill name must satisfy the external skill format."
     sources:
-      - ref: SPEC.md#12.2
-        authority_domain: control-enforcement
-    claim_kind: behavioral
-    impact: high
-    tier: T2
+      - ref: EL-001#name field
+        authority_domain: skill-format
+        entailment: explicit
+    claim_kind: api
+    impact: medium
+    tier: T1
     status: known-and-supported
-    constructs: [skills/ddd-controls/SKILL.md]
+    constructs: [skills/ddd/SKILL.md#name]
     validations: []
     exceptions: []
 
   - id: C-003
     schema_version: 0.1.0
-    statement: "book.yaml template MUST align with §7.2 schema — use requirements/decisions/agent_context, version (not book_version), and include evidence_lock/knowledge_map/claims pointer fields"
-    rationale: "Audit gap 3: template diverges from spec schema with wrong field names and missing required fields"
+    statement: "The skill description states what the skill does and when to use it."
+    rationale: "The router must be discoverable from its external skill metadata."
     sources:
-      - ref: SPEC.md#7.2
-        authority_domain: artifact-schema
-    claim_kind: architectural
-    impact: high
-    tier: T2
-    status: known-and-supported
-    constructs: [.ddd/book.yaml]
-    validations: []
-    exceptions: []
-
-  - id: C-004
-    schema_version: 0.1.0
-    statement: "evidence.lock template MUST align with §7.3 schema — use source_url (not url), freshness (not freshness_policy), add required fields (publisher, sections, status, authority_for, adapter, license), and use spec source_class values (vendor-doc, source-code, waiver)"
-    rationale: "Audit gap 4: template diverges from spec schema with wrong field names, missing fields, and non-spec source_class values"
-    sources:
-      - ref: SPEC.md#7.3
-        authority_domain: artifact-schema
-    claim_kind: architectural
-    impact: high
-    tier: T2
-    status: known-and-supported
-    constructs: [.ddd/evidence.lock]
-    validations: []
-    exceptions: []
-
-  - id: C-005
-    schema_version: 0.1.0
-    statement: "ddd-refute T3 classification MUST accurately reflect §13.2 matrix — T3 is reached by ANY claim_kind with critical impact, not just architectural/operational with high/critical"
-    rationale: "Audit gap 5: skill's T3 description is inaccurate — the §13.2 matrix shows mechanical+critical=T3, api+critical=T3, behavioral+critical=T3"
-    sources:
-      - ref: SPEC.md#13.2
-        authority_domain: risk-classification
-    claim_kind: behavioral
-    impact: high
-    tier: T2
-    status: known-and-supported
-    constructs: [skills/ddd-refute/SKILL.md]
-    validations: []
-    exceptions: []
-
-  - id: C-006
-    schema_version: 0.1.0
-    statement: "ddd-verify MUST document the NONCONFORMANT → IMPLEMENTING transition (rework loop after verification failure)"
-    rationale: "Audit gap 6: no skill describes the rework loop when verification fails and implementation is corrected"
-    sources:
-      - ref: SPEC.md#8.3
-        authority_domain: lifecycle
-    claim_kind: behavioral
+      - ref: EL-001#description field
+        authority_domain: skill-format
+        entailment: paraphrase
+    claim_kind: api
     impact: medium
-    tier: T2
-    status: known-and-supported
-    constructs: [skills/ddd-verify/SKILL.md]
-    validations: []
-    exceptions: []
-
-  - id: C-007
-    schema_version: 0.1.0
-    statement: "ddd-drift MUST describe lifecycle re-entry transitions per §8.3 — Any→UNSCOPED for contradictory content, Any→EVIDENCE_LOCKED for version refresh"
-    rationale: "Audit gap 7: ddd-drift detects drift but doesn't describe lifecycle state changes that result"
-    sources:
-      - ref: SPEC.md#8.3
-        authority_domain: lifecycle
-    claim_kind: behavioral
-    impact: medium
-    tier: T2
-    status: known-and-supported
-    constructs: [skills/ddd-drift/SKILL.md]
-    validations: []
-    exceptions: []
-
-  # --- Moderate gap claims ---
-
-  - id: C-008
-    schema_version: 0.1.0
-    statement: "ddd-controls MUST reference §12.3 (Generation boundary) — DDD MAY generate controls when a trusted adapter exists, otherwise MUST emit a recipe and report obligation as uncompiled"
-    rationale: "Audit gap 12: skill does not mention the uncompiled fallback or recipe behavior"
-    sources:
-      - ref: SPEC.md#12.3
-        authority_domain: control-generation
-    claim_kind: behavioral
-    impact: medium
-    tier: T2
-    status: known-and-supported
-    constructs: [skills/ddd-controls/SKILL.md]
-    validations: []
-    exceptions: []
-
-  - id: C-009
-    schema_version: 0.1.0
-    statement: "trace-matrix.yaml template MUST use trace entry schema (§7.6.10) not construct locator schema (§7.6.4)"
-    rationale: "Audit gap 13: template conflates construct locators with trace entries"
-    sources:
-      - ref: SPEC.md#7.6.10
-        authority_domain: artifact-schema
-    claim_kind: architectural
-    impact: medium
-    tier: T2
-    status: known-and-supported
-    constructs: [.ddd/trace-matrix.yaml]
-    validations: []
-    exceptions: []
-
-  - id: C-010
-    schema_version: 0.1.0
-    statement: "ddd-refute spec references MUST be accurate — §6 is 'Roles and Governance' not 'Assurance and Refutation'; §20.6 is about reverse-sweep retry not T3 refutation"
-    rationale: "Audit gap 16: spec reference mislabels in ddd-refute"
-    sources:
-      - ref: SPEC.md#6
-        authority_domain: spec-accuracy
-    claim_kind: mechanical
-    impact: low
     tier: T1
     status: known-and-supported
-    constructs: [skills/ddd-refute/SKILL.md]
-    validations: []
-    exceptions: []
-
-  - id: C-011
-    schema_version: 0.1.0
-    statement: "ddd-drift spec references MUST be accurate — §19.3 is 'Version 3: Executable engineering' not 'Drift Detection'; should reference §8.3 (re-entry), §20.5 (worked example)"
-    rationale: "Audit gap 17: spec reference mislabels in ddd-drift"
-    sources:
-      - ref: SPEC.md#8.3
-        authority_domain: spec-accuracy
-    claim_kind: mechanical
-    impact: low
-    tier: T1
-    status: known-and-supported
-    constructs: [skills/ddd-drift/SKILL.md]
-    validations: []
-    exceptions: []
-
-  - id: C-012
-    schema_version: 0.1.0
-    statement: "Skills SHOULD reference §1 (Purpose/Non-goals), §2 (Terminology), §3 (Principes) as foundational context"
-    rationale: "Audit gap 8: foundational sections unreferenced by any skill"
-    sources:
-      - ref: SPEC.md#1
-        authority_domain: spec-foundations
-    claim_kind: mechanical
-    impact: low
-    tier: T1
-    status: known-and-supported
-    constructs: [skills/ddd/SKILL.md]
-    validations: []
-    exceptions: []
-
-  - id: C-013
-    schema_version: 0.1.0
-    statement: "Skills SHOULD reference §15.1 (Hook specification) and §15.2 (Workflow integration) for the formal hook contract"
-    rationale: "Audit gap 9: hook spec and workflow integration sections unreferenced"
-    sources:
-      - ref: SPEC.md#15.1
-        authority_domain: integration
-    claim_kind: mechanical
-    impact: low
-    tier: T1
-    status: known-and-supported
-    constructs: [skills/ddd/SKILL.md]
-    validations: []
-    exceptions: []
-
-  - id: C-014
-    schema_version: 0.1.0
-    statement: "ddd-book SHOULD reference §17.1 (Spec versioning) and §17.2 (Schema versioning)"
-    rationale: "Audit gap 10: versioning sections unreferenced by ddd-book"
-    sources:
-      - ref: SPEC.md#17.1
-        authority_domain: versioning
-    claim_kind: mechanical
-    impact: low
-    tier: T1
-    status: known-and-supported
-    constructs: [skills/ddd-book/SKILL.md]
-    validations: []
-    exceptions: []
-
-  # --- v0.3.0 claims (project personalization + adversarial findings) ---
-
-  - id: C-015
-    schema_version: 0.1.0
-    statement: "DDD MUST detect the project tech stack before classifying changes, recording it in project-context.yaml per §9.8"
-    rationale: "Without stack detection, evidence is acquired for wrong versions and agents hallucinate APIs"
-    sources:
-      - ref: SPEC.md#9.8
-        authority_domain: artifact-schema
-    claim_kind: behavioral
-    impact: high
-    tier: T2
-    status: known-and-supported
-    constructs: [skills/ddd-scope/SKILL.md, skills/ddd-book/SKILL.md]
-    validations: []
-    exceptions: []
-
-  - id: C-016
-    schema_version: 0.1.0
-    statement: "Every direct dependency used by a DDD-governed change MUST have version-matched evidence or an explicit exception per §9.9"
-    rationale: "Dependencies without version-matched evidence lead to hallucinated API usage"
-    sources:
-      - ref: SPEC.md#9.9
-        authority_domain: artifact-schema
-    claim_kind: behavioral
-    impact: high
-    tier: T2
-    status: known-and-supported
-    constructs: [skills/ddd-scope/SKILL.md]
-    validations: []
-    exceptions: []
-
-  - id: C-017
-    schema_version: 0.1.0
-    statement: "The knowledge taxonomy MUST support 18 dimensions per §9.1, with an extension process per §9.1a"
-    rationale: "The original 10 dimensions missed domains like dependency-management, domain-modeling, and drift-detection"
-    sources:
-      - ref: SPEC.md#9.1
-        authority_domain: artifact-schema
-    claim_kind: architectural
-    impact: medium
-    tier: T2
-    status: known-and-supported
-    constructs: [SPEC.md, .ddd/knowledge-map.yaml]
-    validations: []
-    exceptions: []
-
-  - id: C-018
-    schema_version: 0.1.0
-    statement: "Citation entailment MUST be verified by reading the source content directly, not relying on the claim author's summary per §13.4"
-    rationale: "Claims can appear supported but actually misrepresent their sources"
-    sources:
-      - ref: SPEC.md#13.4
-        authority_domain: traceability
-    claim_kind: behavioral
-    impact: high
-    tier: T2
-    status: known-and-supported
-    constructs: [skills/ddd-verify/SKILL.md, skills/ddd-refute/SKILL.md]
-    validations: []
-    exceptions: []
-
-  - id: C-019
-    schema_version: 0.1.0
-    statement: "A T1 fast path MUST be available for changes where all claims are API-level per §4.2.2"
-    rationale: "Full pipeline overhead for simple API calls creates adoption friction"
-    sources:
-      - ref: SPEC.md#4.2.2
-        authority_domain: traceability
-    claim_kind: behavioral
-    impact: medium
-    tier: T2
-    status: known-and-supported
-    constructs: [skills/ddd/SKILL.md, skills/ddd-scope/SKILL.md]
-    validations: []
-    exceptions: []
-
-  - id: C-020
-    schema_version: 0.1.0
-    statement: "Cross-document constraints (runtime incompatibilities, version conflicts) MUST be recorded in constraints.yaml per §7.6.13"
-    rationale: "Undiscovered cross-document constraints cause runtime failures"
-    sources:
-      - ref: SPEC.md#7.6.13
-        authority_domain: artifact-schema
-    claim_kind: behavioral
-    impact: high
-    tier: T2
-    status: known-and-supported
-    constructs: [skills/ddd-scope/SKILL.md, .ddd/constraints.yaml]
-    validations: []
-    exceptions: []
-
-  - id: C-021
-    schema_version: 0.1.0
-    statement: "Claim retraction MUST mark the claim as retracted and re-scope all constructs that cited it per §14.5"
-    rationale: "Retracted claims that remain cited create false conformance"
-    sources:
-      - ref: SPEC.md#14.5
-        authority_domain: traceability
-    claim_kind: behavioral
-    impact: high
-    tier: T2
-    status: known-and-supported
-    constructs: [skills/ddd-exception/SKILL.md]
-    validations: []
-    exceptions: []
-
-  - id: C-022
-    schema_version: 0.1.0
-    statement: "Drift detection MUST check 7 dimensions: evidence, documentation, decision, control, code, project context, and cache"
-    rationale: "The original 5 dimensions missed project-context drift and cache corruption"
-    sources:
-      - ref: SPEC.md#8.4
-        authority_domain: traceability
-    claim_kind: behavioral
-    impact: medium
-    tier: T2
-    status: known-and-supported
-    constructs: [skills/ddd-drift/SKILL.md]
-    validations: []
-    exceptions: []
-
-  - id: C-023
-    schema_version: 0.1.0
-    statement: "Domain models (state machines, aggregates, entities, threat models) MUST be recorded in .ddd/models/ per §7.6.12"
-    rationale: "Unrecorded models are lost knowledge; passports reference models for provenance"
-    sources:
-      - ref: SPEC.md#7.6.12
-        authority_domain: artifact-schema
-    claim_kind: architectural
-    impact: medium
-    tier: T2
-    status: known-and-supported
-    constructs: [skills/ddd-model/SKILL.md]
-    validations: []
-    exceptions: []
-
-  - id: C-024
-    schema_version: 0.1.0
-    statement: "Brownfield code adoption MUST use ddd-audit to scan existing code, extract implicit claims, and produce a draft Book"
-    rationale: "Existing code makes implicit claims that need to be surfaced and verified"
-    sources:
-      - ref: SPEC.md#17.3
-        authority_domain: traceability
-    claim_kind: behavioral
-    impact: medium
-    tier: T2
-    status: known-and-supported
-    constructs: [skills/ddd-audit/SKILL.md]
-    validations: []
-    exceptions: []
-
-  - id: C-025
-    schema_version: 0.1.0
-    statement: "Code-derived artifacts (source code, test suites, schemas) MAY serve as L0 evidence per §9.11 and §5.2"
-    rationale: "Source code is ground truth for API behavior; tests are ground truth for expected behavior"
-    sources:
-      - ref: SPEC.md#9.11
-        authority_domain: traceability
-    claim_kind: behavioral
-    impact: medium
-    tier: T2
-    status: known-and-supported
-    constructs: [skills/ddd-scope/SKILL.md, skills/ddd-ground/SKILL.md]
-    validations: []
-    exceptions: []
-
-  - id: C-026
-    schema_version: 0.1.0
-    statement: "DDD MUST support monorepo scoping via federated, per-package, or hybrid strategies per §17.4"
-    rationale: "Monorepo projects need scoped Books to avoid evidence bloat and maintain package-level conformance"
-    sources:
-      - ref: SPEC.md#17.4
-        authority_domain: versioning
-    claim_kind: architectural
-    impact: medium
-    tier: T2
-    status: known-and-supported
-    constructs: [SPEC.md]
-    validations: []
-    exceptions: []
-
-  - id: C-027
-    schema_version: 0.1.0
-    statement: "Design decisions meeting tournament trigger criteria MUST use a grounded design tournament with 2-3 alternatives, predeclared weighted criteria, and negative-knowledge retention per §10"
-    rationale: "Architecturally consequential decisions evaluated against evidence prevent pattern soup and prefer the simplest sufficient design"
-    sources:
-      - ref: SPEC.md#10
-        authority_domain: decision-intelligence
-    claim_kind: behavioral
-    impact: high
-    tier: T2
-    status: known-and-supported
-    constructs: [skills/ddd-decide/SKILL.md]
+    constructs: [skills/ddd/SKILL.md#description]
     validations: []
     exceptions: []

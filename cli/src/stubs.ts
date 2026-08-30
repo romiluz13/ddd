@@ -5,8 +5,6 @@
 
 export const STUB_PRIMITIVES = [
   "discover",
-  "packet",
-  "claim",
   "refute",
   "exception",
   "obligation",

@@ -25,7 +25,9 @@ We will apply DDD to the DDD project:
 5. **Implement improvements**: modify SKILL.md files based on evidence
 6. **Verify**: run forward and reverse sweep to check spec-skill alignment
 
-The project uses the **Assurance** profile because changes to the methodology are architecturally consequential (T3).
+The project uses the **Lite** profile for the bounded external-documentation
+kernel. Any change that derives a T3 claim must switch to Assurance before that
+claim can conform.
 
 ## Consequences
 

@@ -34,7 +34,8 @@ Maps DDD skills to versions, capabilities, and SPEC.md references.
 | Gate | Trigger | Skill | Pass Condition |
 |---|---|---|---|
 | Evidence Scope | New change | `ddd-scope` | Technologies, decisions, risks identified; Knowledge Map updated |
-| Evidence Lock | Evidence scoped | `ddd-scope` (lock step) / `ddd-ground` (packet) | Sources locked with provenance; packet assembled |
+| Evidence Lock | Evidence scoped | `ddd-scope` | Sources locked with provenance; lifecycle reaches `EVIDENCE_LOCKED` |
+| Grounding preparation | Evidence locked | `ddd-ground` | Bounded packet assembled and claims extracted |
 | Grounding Check | During implementation | `ddd-ground` | Every construct traces to a claim or T0 exemption |
 | Compliance Sweep | Implementation complete | `ddd-verify` | Forward + reverse sweep pass; conformance determined |
 | Assurance Review | T3 claims present | `ddd-refute` | All T3 claims refuted (sustained); role separation verified |
@@ -55,6 +56,12 @@ obligation(rule, source, scope) → obligation_id
 compile(obligation_id, adapter) → control
 drift_check() → drift_report[]
 ```
+
+The list above is the normative API surface, not the current CLI implementation
+status. The reference CLI implements `classify`, `lock`, `packet`, `claim`,
+`trace`, and `sweep`. Its `drift_check` implementation covers evidence freshness
+only. `discover`, `refute`, `exception`, `obligation`, and `compile` are explicit
+stubs. See [`cli/README.md`](cli/README.md) for exact behavior.
 
 ## Conformance Profiles
 

@@ -1,5 +1,13 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync, existsSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -22,6 +30,10 @@ beforeEach(() => {
   workDir = mkdtempSync(join(tmpdir(), "ddd-cli-test-"));
   dddDir = join(workDir, ".ddd");
   mkdirSync(dddDir, { recursive: true });
+  writeFileSync(
+    join(dddDir, "book.yaml"),
+    `schema_version: 0.1.0\nmanifest_digest: sha256:${sha256Hex("\n")}\nprofile: lite\n`,
+  );
 });
 
 afterEach(() => {
@@ -152,6 +164,7 @@ describe("lock", () => {
   test("appends an evidence lock entry with sha256 digest", async () => {
     const entry = await lockEvidence(dddDir, "https://example.com/doc", {
       contentOverride: "hello evidence",
+      version: "1.0.0",
       sections: ["Overview"],
       authorityFor: ["api-semantics"],
     });
@@ -174,8 +187,21 @@ describe("lock", () => {
     writeFileSync(join(dddDir, "evidence.lock"), LOCK_YAML);
     const entry = await lockEvidence(dddDir, "https://example.com/new", {
       contentOverride: "new content",
+      version: "2.0.0",
     });
     expect(entry.id).toBe("EL-004");
+  });
+
+  test("appends to an explicitly empty evidence ledger", async () => {
+    writeFileSync(join(dddDir, "evidence.lock"), "schema_version: 0.1.0\nentries: []\n");
+    const entry = await lockEvidence(dddDir, "https://example.com/v1", {
+      contentOverride: "# API v1\n",
+      version: "1.0.0",
+    });
+    const parsed = parseYaml(readFileSync(join(dddDir, "evidence.lock"), "utf8")) as {
+      entries: Array<{ id: string }>;
+    };
+    expect(parsed.entries.map((candidate) => candidate.id)).toEqual([entry.id]);
   });
 });
 
@@ -215,6 +241,13 @@ describe("trace", () => {
 // ---------------------------------------------------------------------------
 
 describe("sweep", () => {
+  test("does not report conformance for an empty scope", () => {
+    const report = sweep(dddDir, "both");
+    expect(report.pass).toBe(false);
+    expect(report.verdict).toBe("NOT_EVALUATED");
+    expect(report.violations.map((violation) => violation.type)).toContain("empty-scope");
+  });
+
   test("forward sweep reports claims without sources and untraced constructs", () => {
     writeFileSync(join(dddDir, "claims.yaml"), CLAIMS_YAML);
     writeFileSync(join(dddDir, "trace-matrix.yaml"), TRACE_YAML);
@@ -245,15 +278,16 @@ describe("sweep", () => {
     expect(report.violations.some((v) => v.type === "orphan-trace" && v.claim_id === "C-999")).toBe(true);
   });
 
-  test("passes when claims and traces are consistent", () => {
-    writeFileSync(join(dddDir, "claims.yaml"), CLAIMS_YAML);
-    writeFileSync(join(dddDir, "trace-matrix.yaml"), `schema_version: 0.1.0\ntraces: []\n`);
-
-    // C-002 has no sources and untraced constructs, so sweep fails; check the
-    // pure pass case with a fully traced single claim instead.
+  test("passes when declared claims, evidence, and traces are consistent", async () => {
+    await lockEvidence(dddDir, "https://example.com/api/v1", {
+      contentOverride: "# API v1\n",
+      version: "1.0.0",
+      sections: ["API"],
+      authorityFor: ["api-semantics"],
+    });
     writeFileSync(
       join(dddDir, "claims.yaml"),
-      `schema_version: 0.1.0\nentries:\n  - id: C-001\n    sources:\n      - ref: EL-001\n        authority_domain: api-semantics\n    constructs: [A.component]\n`,
+      `schema_version: 0.1.0\nentries:\n  - id: C-001\n    statement: "API call follows v1"\n    sources:\n      - ref: EL-001#API\n        authority_domain: api-semantics\n        entailment: explicit\n    claim_kind: api\n    impact: medium\n    tier: T1\n    status: known-and-supported\n    constructs: [A.component]\n    validations: []\n`,
     );
     writeFileSync(
       join(dddDir, "trace-matrix.yaml"),
@@ -262,6 +296,151 @@ describe("sweep", () => {
     const report = sweep(dddDir, "both");
     expect(report.pass).toBe(true);
     expect(report.violations).toEqual([]);
+  });
+
+  test("rejects a persisted tier that is lower than the derived tier", async () => {
+    await lockEvidence(dddDir, "https://example.com/security/v1", {
+      contentOverride: "# Token verification\n",
+      version: "1.0.0",
+      sections: ["Token verification"],
+      authorityFor: ["security"],
+    });
+    writeFileSync(
+      join(dddDir, "claims.yaml"),
+      `schema_version: 0.1.0\nentries:\n  - id: C-001\n    statement: "Verify tokens"\n    sources:\n      - ref: EL-001#Token verification\n        authority_domain: security\n        entailment: explicit\n    claim_kind: behavioral\n    impact: critical\n    tier: T1\n    status: known-and-supported\n    constructs: [auth.verify]\n    validations: []\n`,
+    );
+    writeFileSync(
+      join(dddDir, "trace-matrix.yaml"),
+      `schema_version: 0.1.0\ntraces:\n  - id: TR-001\n    claim_id: C-001\n    construct_id: auth.verify\n    direction: forward\n`,
+    );
+
+    const report = sweep(dddDir, "both");
+    expect(report.violations.map((violation) => violation.type)).toContain("claim-tier-mismatch");
+    expect(report.violations.map((violation) => violation.type)).toContain("t3-not-allowed-in-lite");
+  });
+
+  test("rejects validation IDs without passing validation records", async () => {
+    await lockEvidence(dddDir, "https://example.com/behavior/v1", {
+      contentOverride: "# Retry behavior\n",
+      version: "1.0.0",
+      sections: ["Retry behavior"],
+      authorityFor: ["product-behavior"],
+    });
+    writeFileSync(
+      join(dddDir, "claims.yaml"),
+      `schema_version: 0.1.0\nentries:\n  - id: C-001\n    statement: "Retry once"\n    sources:\n      - ref: EL-001#Retry behavior\n        authority_domain: product-behavior\n        entailment: explicit\n    claim_kind: behavioral\n    impact: medium\n    tier: T2\n    status: known-and-supported\n    constructs: [client.retry]\n    validations: [V-001]\n`,
+    );
+    writeFileSync(
+      join(dddDir, "trace-matrix.yaml"),
+      `schema_version: 0.1.0\ntraces:\n  - id: TR-001\n    claim_id: C-001\n    construct_id: client.retry\n    validation_id: V-001\n    direction: forward\n`,
+    );
+
+    const report = sweep(dddDir, "both");
+    expect(report.violations.map((violation) => violation.type)).toContain("validation-record-missing");
+  });
+
+  test("rejects incomplete validation proof metadata", async () => {
+    await lockEvidence(dddDir, "https://example.com/behavior/v1", {
+      contentOverride: "# Retry behavior\n",
+      version: "1.0.0",
+      sections: ["Retry behavior"],
+      authorityFor: ["product-behavior"],
+    });
+    writeFileSync(
+      join(dddDir, "claims.yaml"),
+      `schema_version: 0.1.0\nentries:\n  - id: C-001\n    statement: "Retry once"\n    sources:\n      - ref: EL-001#Retry behavior\n        authority_domain: product-behavior\n        entailment: explicit\n    claim_kind: behavioral\n    impact: medium\n    tier: T2\n    status: known-and-supported\n    constructs: [client.retry]\n    validations: [V-001]\n`,
+    );
+    writeFileSync(
+      join(dddDir, "trace-matrix.yaml"),
+      `schema_version: 0.1.0\ntraces:\n  - id: TR-001\n    claim_id: C-001\n    construct_id: client.retry\n    validation_id: V-001\n    direction: forward\n`,
+    );
+    mkdirSync(join(dddDir, "reports"), { recursive: true });
+    writeFileSync(
+      join(dddDir, "reports", "validations.yaml"),
+      "schema_version: 0.1.0\nentries:\n  - id: V-001\n    claim: C-001\n    result: pass\n",
+    );
+
+    const report = sweep(dddDir, "both");
+    expect(report.violations.map((violation) => violation.type)).toContain("validation-record-invalid");
+    expect(report.violations.map((violation) => violation.type)).toContain("validation-link-mismatch");
+  });
+
+  test("does not declare conformance after only one sweep direction", async () => {
+    await lockEvidence(dddDir, "https://example.com/api/v1", {
+      contentOverride: "# API v1\n",
+      version: "1.0.0",
+      sections: ["API"],
+      authorityFor: ["api-semantics"],
+    });
+    writeFileSync(
+      join(dddDir, "claims.yaml"),
+      `schema_version: 0.1.0\nentries:\n  - id: C-001\n    statement: "API call follows v1"\n    sources:\n      - ref: EL-001#API\n        authority_domain: api-semantics\n        entailment: explicit\n    claim_kind: api\n    impact: medium\n    tier: T1\n    status: known-and-supported\n    constructs: [A.component]\n    validations: []\n`,
+    );
+    writeFileSync(
+      join(dddDir, "trace-matrix.yaml"),
+      `schema_version: 0.1.0\ntraces:\n  - id: TR-001\n    claim_id: C-001\n    construct_id: A.component\n    direction: forward\n`,
+    );
+
+    const report = sweep(dddDir, "reverse");
+    expect(report.pass).toBe(true);
+    expect(report.verdict).toBe("NOT_EVALUATED");
+  });
+
+  test("rejects a missing Book manifest", () => {
+    unlinkSync(join(dddDir, "book.yaml"));
+    writeFileSync(join(dddDir, "claims.yaml"), "schema_version: 0.1.0\nentries: []\n");
+
+    const report = sweep(dddDir, "both");
+    expect(report.violations.map((violation) => violation.type)).toContain("book-manifest-missing");
+  });
+
+  test("accepts complete T3 proof in the Assurance profile", async () => {
+    writeFileSync(
+      join(dddDir, "book.yaml"),
+      `schema_version: 0.1.0\nmanifest_digest: sha256:${sha256Hex("\n")}\nprofile: assurance\n`,
+    );
+    await lockEvidence(dddDir, "https://example.com/auth/v1", {
+      contentOverride: "# Verify tokens\n",
+      version: "1.0.0",
+      sections: ["Verify tokens"],
+      authorityFor: ["security"],
+    });
+    writeFileSync(
+      join(dddDir, "claims.yaml"),
+      `schema_version: 0.1.0\nentries:\n  - id: C-001\n    statement: "Verify every token"\n    rationale: "Unverified tokens permit unauthorized access"\n    sources:\n      - ref: EL-001#Verify tokens\n        authority_domain: security\n        entailment: explicit\n    claim_kind: api\n    impact: critical\n    tier: T3\n    status: known-and-supported\n    constructs: [auth.verify]\n    validations: [V-001]\n`,
+    );
+    writeFileSync(
+      join(dddDir, "trace-matrix.yaml"),
+      `schema_version: 0.1.0\ntraces:\n  - id: TR-001\n    claim_id: C-001\n    construct_id: auth.verify\n    validation_id: V-001\n    direction: forward\n`,
+    );
+    mkdirSync(join(dddDir, "reports"), { recursive: true });
+    writeFileSync(
+      join(dddDir, "reports", "validations.yaml"),
+      `schema_version: 0.1.0\nentries:\n  - id: V-001\n    claim: C-001\n    construct: auth.verify\n    method: test\n    target: test:verify-token\n    result: pass\n    run_at: 2026-08-30T12:00:00Z\n    evidence_hash: sha256:${"a".repeat(64)}\n`,
+    );
+    writeFileSync(
+      join(dddDir, "reports", "refutation-C-001.yaml"),
+      `schema_version: 0.1.0\nid: REF-001\nclaim_id: C-001\nrefuter_id: reviewer-1\nimplementer_id: implementer-1\nindependence_verified: true\noutcome: sustained\n`,
+    );
+
+    const report = sweep(dddDir, "both");
+    expect(report.pass).toBe(true);
+    expect(report.verdict).toBe("CONFORMANT_DECLARED_SCOPE");
+  });
+
+  test("rejects a stale Book artifact digest", () => {
+    writeFileSync(join(workDir, "SPEC.md"), "current spec");
+    writeFileSync(
+      join(dddDir, "book.yaml"),
+      `schema_version: 0.1.0\nmanifest_digest: sha256:deadbeef\nrequirements:\n  - path: SPEC.md\n    digest: sha256:${sha256Hex("old spec")}\n`,
+    );
+    writeFileSync(join(dddDir, "claims.yaml"), "schema_version: 0.1.0\nentries: []\n");
+
+    const report = sweep(dddDir, "both");
+    expect(report.violations.map((violation) => violation.type)).toContain(
+      "manifest-artifact-digest-mismatch",
+    );
+    expect(report.violations.map((violation) => violation.type)).toContain("manifest-digest-mismatch");
   });
 });
 
@@ -288,6 +467,17 @@ describe("drift_check", () => {
     expect(byId["EL-002"].status).toBe("stale");
     expect(byId["EL-003"].status).toBe("inactive");
   });
+
+  test("marks evidence stale exactly when its freshness window expires", () => {
+    const retrievedAt = "2026-01-01T00:00:00.000Z";
+    writeFileSync(
+      join(dddDir, "evidence.lock"),
+      `schema_version: 0.1.0\nentries:\n  - id: EL-001\n    source_url: https://example.com/api\n    retrieved_at: ${retrievedAt}\n    freshness: 1d\n`,
+    );
+
+    const report = driftCheck(dddDir, new Date("2026-01-02T00:00:00.000Z"));
+    expect(report.entries[0].status).toBe("stale");
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -296,9 +486,11 @@ describe("drift_check", () => {
 
 describe("stubs", () => {
   test("recognizes the stub primitives", () => {
-    for (const name of ["discover", "packet", "claim", "refute", "exception", "obligation", "compile"]) {
+    for (const name of ["discover", "refute", "exception", "obligation", "compile"]) {
       expect(isStubPrimitive(name)).toBe(true);
     }
+    expect(isStubPrimitive("packet")).toBe(false);
+    expect(isStubPrimitive("claim")).toBe(false);
     expect(isStubPrimitive("sweep")).toBe(false);
   });
 });

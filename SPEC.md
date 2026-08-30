@@ -1,6 +1,6 @@
 # DDD: Docs-Driven Development for Agentic Engineering
 
-**Version:** 0.3.1-draft
+**Version:** 0.3.2-draft
 **Status:** Draft for review
 **Date:** 2026-08-30
 **Machine identifier:** `docs-driven-development`
@@ -139,6 +139,17 @@ Documentation drives design and implementation. Tests, static analysis, runtime 
 
 DDD enriches existing workflows. It does not replace them. Conformance does not require adopting a DDD-owned lifecycle.
 
+### 3.7 The Book is alive
+
+The Project Engineering Book is a living artifact, not a one-time setup. It grows with the codebase:
+
+- New dependencies, patterns, and domains are discovered as the project evolves — the artifact inventory (§9.12) is refreshed on each change
+- Drift detection (§8.4) feeds back into re-scoping when docs, code, or stack diverge
+- Incidents produce new evidence and claims (§17.5)
+- Grandfathered code enters governance gradually as it is modified (§17.3)
+
+A Book that is set up once and never updated is a conformance failure. The methodology adapts to the project's maturity: greenfield projects build the Book forward; brownfield projects extract it backward. Both converge on the same living system.
+
 ---
 
 ## 4. Architecture
@@ -203,7 +214,25 @@ A change that touches only code whose claims all derive to T1 (API-level: import
 
 If classification reveals any claim above T1, a full evidence packet is required. The lightweight record is a simplified form of the change record (§7.6.1) with `profile: lite` and `t1_fast_path: true`.
 
-### 4.3 State sharing
+### 4.3 Greenfield vs brownfield
+
+The methodology adapts based on project maturity. The pipeline is the same; the entry point and evidence flow differ.
+
+| | Greenfield | Brownfield |
+|---|---|---|
+| **Starting point** | Empty `.ddd/`, no existing code claims | Existing codebase, `ddd-audit` extracts claims from code |
+| **Book initialization** | `ddd-book init` → detect stack → create empty Book → build as you go | `ddd-audit` → scan code → extract implicit claims → match to existing docs → produce draft Book |
+| **Evidence flow** | Forward: write claims → acquire evidence → write code | Backward: extract claims from code → find or lock evidence → verify |
+| **Artifact discovery** | Internal artifacts are created and locked as they are written | Internal artifacts already exist — discover and lock them retroactively (§9.12) |
+| **Coverage** | 100% from day one — every change is governed | Gradual — starts at 0%, grows per change as grandfathered code is modified (§17.3) |
+| **First change** | Full pipeline from `UNSCOPED` | `ddd-audit` produces draft Book, then first change enters pipeline |
+| **Drift** | Less likely early — docs and code are written together | Common — existing code may have drifted from existing docs. Drift detection (§8.4) surfaces this |
+
+**Convergence:** Once the Book exists and the first change enters the pipeline, greenfield and brownfield follow the same 5-stage flow (scope → ground → implement → verify → ship). The difference is only in how the Book is initially populated.
+
+**Grandfathering (brownfield only):** Existing code outside any change scope is grandfathered — exempt from traceability. A grandfathered construct that is materially modified by a change enters DDD scope and MUST be traced. Coverage grows incrementally. See §17.3 for full grandfathering rules.
+
+### 4.4 State sharing
 
 All DDD skills and operations share durable project state in the `.ddd/` directory. Skills are independently invocable but operate on the same Book, evidence lock, claim ledger, and trace graph. A stable machine API beneath skills allows existing harnesses to invoke individual primitives programmatically.
 
@@ -267,6 +296,10 @@ Every evidence source MUST record provenance. Required fields vary by **source c
 | `doc_version` | ✓ | ○ | ✓ | ✓ | ✓ | — | — |
 | `retrieved_at` | ✓ | ✓ | — | ✓ | ✓ | — | — |
 | `content_digest` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — |
+| `cache_path` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — |
+| `content_type` | ○ | ○ | ○ | ○ | ○ | ○ | — |
+| `canonical_url` | ○ | ○ | — | ○ | — | — | — |
+| `etag` / `last_modified` | ○ | ○ | — | ○ | — | — | — |
 | `sections` | ✓ | ✓ | ✓ | ○ | ○ | — | — |
 | `status` (normative/informative) | ✓ | ✓ | ○ | — | — | — | — |
 | `authority_for` (claim domains) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — |
@@ -364,7 +397,7 @@ For T3 (critical) claims:
   book.yaml              # Manifest, versions, claim-scoped authority
   project-context.yaml   # Governed tech stack, runtime, dependencies, architecture
   knowledge-map.yaml     # Relevant engineering domains, gaps, and package links
-  evidence.lock          # Immutable external-source provenance
+  evidence.lock          # Immutable source provenance and captured representations
   claims.yaml            # Claim ledger (atomic assertions)
   trace-matrix.yaml      # Generated view of the evidence graph
   constraints.yaml       # Cross-document join constraints
@@ -412,7 +445,7 @@ constraints: constraints.yaml
 
 A released Book version is identifiable by its manifest and content digests. A code revision MAY declare which Book version governed it.
 
-**Manifest digest computation:** The `manifest_digest` is the SHA-256 hash of the canonical serialization of all referenced artifact digests. The canonical serialization is: for each artifact referenced in the manifest (in the order: SPEC.md, CONTEXT.md, AGENTS.md, SKILLS.md, then each skill in directory order, then each reference file in directory order), output the raw SHA-256 hex digest (without the `sha256:` prefix) followed by a newline character (`\n`). Compute `sha256:` + SHA-256 of the resulting bytes. The manifest digest line itself is excluded from the computation.
+**Manifest digest computation:** The `manifest_digest` is the SHA-256 hash of the canonical serialization of all referenced artifact digests. Order `SPEC.md`, `CONTEXT.md`, `AGENTS.md`, and `SKILLS.md` first, then order every other referenced artifact by its path using bytewise lexicographic order. For each artifact, output the raw SHA-256 hex digest (without the `sha256:` prefix) followed by a newline character (`\n`). Compute `sha256:` + SHA-256 of the resulting bytes. The manifest digest line itself is excluded from the computation.
 
 ### 7.3 Evidence lock (`evidence.lock`)
 
@@ -430,6 +463,11 @@ entries:
     retrieved_at: 2026-08-29T10:00:00Z
     content_digest: sha256:abc123...
     doc_version: commit:def456...
+    cache_path: cache/abc123def4567890.md
+    content_type: text/html
+    canonical_url: https://nextjs.org/docs/app/router-context
+    etag: '"abc123"'
+    last_modified: "2026-08-28T17:00:00Z"
     sections: ["Server Components", "Route Handlers"]
     status: normative
     authority_for: [api-semantics, protocol-behavior]
@@ -452,6 +490,7 @@ entries:
     sources:
       - ref: EL-001#Server Components
         authority_domain: api-semantics
+        entailment: explicit
     claim_kind: api
     impact: medium
     tier: T1  # derived: api raises to at least T1, medium impact minimum is T1
@@ -467,18 +506,19 @@ A bounded, change-specific context bundle:
 ```yaml
 schema_version: 0.1.0
 id: PKT-001
-change: "Add order cancellation feature"
+change_id: CH-001
 claims: [C-042, C-017, C-055]
 evidence: [EL-001, EL-003, EL-008]
+evidence_files: [cache/abc123def4567890.md, cache/def456abc1237890.md]
 passports: [order.aggregate]
 obligations: [order.no-direct-payment-gateway]
 invariants: ["Order can only be cancelled if status is PENDING or CONFIRMED"]
 forbidden: ["Cancelling a SHIPPED order", "Bypassing the Order aggregate to modify line items"]
 validations_required: [test:cancel-pending, test:cancel-confirmed-passes, test:cancel-shipped-rejected]
 context_budget:
-  max_tokens: 50000
+  max_chars: 200000
+  content_chars: 48720
   sections_selected: 12
-  conflicts_included: 1
 assembled_at: 2026-08-29T10:00:00Z
 packet_digest: sha256:...
 ```
@@ -495,6 +535,10 @@ All DDD artifacts share these conventions:
 - **Supersession**: an entry with `superseded_by: EL-002` is no longer active; the superseding entry has `supersedes: EL-001`
 - **Revocation**: an entry with `revoked: true` and `revoked_at` is invalid and MUST NOT be cited
 - **Artifact digest**: released Book manifests and evidence lock entries MUST carry a content digest for integrity verification; other artifacts MAY carry a digest. The digest field name is artifact-specific: `manifest_digest` for the Book manifest, `content_digest` for evidence lock entries, `packet_digest` for evidence packets. All are `sha256:...` format.
+- **Captured representation**: each cited external source MUST retain the exact
+  representation presented for review in the content-addressed cache and record
+  `cache_path`. A digest without retrievable captured content is not sufficient
+  evidence.
 - **Invalid state**: an entry with `revoked: true` that is still cited in a claim is a conformance failure
 
 #### 7.6.1 Change record
@@ -562,8 +606,10 @@ rationale: "Business rule: confirmed orders may be cancelled before shipment"
 sources:
   - ref: EL-001#cancellation-policy
     authority_domain: product-behavior
+    entailment: explicit
   - ref: EL-008#state-transitions
     authority_domain: api-semantics
+    entailment: paraphrase
 claim_kind: behavioral
 impact: medium
 tier: T2
@@ -598,6 +644,10 @@ result: pass  # pass | fail | skipped
 run_at: 2026-08-29T12:00:00Z
 evidence_hash: sha256:...  # hash of test output or verification artifact
 ```
+
+For machine sweeps, validation results MAY be collected in
+`.ddd/reports/validations.yaml` under an `entries` sequence. Each entry uses the
+fields above, with the file-level `schema_version` recorded once.
 
 #### 7.6.6 Approval record
 
@@ -679,9 +729,9 @@ invariants: [...]
 forbidden: [...]
 validations_required: [...]
 context_budget:
-  max_tokens: 50000
+  max_chars: 200000
+  content_chars: 48720
   sections_selected: 12
-  conflicts_included: 1
 assembled_at: 2026-08-29T10:00:00Z
 packet_digest: sha256:...
 ```
@@ -762,6 +812,36 @@ detection_method: "auto-scan"  # auto-scan | manual | hybrid
 - Config files (`tsconfig.json`, `next.config.js`, `vite.config.ts`, `.env.example`, `Dockerfile`, `docker-compose.yml`) SHOULD be scanned for runtime, build, and deployment information
 - Framework detection MUST examine dependencies and config files, not just file names
 - If auto-detection fails for any field, the field MUST be marked `unknown` with a `detection_note` — never silently left empty or guessed from parametric memory
+- Internal artifact discovery (§9.12) MUST run during initialization and populate `artifact_inventory`
+
+**Artifact inventory** (populated by §9.12 discovery):
+
+```yaml
+artifact_inventory:
+  - artifact_class: validation-schema
+    framework_or_library: Zod
+    file_path: src/schemas/order.ts
+    detected_via: "import:zod"
+    evidence_lock_entry: EL-015
+    authority_for: [data-validation, api-semantics]
+    last_scanned: "2026-08-30T10:00:00Z"
+  - artifact_class: orm-model
+    framework_or_library: Prisma
+    file_path: prisma/schema.prisma
+    detected_via: "glob:*.prisma"
+    evidence_lock_entry: EL-016
+    authority_for: [data-persistence, domain-rules]
+    last_scanned: "2026-08-30T10:00:00Z"
+  - artifact_class: iac
+    framework_or_library: Terraform
+    file_path: infra/main.tf
+    detected_via: "glob:*.tf"
+    evidence_lock_entry: null  # detected but not yet locked — gap
+    authority_for: [deployment, operational]
+    last_scanned: "2026-08-30T10:00:00Z"
+```
+
+An artifact with `evidence_lock_entry: null` is a detected-but-unlocked gap. If the artifact falls within a change scope, it MUST be locked before implementation. If it's outside the change scope, it's recorded as legacy debt.
 
 #### 7.6.12 Domain model record
 
@@ -1223,6 +1303,67 @@ Some evidence is derived from the project's own code rather than external docume
 - `code-derived` sources MUST NOT be the sole evidence for `behavioral` or `operational` claims — they can supplement but not replace authoritative documentation
 - `code-derived` sources MUST record `repository_path` and `doc_version` (commit hash) for reproducibility
 
+### 9.12 Internal artifact discovery
+
+External documentation is half the evidence. Every codebase also contains internal artifacts — schemas, models, configs, policies, contracts — that are authoritative evidence for claims about the project's own behavior. DDD MUST discover and lock these alongside external docs. This is what makes DDD cover the full architecture: not just "does the code match the Next.js docs" but "does the code match the project's own Zod schemas, Prisma models, error catalogs, and security policies."
+
+**Key principle:** The artifact CLASS is language-agnostic; the DETECTION is stack-specific. A JS project discovers Zod schemas. A Python project discovers Pydantic models. A Rust project discovers serde derives. Only patterns matching the detected stack are run — no wasted scanning.
+
+#### 9.12.1 Artifact class groups
+
+The full registry with per-language detection patterns is in `ddd-scope/references/artifact-registry.md`. The spec defines 15 groups:
+
+| Group | Artifact classes | Authority for |
+|---|---|---|
+| **Data & persistence** | `orm-model`, `database-migration`, `schema-definition`, `seed-data` | data-persistence, domain-rules, compatibility |
+| **Validation** | `validation-schema`, `form-validation` | data-validation, api-semantics |
+| **API contracts** | `api-contract`, `route-definition`, `serializer` | api-semantics, protocol-behavior |
+| **Type system** | `type-contract`, `enum-definition` | api-semantics, architecture, domain-rules |
+| **Error handling** | `error-definition` | error-handling, operational |
+| **Events & messaging** | `event-schema`, `message-queue-config` | protocol-behavior, reliability |
+| **Configuration** | `config-schema`, `framework-config`, `build-config` | configuration, deployment, developer-experience |
+| **Infrastructure** | `iac`, `container-config`, `pipeline-definition` | deployment, operational, delivery |
+| **Security** | `security-policy`, `auth-definition`, `secrets-policy` | security, operational |
+| **Observability** | `slo-definition`, `monitoring-config`, `logging-config` | observability, reliability |
+| **Architecture** | `architecture-model`, `dependency-rule`, `module-boundary` | architecture, developer-experience |
+| **Code standards** | `coding-standard`, `test-artifact` | developer-experience, testing |
+| **Product & feature** | `feature-flag`, `api-versioning` | product-behavior, compatibility |
+| **Compliance & privacy** | `compliance-rule`, `data-retention`, `audit-trail` | security, compliance |
+| **Operations & perf** | `runbook`, `deployment-config`, `cache-policy`, `rate-limit` | operational, reliability, performance |
+
+The registry is extensible per §9.12.4.
+
+#### 9.12.2 Discovery procedure
+
+Runs during `ddd-scope` (per change) and `ddd-book` initialization (full project):
+
+1. **Read detected stack** from `project-context.yaml`
+2. **Run stack-matched detection patterns** — see `references/artifact-registry.md` for per-language patterns. Only patterns for the detected ecosystem run.
+3. **Classify each artifact**: record `artifact_class`, `file_path`, `detected_via`, `framework_or_library`, `authority_for`, `source_class`
+4. **Lock as evidence**: create evidence lock entry with `repository_path`, `doc_version` (commit hash), `content_digest` (sha256). Code-derived artifacts get `independence: agent-proposed-human-approved`; human-written artifacts get `human-authored`. Freshness is commit-based, not time-based.
+5. **Record in artifact inventory** in `project-context.yaml` (§7.6.11)
+6. **Link to Knowledge Map** — each domain's `evidence` list includes both external and internal artifact evidence lock entries
+
+**Scope limiting:** For a specific change, discovery is limited to artifacts in the change scope, artifacts defining contracts the changed code depends on, and artifacts defining constraints the changed code must satisfy. Full-project discovery scans everything.
+
+#### 9.12.3 Claim extraction from internal artifacts
+
+Internal artifacts are L0 sources. Claims are extracted during `ddd-ground` the same way as from external docs — the artifact IS the source. A Zod schema `z.string().email()` yields the claim "email field must be a valid email address" with the schema file as L0 source. An ORM model `field: str = nullable` yields "field X is nullable". A security policy `requireRole('admin')` yields "endpoint X requires admin role".
+
+**Authority:** An internal artifact is authoritative for WHAT the project does (your Zod schema defines what "valid" means for THIS project). External docs are authoritative for HOW the tool works (Zod docs explain `.email()`). Internal artifacts outrank external docs for project-specific behavior.
+
+Claims from internal artifacts follow the same traceability model (§13): L1 claim → L2 construct → L3 validation.
+
+#### 9.12.4 Extension
+
+The artifact class registry is extensible. A project MAY add classes (e.g., `smart-contract`, `ml-pipeline`, `game-script`). Rules:
+
+1. MUST have unique `id`, `description`, `authority_for`, `source_class`
+2. MUST have at least one detection pattern
+3. SHOULD map to a claim domain in the taxonomy (§9.1) or define a new one
+4. Project-scoped — do not propagate to other projects
+5. Overlap >70% with an existing class → merge, don't add
+
 ---
 
 ## 10. Design Tournament
@@ -1522,6 +1663,18 @@ Verifies that documented decisions are implemented.
 consequential implementation behavior → claim or approved exception
 ```
 Verifies that every consequential code behavior has documentary lineage. This is what prevents undocumented functionality and citation laundering.
+
+Sweep reports MUST state the scope and enforcement mode of each check. A tool that
+only inspects declared claims and traces MUST report `declared-constructs` scope; it
+MUST NOT imply that it enumerated every repository construct. A missing capability
+is `NOT_EVALUATED`, never a pass. An empty claim set is also `NOT_EVALUATED`, not
+conformance.
+
+The reference CLI verdict `CONFORMANT_DECLARED_SCOPE` means that all declared
+claims, locked evidence, constructs, traces, and tier requirements passed the
+implemented checks. It is not a statement of whole-repository conformance.
+Only a bidirectional (`both`) sweep can produce that verdict. A clean
+single-direction diagnostic reports `NOT_EVALUATED`.
 
 ### 13.4 Citation entailment
 
@@ -2259,3 +2412,4 @@ Key statistics motivating this methodology, with bibliographic provenance:
 | 0.2.6-draft | 2026-08-29 | Aligned §5.2 provenance table with §5.4: version now required for standard sources, doc_version now required for project-doc sources. |
 | 0.3.0-draft | 2026-08-30 | Major update from adversarial review (5 devil's advocate subagents). Added: §4.2.2 T1 fast path, §5.1 cross-document constraints and dependency version conflict claim domains, §5.2 code-derived source class, §7.2 project_context and constraints pointers, §7.6.11 project context record, §7.6.12 domain model record, §7.6.13 cross-document constraint record, §9.1 expanded taxonomy (10→18 dimensions), §9.1a taxonomy extension process, §9.7 expanded adapters + cache policy + access-control provenance, §9.8 stack detection, §9.9 dependency enumeration, §9.10 tribal knowledge elicitation, §9.11 code-derived artifacts as L0 evidence, §9.3 knowledge map package linking fields, §13.4 operationalized citation entailment procedure, §13.6 test-code traceability, §14.5 claim retraction, §17.4 monorepo scoping, §17.5 incident/postmortem feedback loop, §7.7 README/onboarding governance. Added ddd-model and ddd-audit skills to Annex A. |
 | 0.3.1-draft | 2026-08-30 | Dogfooding fixes from 5 subagent reviewers (ddd-scope, ddd-verify, ddd-refute, ddd-drift, ddd-audit). Added: §8.4 drift dimensions (7-dimension normative model with remediation table), §A.6 skill-authoring conventions (9 mandatory patterns: iron-law banner, core principle, Use-when description, When NOT to use, Good/Bad examples, rationalization table, self-improvement loop, spec reference footer, spirit-vs-letter principle), manifest_digest canonical serialization definition in §7.2, pre-release drift gate in §16.2. Fixed: C-022 citation re-anchored to §8.4, C-024 source ref anchored to §17.3, C-012/C-013 spec reference footer expanded, C-027 added for ddd-decide tournament protocol. |
+| 0.3.2-draft | 2026-08-30 | Internal artifact coverage + living Book. Added: §9.12 internal artifact discovery (15 groups, 40+ classes with per-language detection patterns, full registry in `skills/ddd-scope/references/artifact-registry.md`), §3.7 "The Book is alive" principle (docs evolve with code, drift feeds back into re-scoping), §4.3 greenfield vs brownfield initialization (forward vs backward evidence flow, convergence, grandfathering), §7.6.11 artifact_inventory section in project-context.yaml schema. Updated: ddd-scope SKILL.md Step 2a (artifact discovery), ddd-book SKILL.md (greenfield/brownfield init paths, artifact inventory sync). |

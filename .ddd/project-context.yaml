@@ -3,26 +3,22 @@
 # Detection method: manual + file scan (2026-08-30)
 
 schema_version: 0.1.0
+project_name: "ddd-methodology"
+project_type: "cli"
 detected_at: "2026-08-30T11:40:00Z"
 detection_method: "manual + file-scan"
 
-# ── Language(s) ──────────────────────────────────────────────
-languages:
-  - name: TypeScript
-    role: CLI tool implementation
-    version: "5.x"  # Bun's TypeScript support, no explicit tsconfig
-    detection_note: "cli/src/*.ts files present"
-  - name: Markdown
-    role: Specification and skill definitions
-    detection_note: "SPEC.md, skills/*/SKILL.md, README.md"
-  - name: YAML
-    role: Artifact schemas and runtime state
-    detection_note: ".ddd/*.yaml, skills.sh.json"
+# ── Language ─────────────────────────────────────────────────
+language:
+  primary: "TypeScript"
+  version: "5.x"
+secondary_languages: ["Markdown", "YAML"]
 
 # ── Runtime ──────────────────────────────────────────────────
 runtime:
   name: Bun
   version: "1.3.13"
+  target: "unknown"
   detection_note: "Detected via `bun --version`. CLI uses .ts files directly."
   config_files:
     - path: cli/package.json
@@ -44,9 +40,18 @@ dependencies:
     evidence_lock_entry: null
     detection_note: "Detected via `bun --version`. No lockfile — CLI uses .ts files directly."
 
+package_manager: "bun"
+lockfile: null
+deployment:
+  platform: "not-applicable"
+  region: "not-applicable"
+  build_command: "not-applicable"
+
 # ── Architecture ─────────────────────────────────────────────
 architecture:
-  style: "methodology-specification"
+  pattern: "methodology-specification-with-cli"
+  layers: ["specification", "skills", "cli", "book"]
+  boundaries: ["SPEC.md", "skills/**", "cli/**", ".ddd/**"]
   description: "Normative specification (SPEC.md) with skill definitions and a .ddd/ runtime state directory. CLI tool provides machine API primitives."
   entry_points:
     - path: SPEC.md
@@ -72,6 +77,31 @@ config_files_scanned:
     purpose: "Agent runtime instructions"
   - path: cli/package.json
     purpose: "CLI package manifest"
+
+# Internal discovery is an inventory, not authority. Entries become evidence
+# only when explicitly locked for a change.
+artifact_inventory:
+  - artifact_class: package-manifest
+    framework_or_library: Bun
+    file_path: cli/package.json
+    detected_via: "glob:package.json"
+    evidence_lock_entry: null
+    authority_for: [dependency-version-conflicts]
+    last_scanned: "2026-08-30T11:40:00Z"
+  - artifact_class: ci-workflow
+    framework_or_library: GitHub Actions
+    file_path: .github/workflows/ddd.yml
+    detected_via: "glob:.github/workflows/*.yml"
+    evidence_lock_entry: null
+    authority_for: [operational]
+    last_scanned: "2026-08-30T11:40:00Z"
+  - artifact_class: skill-definition
+    framework_or_library: Agent Skills
+    file_path: skills/*/SKILL.md
+    detected_via: "glob:skills/*/SKILL.md"
+    evidence_lock_entry: null
+    authority_for: [skill-format]
+    last_scanned: "2026-08-30T11:40:00Z"
 
 # ── Gaps ─────────────────────────────────────────────────────
 detection_gaps:

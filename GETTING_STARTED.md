@@ -1,6 +1,8 @@
 # Getting Started with DDD
 
-Docs-Driven Development (DDD) is a harness-agnostic methodology where documentation is the source of truth and code must be provable against it. This guide gets you from zero to a DDD-conformant project in 10 minutes.
+Docs-Driven Development (DDD) is a harness-agnostic methodology where
+documentation is the source of truth. This guide follows the implemented
+external API documentation path without claiming whole-repository coverage.
 
 ## Prerequisites
 
@@ -38,7 +40,7 @@ You should see a `.ddd/` directory appear with:
   book.yaml              # Book manifest (root)
   project-context.yaml   # Your detected tech stack
   knowledge-map.yaml     # Engineering domains relevant to your project
-  evidence.lock          # External source provenance (immutable)
+  evidence.lock          # Source provenance and captured-content references
   claims.yaml            # Atomic normative statements
   trace-matrix.yaml      # Construct → claim mappings
   constraints.yaml       # Cross-document constraints
@@ -48,7 +50,7 @@ You should see a `.ddd/` directory appear with:
   ...
 ```
 
-## Step 3: Scope your first change
+## Step 3: Scope your first external API change
 
 Tell your agent:
 
@@ -58,27 +60,79 @@ The scope gate will:
 1. Detect and record your project stack (if not already done)
 2. Classify the change against the 18-dimension knowledge taxonomy
 3. Enumerate dependencies and check for version-matched evidence
-4. Discover evidence via doc adapters (Context7, web search, local files, etc.)
-5. Lock evidence with provenance in `evidence.lock`
+4. Discover version-matched vendor documentation
+5. Lock the exact reviewed content with provenance in `evidence.lock` and `.ddd/cache/`
 6. Determine your risk profile (Lite or Assurance)
 
 **Fast paths**: If all claims are mechanical (T0), you get a lightweight scope record. If all claims are API-level (T1), you get a lightweight evidence record. Only behavioral/architectural claims (T2+) require the full pipeline.
 
-## Step 4: Ground your implementation
+You can lock a source directly with the reference CLI:
+
+```bash
+bun run cli/bin/ddd.ts lock "https://vendor.example/api/v2" \
+  --version "2.0.0" \
+  --sections "createWidget" \
+  --authority "api-semantics"
+```
+
+External documentation requires `--version`. Use `--content-file <path>` when
+the content was retrieved by a trusted adapter or when working offline.
+
+## Step 4: Record claims and build a packet
 
 Tell your agent:
 
 > "Run the ddd-ground skill to assemble the evidence packet and extract claims."
 
 This will:
-- Assemble an evidence packet with all locked sources relevant to the change
+- Assemble an evidence packet from the selected claims and their locked sources
 - Extract atomic claims from sources (each claim is a single normative statement)
 - Trace code constructs to claims (every construct must trace to a claim or T0 exemption)
 - Extract control obligations (things that MUST be true)
 
+The implemented CLI seam records an explicit entailment assessment:
+
+```bash
+bun run cli/bin/ddd.ts claim "createWidget() returns a Widget" \
+  --source "EL-001#createWidget" \
+  --authority "api-semantics" \
+  --kind api \
+  --impact medium \
+  --entailment explicit \
+  --construct "src/widget.ts#createWidget"
+
+bun run cli/bin/ddd.ts packet CH-001 --claims C-001 --max-chars 50000
+```
+
+`--entailment` records the verifier's assessment. The CLI verifies that the
+section label occurs in the captured content, but it does not independently
+understand whether the prose semantically entails the claim.
+
 ## Step 5: Implement
 
-Write code as you normally would. The evidence packet is your context. Every construct you create should trace to a claim.
+Write code as you normally would. The evidence packet is your context. Every
+consequential construct should trace to a claim:
+
+```bash
+bun run cli/bin/ddd.ts trace C-001 "src/widget.ts#createWidget"
+```
+
+For T2 or T3 claims, record validation IDs with `claim --validation` and
+`trace --validation`. Each ID must also have a passing record in
+`.ddd/reports/validations.yaml` that links back to the claim:
+
+```yaml
+schema_version: 0.1.0
+entries:
+  - id: V-001
+    claim: C-001
+    construct: src/widget.ts#createWidget
+    method: test
+    target: test:create-widget
+    result: pass
+    run_at: 2026-08-30T12:00:00Z
+    evidence_hash: sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+```
 
 ## Step 6: Run the Compliance Sweep
 
@@ -88,11 +142,17 @@ Tell your agent:
 
 This will:
 - Run a forward sweep: every claim → traced to a construct?
-- Run a reverse sweep: every construct → traces to a claim?
-- Verify citation entailment: does the cited source actually say what the claim says?
+- Run a reverse sweep over declared constructs and traces
+- Check locked-content integrity, authority domains, cited section presence, and recorded entailment assessments
+- Enforce passing validation records for T2/T3 and independent-refutation metadata for T3
 - Produce a compliance report with violations, if any
 
-If violations are found, fix them or record exceptions.
+The successful verdict is `CONFORMANT_DECLARED_SCOPE`. It covers only constructs
+declared in Book artifacts. Repository-wide construct discovery is not yet
+implemented by the CLI.
+
+If violations are found, fix them or record exceptions through `ddd-exception`.
+The `exception` machine command is currently a stub.
 
 ## Step 7: Handle exceptions (if needed)
 
@@ -102,9 +162,9 @@ If a claim can't be supported, tell your agent:
 
 Exceptions can be:
 - `unknown`: no evidence found
-- `ambiguous`: sources conflict
-- `scope-excluded`: intentionally out of scope
-- `obsolete`: source is stale
+- `unsupported`: the source does not support the required behavior
+- `conflicting`: authoritative sources disagree
+- `experimental`: runtime evidence is used with explicit risk acceptance
 
 High-severity exceptions require human approval.
 
@@ -120,11 +180,12 @@ High-severity exceptions require human approval.
 ## Lifecycle states
 
 ```
-UNSCOPED → EVIDENCE_REQUIRED → EVIDENCE_LOCKED → GROUNDED →
-  CONFORMANT → RELEASED
-                ↘ WAIVED (exceptions approved)
-                ↘ BLOCKED_EVIDENCE_GAP
-                ↘ BLOCKED_CONTRADICTION
+UNSCOPED → EVIDENCE_REQUIRED → EVIDENCE_LOCKED → IMPLEMENTING →
+  VERIFYING → CONFORMANT
+                 ↘ WAIVED
+                 ↘ BLOCKED_EVIDENCE_GAP
+                 ↘ BLOCKED_CONTRADICTION
+                 ↘ NONCONFORMANT → IMPLEMENTING
 ```
 
 ## Common workflows
@@ -150,7 +211,9 @@ After upgrading dependencies or changing frameworks:
 
 > "Run the ddd-drift skill to check for drift."
 
-This checks 7 drift dimensions: evidence, documentation, decision, control, code, project context, and cache.
+The methodology defines seven drift dimensions. The current CLI
+`drift-check` command checks evidence freshness only; the `ddd-drift` skill
+coordinates the broader agent-assisted review.
 
 ## Need more detail?
 

@@ -4,7 +4,7 @@ A harness-agnostic methodology for agentic engineering where documentation is th
 
 ## Status
 
-- **Spec version**: 0.3.1-draft (implementable)
+- **Spec version**: 0.3.2-draft (implementable)
 - **Skills**: 12 skills across 3 maturity versions (V1: 8, V2: 2, V3: 2)
 - **Scaffolding**: `.ddd/` directory with template files
 - **CLI**: `cli/` directory with machine API primitives (TypeScript/Bun)
@@ -13,7 +13,7 @@ A harness-agnostic methodology for agentic engineering where documentation is th
 
 ```
 DDD/
-├── SPEC.md              # Normative specification (v0.3.1-draft)
+├── SPEC.md              # Normative specification (v0.3.2-draft)
 ├── CONTEXT.md           # Project glossary and context
 ├── AGENTS.md            # This file — agent runtime instructions
 ├── README.md            # Package README for skills.sh
@@ -58,9 +58,10 @@ DDD/
 
 1. **Read SPEC.md** for the normative specification. All skills derive from it.
 2. **Check `.ddd/book.yaml`** to determine if DDD is active and what profile is in use.
-3. **Check `.ddd/project-context.yaml`** for the detected tech stack.
+3. **Check `.ddd/project-context.yaml`** for the detected tech stack and artifact inventory.
 4. **Use the `ddd` router skill** to determine which DDD operation to perform.
 5. **All artifacts in `.ddd/` are governed by the spec** — do not modify schemas without updating SPEC.md.
+6. **DDD covers both external docs and internal artifacts** — schemas, models, configs, IaC, CI/CD, policies, and other project-internal sources are evidence too (§9.12). The Book is a living artifact that grows with the codebase (§3.7).
 
 ## Integration with existing harnesses
 
