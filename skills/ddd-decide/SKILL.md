@@ -12,9 +12,9 @@ metadata:
 
 # ddd-decide
 
-**Run a grounded design tournament, produce the selected ADR and rejected alternatives.**
+**NO DECISION WITHOUT ALTERNATIVES. NO ALTERNATIVE WITHOUT EVIDENCE. NO SELECTION WITHOUT CRITERIA.**
 
-V2 skill — available after V1 foundation is established.
+Run a grounded design tournament, produce the selected ADR and rejected alternatives.
 
 ## When to invoke
 
@@ -32,13 +32,7 @@ A tournament MUST NOT run for naming variables, ordinary CRUD, or settled projec
 
 ### Step 1: Freeze the design brief
 
-All candidates receive identical:
-- Requirements
-- Constraints
-- Evidence corpus (from evidence lock)
-- Risks
-- Quality priorities
-- Architecture restrictions
+All candidates receive identical: requirements, constraints, evidence corpus (from evidence lock), risks, quality priorities, architecture restrictions.
 
 ### Step 2: Generate 2-3 independent alternatives
 
@@ -50,18 +44,7 @@ Independent agent contexts SHOULD be used to reduce anchoring.
 
 ### Step 3: Produce standardized design cards
 
-Each card states:
-- Object and responsibility model
-- Data and control flow
-- Invariants
-- Failure behavior
-- Trust boundaries
-- Applied methodologies and applicability rationale
-- Rejected complexity
-- Required controls
-- Operational consequences
-- Evidence citations
-- Known uncertainties
+Each card states: object and responsibility model, data and control flow, invariants, failure behavior, trust boundaries, applied methodologies, rejected complexity, required controls, operational consequences, evidence citations, known uncertainties.
 
 ### Step 4: Evaluate against predeclared criteria
 
@@ -96,30 +79,47 @@ When evidence cannot settle a dispute, authorize a bounded spike, benchmark, or 
 
 ### Step 7: Preserve negative knowledge
 
-Rejected designs are summarized in the resulting ADR:
-- Why they lost
-- Which assumptions mattered
-- Under what future conditions they should be reconsidered
+Rejected designs are summarized in the ADR: why they lost, which assumptions mattered, under what future conditions they should be reconsidered.
 
-Do not retain pages of agent debate. Keep rejected alternatives compactly.
+## Good vs bad tournament
 
-## Output
+**Good**:
+```
+Decision: Caching strategy for product catalog
+Alternatives: (1) in-memory TTL, (2) Redis with invalidation, (3) stale-while-revalidate with ISR
+Hard constraint: no new infra → eliminates (2)
+Criteria weighted BEFORE reveal: correctness 0.3, simplicity 0.2, documentary support 0.2, ...
+Winner: (3) — satisfies constraint, best balance, strongest docs
+Negative knowledge: Redis rejected due to V1 infra boundary, reconsider when Redis adopted
+```
 
-1. Selected design with grounded ADR in `.ddd/decisions/` (or project's ADR directory)
-2. Rejected alternatives recorded as negative knowledge in the ADR
-3. Updated claims and obligations if the decision introduces new ones
-4. Updated passports if the decision creates or modifies responsibility-bearing units
+**Bad**:
+```
+Decision: Caching strategy
+Alternatives: (1) "use Redis" (2) "use cache" (vague, no evidence)
+No hard constraints declared
+Criteria weighted AFTER seeing candidates (bias)
+Winner: (1) because "Redis is popular"
+No negative knowledge recorded
+→ No evidence, no criteria, no learning. Tournament violated.
+```
 
-## Worked example (SPEC.md §20.7)
+## Rationalization table
 
-Caching strategy for product catalog:
-- Tournament triggered (architecturally consequential, hard to reverse)
-- Three alternatives: in-memory TTL, Redis with invalidation, stale-while-revalidate with ISR
-- Hard constraint (no new infra) eliminated Redis
-- Predeclared criteria weighted: correctness, simplicity, documentary support
-- Selected: stale-while-revalidate (satisfies constraint, best balance, strongest docs)
-- Negative knowledge: Redis rejected due to V1 infra boundary, reconsider when Redis adopted
+| Excuse | Reality |
+|---|---|
+| "There's only one obvious solution, no need for alternatives" | If the decision is consequential enough to trigger a tournament, there are always alternatives. The simplest viable design is a mandatory alternative. |
+| "I know which one is best, I'll just pick it" | Predeclare criteria before revealing candidates. Selecting first and justifying after is rationalization, not evaluation. |
+| "The alternatives are too similar to matter" | If they're genuinely identical, collapse them. But "similar" often hides different failure modes and operational consequences. |
+| "I don't need evidence for the design, just the implementation" | Design cards cite evidence. A methodology choice without documentary support is an unsupported architectural claim. |
+| "Negative knowledge isn't worth recording" | Rejected alternatives prevent recurring debates. Without them, the same rejected approach will be proposed again in 3 months. |
+
+## Self-improvement
+
+1. Did the selected design require unexpected rework? If so, the criteria weights were wrong — adjust for future tournaments.
+2. Was a rejected alternative later reconsidered? If the negative knowledge didn't predict the conditions for reconsideration, improve the rejection summary.
+3. Did the tournament take too long? If so, the scope was too broad — narrow the design brief or reduce alternatives.
 
 ## Spec reference
 
-- SPEC.md §10 (Design Tournament: §10.1 trigger criteria, §10.2 tournament protocol), §20.7 (Worked example)
+- SPEC.md §10 (Design Tournament), §20.7 (Worked example)

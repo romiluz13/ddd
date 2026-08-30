@@ -12,9 +12,9 @@ metadata:
 
 # ddd-refute
 
-**Conduct independent adversarial review for T3 claims. MUST preserve genuine context and role independence.**
+**THE CLAIM AUTHOR CANNOT REFUTE THEIR OWN CLAIM. INDEPENDENCE IS MANDATORY.**
 
-V2 skill — required for Assurance profile when T3 claims are present.
+Conduct independent adversarial review for T3 claims.
 
 ## When to invoke
 
@@ -27,74 +27,50 @@ V2 skill — required for Assurance profile when T3 claims are present.
 
 ### Step 1: Identify T3 claims
 
-From the claim ledger (`.ddd/claims.yaml`), select all claims with `tier: T3`.
+From `.ddd/claims.yaml`, select all claims with `tier: T3`.
 
-T3 is derived from two axes per the §13.2 risk matrix:
-- **Impact establishes a minimum tier**: `critical` → T3 minimum
-- **Claim kind may increase the tier**: `operational` with `high` or `critical` impact → T3
-
-The full §13.2 matrix shows T3 is reached by:
-- Any `claim_kind` with `critical` impact (mechanical+critical, api+critical, behavioral+critical, architectural+critical, operational+critical)
+T3 is reached by (§13.2):
+- Any `claim_kind` with `critical` impact
 - `operational` with `high` impact
 
-A claim classified as `api` kind but with `critical` impact (e.g., an authentication API call) is T3, not T1. Impact escalates the tier; kind alone never downgrades below the impact-driven minimum.
-
-Ambiguous classification escalates: when either axis cannot be determined, classify at the higher tier.
+Impact establishes the minimum tier; kind may increase it. Ambiguous classification escalates to the higher tier.
 
 ### Step 2: Establish independence
 
 The refutation agent MUST:
-- Not have authored or proposed any of the claims under review
-- Not have participated in the design tournament for this change (if applicable)
+- Not have authored or proposed any claims under review
+- Not have participated in the design tournament for this change
 - Have access to the full evidence lock and evidence packet
-- Be able to propose evidence-removing experiments (bounded spikes, benchmarks)
+- Be able to propose evidence-removing experiments
 
-Role separation is mandatory. The same agent context that generated a claim cannot refute it.
+Role separation is mandatory. If no independent agent context is available, a human reviewer MUST perform the refutation.
 
 ### Step 3: Attempt refutation
 
-For each T3 claim, the refutation agent:
+For each T3 claim:
 
-1. **Challenge the claim statement**: Is the claim accurately extracted from the source? Is the source authoritative for this claim domain?
-
-2. **Challenge citation entailment**: Does the cited source actually entail the claim? Follow the full entailment verification procedure (SPEC.md §13.4):
-   - Locate the cited section in the evidence lock entry's cached content
-   - Read the source text directly — do NOT rely on the claim author's summary
-   - Classify the entailment: explicit statement, implicit entailment, paraphrase, not-entailed, or contradicts
-   - If the claim is an implicit entailment, verify the `rationale` field explains the derivation
-   - A citation that does not support its claim is a conformance failure
-   - Record the entailment result (explicit/implicit/paraphrase/not-entailed/contradicts) with verifier notes
-
-3. **Challenge the evidence**: Is the evidence stale, superseded, or from a non-authoritative source for this domain? Are there newer sources that contradict it?
-
-4. **Challenge the reasoning**: If the claim is derived (not directly stated), is the derivation sound? Are there unstated assumptions?
-
+1. **Challenge the claim statement**: Is it accurately extracted? Is the source authoritative for this domain?
+2. **Challenge citation entailment**: Does the cited source actually entail the claim? — **see `ddd-verify/references/citation-entailment.md`** for the full procedure. Read the source text directly, do NOT rely on the claim author's summary.
+3. **Challenge the evidence**: Is it stale, superseded, or non-authoritative? Are there newer contradicting sources?
+4. **Challenge the reasoning**: If the claim is derived, is the derivation sound? Unstated assumptions?
 5. **Search for counter-evidence**: Actively search for sources that contradict the claim. This is adversarial discovery, not confirmation.
-
-6. **Propose refutation**: If counter-evidence or reasoning flaws are found, produce a refutation report.
+6. **Propose refutation**: If counter-evidence or reasoning flaws found, produce a refutation report.
 
 **Machine API**: `refute(claim_id) → refutation_report`
 
 ### Step 4: Produce refutation report
 
 ```yaml
-schema_version: 0.1.0
 id: REF-001
 claim_id: C-055
 refuter_context: "independent-agent-context-id"
 refuter_independence_verified: true
-attempted_refutation: true
 outcome: sustained  # sustained | refuted | partially_refuted
 findings:
   - type: citation_gap
     description: "Claim C-055 cites EL-003#section-4 but section 4 discusses a different API method"
     severity: high
-  - type: counter_evidence
-    description: "Found EL-009 (newer vendor docs) stating opposite behavior for edge case X"
-    severity: medium
-recommendation: "Claim partially refuted. Section 4 citation should be narrowed to section 4.2. Edge case X requires an exception."
-required_action: "Narrow citation, create exception for edge case X"
-generated_at: 2026-08-29T15:00:00Z
+recommendation: "Narrow citation, create exception for edge case X"
 ```
 
 ### Step 5: Act on results
@@ -102,32 +78,47 @@ generated_at: 2026-08-29T15:00:00Z
 | Outcome | Action |
 |---|---|
 | `sustained` | Claim verified. Proceed with confidence. |
-| `refuted` | Claim MUST be removed or replaced. Cannot proceed without resolution. |
+| `refuted` | Claim MUST be removed or replaced. Cannot proceed. |
 | `partially_refuted` | Claim must be narrowed, citation corrected, or exception created. |
 
-If the refutation reveals a new gap, route to `ddd-exception`.
+If refutation reveals a new gap, route to `ddd-exception`.
 
-### Step 6: Assurance Review
+## Good vs bad refutation
 
-The Assurance Review gate (SPEC.md §8.1) requires:
-- All T3 claims have refutation reports
-- All refutation reports are reviewed
-- Role separation is verified
-- Human approval for high-impact decisions (Assurance profile)
+**Good**:
+```
+Claim C-055: "bcrypt is available in Edge Runtime"
+Refuter: reads EL-003 (Next.js docs), finds "Edge Runtime supports a subset of Node.js APIs"
+Then reads EL-005 (bcrypt docs), finds "bcrypt requires Node.js native modules"
+Outcome: partially_refuted — bcrypt is NOT available in Edge Runtime
+Action: Remove claim, fix code
+```
 
-## Independence guarantees
+**Bad**:
+```
+Claim C-055: "bcrypt is available in Edge Runtime"
+Refuter: same agent context that wrote the claim
+"Looks correct to me"
+Outcome: sustained
+→ Independence violation. Refutation is invalid.
+```
 
-- The refutation agent's context MUST NOT include the original claim author's reasoning
-- The refutation agent MUST have access to the same evidence lock (not less)
-- If no independent agent context is available, a human reviewer MUST perform the refutation
-- Independence verification is recorded in the refutation report
+## Rationalization table
 
-## Lifecycle state
+| Excuse | Reality |
+|---|---|
+| "I can refute my own claim, I know it's correct" | The point of refutation is to find what you missed. Self-refutation is a rubber stamp. Use an independent context. |
+| "The claim looks fine, I'll mark it sustained without checking the source" | Citation entailment is the most common failure. Read the actual source text. Summaries lie. |
+| "I couldn't find counter-evidence, so the claim is sustained" | Absence of counter-evidence is not proof. Document what you searched. If the search was thorough, sustained is valid. |
+| "This T3 claim is low-risk, I'll skip refutation" | T3 means critical impact or operational+high. Skipping refutation violates Assurance profile. |
+| "I'll just downgrade it to T2 to avoid refutation" | Tier is derived from the risk matrix, not chosen. Downgrading to avoid refutation is Goodhart. |
 
-- `VERIFYING → WAIVED` (if refutation reveals exceptions that are approved)
-- `VERIFYING → NONCONFORMANT` (if refutation reveals unresolvable issues)
-- Refutation does not change lifecycle state directly; findings feed into the compliance report
+## Self-improvement
+
+1. Did any `sustained` claims later prove false? If so, the refutation search was too shallow — broaden counter-evidence search.
+2. Did refutation find issues that forward sweep missed? If so, forward sweep's citation check needs strengthening.
+3. Was independence verification ever bypassed? If so, the Assurance Review gate is compromised — enforce role separation.
 
 ## Spec reference
 
-- SPEC.md §6.2 (Prohibited role combinations — Designer MUST NOT be sole Refuter for T3), §8.1 (Assurance Review gate), §13.2 (Proof tiers and risk classification), §13.4 (Citation entailment)
+- SPEC.md §6.2 (Prohibited role combinations), §8.1 (Assurance Review gate), §13.2 (Proof tiers), §13.4 (Citation entailment)

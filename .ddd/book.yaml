@@ -7,7 +7,7 @@ version: 0.1.0
 released_at: null
 
 # Manifest digest — computed from all referenced artifact digests
-manifest_digest: sha256:484d46d43621b49c0ec93748e9ecb972a858e2d66f1854a6a9c41a429d20609e
+manifest_digest: sha256:2041ec62b87c932c1d71b1f521dab458c645bff993c6c21882e70937f6a04b3d
 
 # Project requirements (human-approved product/engineering docs)
 requirements:
@@ -35,7 +35,7 @@ agent_context:
   - path: AGENTS.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:dd875f0ef751d46983b637295344989cb3f21efc82e77a7e110822311dbf0a2a
+    digest: sha256:554fbed780c28571dfc79a8ffbc34ab497f74934abf30070d1d117f3e55d275e
     description: "Agent runtime instructions and project structure"
 
   - path: SKILLS.md
@@ -47,74 +47,128 @@ agent_context:
   - path: skills/ddd/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:0eade93cd9f68e47a2c9802c57a2ad78c202f9dacea23ff1a5d18fb4d3ed9b9d
-    description: "Router skill"
+    digest: sha256:8d6b9c451d8fa98872a048546b2987c15238e35776d3e4386f1dfc8528606ad3
+    description: "Router skill (narrative, iron law, rationalization table)"
 
   - path: skills/ddd-scope/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:c7f759ba26d831404b66e0fef9eaa986ee6eafc1a8a2a924dba39b47de54bbea
-    description: "Evidence Scope gate"
+    digest: sha256:98c684b8ffb582c88b358802f59f88ca6f2800e02575929fdae91fc5d3b65b0d
+    description: "Evidence Scope gate (lean, references for detail)"
+
+  - path: skills/ddd-scope/references/stack-detection.md
+    status: working-document
+    independence: agent-proposed-human-approved
+    digest: sha256:61e8c44e7440f83ad53229c1e74daf85bec3a2543520ed5287f65d5ae695c5e5
+    description: "Stack detection procedure reference"
+
+  - path: skills/ddd-scope/references/adapters.md
+    status: working-document
+    independence: agent-proposed-human-approved
+    digest: sha256:3c2188d5a45d782290c55f9639d1eb269533bdfa1594b64f5ad9c45c4c46fc1b
+    description: "Doc acquisition adapters reference"
 
   - path: skills/ddd-book/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:23a5cd781d9d2c50a8981df1aca0e157f3a28fdbc3be607413cb414835ed129c
-    description: "Book management + project context"
+    digest: sha256:d2b3a1a0c3e095195f3c6ce1596b2b002f7bb3d3508f0a46c6caa9e2cbc862ea
+    description: "Book management + project context (lean, references for detail)"
+
+  - path: skills/ddd-book/references/passport-schema.md
+    status: working-document
+    independence: agent-proposed-human-approved
+    digest: sha256:7787566495f8a7c6ad9bdea0044a979616489ec930fd7eb7b81f7e2630b4dd86
+    description: "Object passport schema reference"
 
   - path: skills/ddd-ground/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:e6adb331e6fe1e69142a871be905e0d60cc5902a6e453f0764d0472052f80ac2
-    description: "Evidence Lock gate"
+    digest: sha256:1b9820fee53aeb56de5064187c25b5faf554e3c7a3e1c73fa283b9ce3d9a1294
+    description: "Evidence Lock gate (iron law, examples, rationalization)"
 
   - path: skills/ddd-verify/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:da300796ce30331278ef14b1c3044f401d7e2ffa2a233a08cac3e479024ef529
-    description: "Compliance Sweep gate"
+    digest: sha256:e136e8e5f81012e81c3dc7e66a6af3b41910e917d2dca28b0bf4908af854822d
+    description: "Compliance Sweep gate (lean, references for detail)"
+
+  - path: skills/ddd-verify/references/citation-entailment.md
+    status: working-document
+    independence: agent-proposed-human-approved
+    digest: sha256:51c8cae0ded1b6dc976882723d75a5da0f28d5f6afbc49a628b9fddd4dc65f94
+    description: "Citation entailment verification reference"
+
+  - path: skills/ddd-verify/references/test-traceability.md
+    status: working-document
+    independence: agent-proposed-human-approved
+    digest: sha256:21c9260252b19f003151480fd3fe33afce254c02600a00a93b259cff16d00113
+    description: "Test-code traceability reference"
 
   - path: skills/ddd-exception/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:0358a03fd1167698e4f9eb317196674a1623e79f7af2240d0f1063ff4e9d921a
-    description: "Exception management + claim retraction"
+    digest: sha256:77cfe96f98036b14eb08f2ce01efaf15761912fd458c8af5eb23e72de1e970e7
+    description: "Exception management + claim retraction (lean, references for detail)"
+
+  - path: skills/ddd-exception/references/exception-types.md
+    status: working-document
+    independence: agent-proposed-human-approved
+    digest: sha256:ae37adfc2924bb300209240c236f36bf37308ecfead0e39984dfbceb65343b02
+    description: "Exception types and escalation reference"
 
   - path: skills/ddd-decide/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:b35f4bb2e6be4860be9dde81dc850267ee5bc680376374a292294e2b2c4f2a29
-    description: "Design tournament (V2)"
+    digest: sha256:8537e175e6871c2f595459d2f53bd907769bbccd28881e2abc708d803d061286
+    description: "Design tournament (V2, iron law, examples, rationalization)"
 
   - path: skills/ddd-refute/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:ea6686fc79f8790363efe85173b1ddf727a1ccc6689adcbfe3819e9ae7695760
-    description: "Adversarial review (V2)"
+    digest: sha256:39ee5b9c72d800e9bfe1fa24a62c3d9748cd622c32e9b4693c0560a1d44a67ae
+    description: "Adversarial review (V2, iron law, examples, rationalization)"
 
   - path: skills/ddd-controls/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:dfe5d3b0b0f9fbc582afa88f45746fa4ee8828c0d9d3514cbb39e77b3e6de7e6
-    description: "Control compilation (V3)"
+    digest: sha256:e34bd2c3d91c0242fadd31969bb24278e00a86af2dffcdda8c55f63dbdbe559d
+    description: "Control compilation (V3, iron law, examples, rationalization)"
 
   - path: skills/ddd-drift/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:418c70e6d2a89338ed07c5d6f4e3f94988334b01cfef107e999047e0b3446731
-    description: "Drift detection (V3)"
+    digest: sha256:5c6f2811503735834ea4e36f26d964f91d1a541e461b8f5dc0365f51d34dffc2
+    description: "Drift detection (V3, lean, references for detail, 7 dimensions)"
+
+  - path: skills/ddd-drift/references/drift-dimensions.md
+    status: working-document
+    independence: agent-proposed-human-approved
+    digest: sha256:a0517a6510e29c30f12f8052fd5191d9a020f3de710d18d17c8227537264d5d4
+    description: "Drift dimensions detail reference"
 
   - path: skills/ddd-model/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:45e6be7933394db4a31008e88ff1f9252eeff8000072342e1ed973c03f3d79fd
-    description: "Domain modeling (V1)"
+    digest: sha256:45a050e159faec816e53e90d9a099193448d0fd173938148db14c5744c0f0fdb
+    description: "Domain modeling (V1, lean, references for detail)"
+
+  - path: skills/ddd-model/references/model-schemas.md
+    status: working-document
+    independence: agent-proposed-human-approved
+    digest: sha256:e040a8660298e4df67e20eb57e9fbe310b170f89ad1b05771673d08c5015611a
+    description: "Model schemas reference"
 
   - path: skills/ddd-audit/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:ae7624bca8156d39375cae957fc6e5fbe4efd708bb14b7cfce985f384d5b82b9
-    description: "Brownfield code audit (V1)"
+    digest: sha256:ffe84b9b5a5eca59d61d07446be02a68126b6afac8e45e5359c40d4d491becd7
+    description: "Brownfield code audit (V1, lean, references for detail)"
+
+  - path: skills/ddd-audit/references/audit-phases.md
+    status: working-document
+    independence: agent-proposed-human-approved
+    digest: sha256:eb96d741bbeebdef12ff0f22a166f4dca0af62669fd1fe63b3c5509172e1eb48
+    description: "Audit phases detail reference"
 
 # Artifact pointers
 evidence_lock: evidence.lock

@@ -34,6 +34,7 @@ DDD/
 │   ├── ddd-refute/      # Adversarial review (V2)
 │   ├── ddd-controls/    # Control compilation (V3)
 │   └── ddd-drift/       # Drift detection (V3)
+│   (each skill has references/ for progressive disclosure)
 ├── cli/                 # Machine API CLI (TypeScript/Bun)
 └── .ddd/                # Project engineering book (runtime state)
     ├── book.yaml        # Book manifest (root)

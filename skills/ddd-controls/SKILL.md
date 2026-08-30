@@ -12,9 +12,9 @@ metadata:
 
 # ddd-controls
 
-**Compile and validate Control Obligations into executable guardrails.**
+**NEVER CLAIM PROSE HAS BECOME EXECUTABLE WHEN NO GATE EXISTS.**
 
-V3 skill — compiles documented rules into automated enforcement.
+Compile and validate Control Obligations into executable guardrails.
 
 ## When to invoke
 
@@ -29,17 +29,13 @@ V3 skill — compiles documented rules into automated enforcement.
 
 For each obligation in `.ddd/obligations/`, select a trusted adapter and generate an executable control.
 
-**Obligation schema** (from `ddd-ground`):
 ```yaml
-schema_version: 0.1.0
+# Obligation (from ddd-ground)
 id: order.no-direct-payment-gateway
 rule: "Order domain code must not import payment adapters"
-source: ADR-004
 scope: "src/domain/order/**"
 severity: blocking
 preferred_enforcement: architecture-test
-expected_failure: "Dependency edge from domain to payment adapter"
-residual_risk: "Reflection could bypass"
 ```
 
 **Machine API**: `compile(obligation_id, adapter) → control`
@@ -56,138 +52,87 @@ residual_risk: "Reflection could bypass"
 | Code style | eslint, prettier |
 | Formal verification | Dafny, TLA+, model checker (Level 5) |
 
-An adapter is NOT trusted until it has been validated (Step 3).
+An adapter is NOT trusted until validated (Step 3).
 
 ### Step 3: Validate the control
 
-Control validation protocol (SPEC.md §12.4) requires three checks:
+Three-check protocol (SPEC.md §12.4):
 
-1. **Compliant fixture**: Code that obeys the obligation → control MUST pass
-2. **Violating fixture**: Code that breaks the obligation → control MUST fail with a message referencing the obligation ID
-3. **Mutation test**: Deliberately introduce the violation → control MUST catch it
-
-```yaml
-# Validation record
-schema_version: 0.1.0
-obligation_id: order.no-direct-payment-gateway
-adapter: dependency-cruiser
-compliant_fixture: test/fixtures/order-compliant.ts
-compliant_result: pass
-violating_fixture: test/fixtures/order-violates-payment.ts
-violating_result: fail
-violating_message: "Violates obligation: order.no-direct-payment-gateway"
-mutation_test:
-  applied_mutation: "Added import of PaymentGateway in Order.ts"
-  detected: true
-validation_status: validated
-validated_at: 2026-08-29T16:00:00Z
-```
+1. **Compliant fixture**: Code that obeys → control MUST pass
+2. **Violating fixture**: Code that breaks → control MUST fail with message referencing obligation ID
+3. **Mutation test**: Deliberately introduce violation → control MUST catch it
 
 ### Step 4: Set enforcement level
 
-Enforcement levels per SPEC.md §12.2:
-
 | Level | Description |
 |---|---|
-| 1 | **Documented rationale** — the rule exists in docs only |
-| 2 | **Review checklist** — a reviewer must verify manually |
-| 3 | **Executable assertion** — a test or lint rule checks it |
-| 4 | **Blocking automated gate** — CI fails if violated |
-| 5 | **Formal or model-checked property** — a prover verifies it |
+| 1 | Documented rationale (docs only) |
+| 2 | Review checklist (manual verification) |
+| 3 | Executable assertion (test or lint) |
+| 4 | Blocking automated gate (CI fails) |
+| 5 | Formal/model-checked property (prover verifies) |
 
-DDD SHOULD compile to the strongest practical level, not automatically demand level 5.
+`blocking` → Level 4 (or 5). `warning` → Level 2. `advisory` → Level 1. DDD SHOULD compile to the strongest practical level.
 
-The enforcement level is determined by the obligation's `severity`:
-- `blocking` → Level 4 (or 5 if a formal verifier is available)
-- `warning` → Level 2
-- `advisory` → Level 1
+### Step 4a: Generation boundary
 
-### Step 4a: Generation boundary (SPEC.md §12.3)
-
-DDD MAY generate the actual control when:
-- A trusted adapter exists for the target toolchain
-- The mapping from obligation to control is deterministic enough
-- The project supports the target tool
-- The generated control can be validated (Step 3)
-
-Otherwise, DDD MUST emit a precise implementation recipe and report the obligation as `uncompiled`:
+DDD MAY generate the actual control when a trusted adapter exists and the mapping is deterministic. Otherwise, DDD MUST emit a precise implementation recipe and report the obligation as `uncompiled`:
 
 ```yaml
-# Uncompiled obligation
 id: order.no-direct-payment-gateway
 status: uncompiled
 recipe: |
   1. Add dependency-cruiser rule: from src/domain/order/** to src/adapters/payment/**
   2. Set severity to 'error' in .dependency-cruiser.js
-  3. Add test fixture: test/fixtures/order-violates-payment.ts
-  4. Run in CI: npx dependency-cruiser src/domain/order
-adapter: null  # no trusted adapter available
+adapter: null
 uncompiled_reason: "dependency-cruiser not installed in project"
 ```
 
 **Never claim prose has become executable when no gate exists.**
 
-### Step 5: Register the control
+### Step 5: Register and integrate
 
-Update the obligation record with compilation status and control reference:
+Update obligation record with compilation status. Level 4+ controls MUST run in CI and block on failure. Control failures MUST reference the obligation ID.
 
-```yaml
-# Updated obligation
-id: order.no-direct-payment-gateway
-status: compiled
-control:
-  adapter: dependency-cruiser
-  rule_file: .dependency-cruiser.js#order-no-payment-adapter
-  enforcement_level: 4
-  validated: true
+## Good vs bad controls
+
+**Good**:
+```
+Obligation: order.no-direct-payment-gateway
+Adapter: dependency-cruiser (installed, trusted)
+Control: .dependency-cruiser.js rule "order-no-payment-adapter"
+Validation: compliant fixture passes, violating fixture fails with "Violates: order.no-direct-payment-gateway", mutation caught
+Level: 4 (blocking in CI)
+Status: compiled
 ```
 
-### Step 6: CI integration
-
-- Level 4+ controls MUST run in CI and block on failure
-- Level 5 controls (formal verification) SHOULD run in CI when available
-- Control failures MUST reference the obligation ID for traceability
-- Control results feed into the compliance report (via `ddd-verify`)
-
-## Generated control example
-
-For `order.no-direct-payment-gateway` using dependency-cruiser:
-
-```json
-{
-  "name": "order-no-payment-adapter",
-  "severity": "error",
-  "comment": "Enforces obligation: order.no-direct-payment-gateway (ADR-004)",
-  "from": { "path": "src/domain/order/.*" },
-  "to": { "path": "src/adapters/payment/.*" }
-}
+**Bad**:
+```
+Obligation: order.no-direct-payment-gateway
+Adapter: "we'll check in code review" (no tool)
+Control: none
+Validation: none
+Level: 1 (documented only)
+Status: "compiled" (claimed but no gate exists)
+→ Generation boundary violation. Prose is not executable.
 ```
 
-## Residual risk
+## Rationalization table
 
-Controls have residual risk:
-- Static analysis cannot catch all dynamic behavior
-- Reflection, metaprogramming, or runtime injection can bypass static controls
-- Controls are only as good as their adapter's capabilities
+| Excuse | Reality |
+|---|---|
+| "Level 1 is fine, the team knows the rule" | Level 1 means the rule exists in docs only. If severity is `blocking`, Level 4 is required. |
+| "I don't need validation fixtures, the rule is simple" | Simple rules have subtle edge cases. The mutation test catches what manual review misses. |
+| "I'll skip the violating fixture, it's obvious it'll fail" | The violating fixture verifies the error message references the obligation ID. Without it, failures are untraceable. |
+| "The adapter is well-known, no need to validate trust" | Adapter updates can change behavior. Re-validate after every adapter upgrade. `ddd-drift` catches this. |
+| "I'll mark it compiled even though CI doesn't run it" | A control that doesn't run is Level 1, not Level 4. Misrepresenting enforcement level is a conformance failure. |
 
-Residual risks are recorded in the obligation and must be acknowledged by the project.
+## Self-improvement
 
-## Worked example (SPEC.md §20.8)
-
-1. ADR-004 establishes "Order domain code must not import payment adapters"
-2. Obligation created: `order.no-direct-payment-gateway`
-3. Adapter selected: dependency-cruiser (trusted for project toolchain)
-4. Control compiled: dependency-cruiser rule generated
-5. Control validated: compliant fixture passes, violating fixture fails with obligation ID, mutation test catches deliberate violation
-6. Enforcement level: 4 (blocking automated gate in CI)
-7. Result: obligation `compiled` and enforced, tracked in `.ddd/obligations/`
-
-## Artifacts
-
-- Control files in the project's tooling config (e.g., `.dependency-cruiser.js`)
-- Validation records in `.ddd/obligations/`
-- Updated obligation status
+1. Did any validated control fail to catch a real violation? If so, the adapter's coverage is weaker than expected — record residual risk and consider a stronger adapter.
+2. Are many obligations `uncompiled`? If so, the project lacks the right tooling — consider adapter installation as infrastructure work.
+3. Did mutation tests find violations that compliant/violating fixtures missed? If so, the fixtures need more edge cases.
 
 ## Spec reference
 
-- SPEC.md §12 (Executable Controls: §12.1 obligation IR, §12.2 enforcement levels, §12.3 generation boundary, §12.4 control validation, §12.5 adapter targets), §20.8 (Worked example)
+- SPEC.md §12 (Executable Controls), §20.8 (Worked example)

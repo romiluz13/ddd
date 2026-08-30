@@ -12,9 +12,9 @@ metadata:
 
 # ddd-model
 
-**Create and maintain domain models in `.ddd/models/`.**
+**MODELS GROUND DECISIONS. DECISIONS GROUND CLAIMS. CLAIMS GROUND CODE. NO MODEL WITHOUT EVIDENCE.**
 
-V1 skill — produces the domain, state, threat, and architecture models that ground design decisions and object passports.
+Create and maintain domain models in `.ddd/models/`.
 
 ## When to invoke
 
@@ -30,192 +30,95 @@ V1 skill — produces the domain, state, threat, and architecture models that gr
 
 ### Step 1: Determine model kind
 
-Select the appropriate model kind based on the change's domain:
-
 | Model kind | When to use |
 |---|---|
-| `state-machine` | Entity has a lifecycle with discrete states and transition rules |
-| `aggregate` | A cluster of entities and value objects with consistency invariants |
-| `entity` | A domain object with identity and lifecycle that is not an aggregate root |
-| `value-object` | An immutable domain concept with equality semantics |
-| `domain-service` | A stateless operation that spans multiple aggregates |
-| `event` | A domain event with payload schema and consumers |
-| `context-map` | Bounded context relationships (upstream/downstream, anti-corruption layers) |
+| `state-machine` | Entity has lifecycle with discrete states and transition rules |
+| `aggregate` | Cluster of entities and value objects with consistency invariants |
+| `entity` | Domain object with identity and lifecycle, not an aggregate root |
+| `value-object` | Immutable domain concept with equality semantics |
+| `domain-service` | Stateless operation spanning multiple aggregates |
+| `event` | Domain event with payload schema and consumers |
+| `context-map` | Bounded context relationships |
 | `threat-model` | STRIDE or similar security threat analysis |
 | `architecture` | Component, boundary, and data-flow diagram |
 
 ### Step 2: Gather evidence
 
 Models MUST be grounded in evidence:
-
-1. Read `project-context.yaml` to understand the project's domain structure
-2. Read existing claims in `.ddd/claims.yaml` related to the domain
+1. Read `project-context.yaml` for domain structure
+2. Read existing claims related to the domain
 3. Read evidence lock entries for domain documentation
-4. If no evidence exists, route to `ddd-scope` to acquire domain documentation
+4. If no evidence exists, route to `ddd-scope` to acquire it
 5. Consult `CONTEXT.md` for domain glossary terms
 
 ### Step 3: Create the model
 
-Create a model file in `.ddd/models/` following §7.6.12:
+Create a model file in `.ddd/models/` — **see `references/model-schemas.md`** for full schemas and examples for each model kind (state-machine, threat-model, architecture).
 
-```yaml
-schema_version: 0.1.0
-id: DM-001
-name: "Order lifecycle"
-model_kind: state-machine
-description: "State transitions for order processing"
-sources:
-  - ref: EL-002#domain-model
-    authority_domain: domain-rules
-  - ref: CONTEXT.md#Order
-    authority_domain: product-behavior
-
-states:
-  - name: PENDING
-    description: "Order created but not confirmed"
-    allowed_transitions: [CONFIRMED, CANCELLED]
-  - name: CONFIRMED
-    description: "Order confirmed by customer"
-    allowed_transitions: [SHIPPED, CANCELLED]
-  - name: SHIPPED
-    description: "Order dispatched"
-    allowed_transitions: [DELIVERED]
-  - name: DELIVERED
-    description: "Order delivered to customer"
-    allowed_transitions: []
-  - name: CANCELLED
-    description: "Order cancelled"
-    allowed_transitions: []
-
-invariants:
-  - "Order cannot transition from SHIPPED to CANCELLED"
-  - "Order total MUST equal sum of line item prices"
-
-entities: [Order, LineItem, OrderEvent]
-value_objects: [Money, Address]
-aggregates: [Order]
-domain_events: [OrderCreated, OrderConfirmed, OrderShipped, OrderCancelled]
-
-created_at: "2026-08-29T10:00:00Z"
-created_by: "agent"
-independence: agent-proposed-human-approved
-linked_passports: [order.aggregate]
-linked_claims: [C-017, C-055]
-```
+Key fields: `id`, `name`, `model_kind`, `sources` (evidence refs with authority_domain), model-specific content (states, invariants, threats, components), `linked_passports`, `linked_claims`.
 
 ### Step 4: Link model to claims and passports
 
 Each model MUST link to:
 - **Claims**: any claim derived from this model (via `linked_claims`)
-- **Passports**: any passport that implements this model (via `linked_passports`)
-- **Evidence**: the sources that ground this model (via `sources`)
+- **Passports**: any passport implementing this model (via `linked_passports`)
+- **Evidence**: sources grounding this model (via `sources`)
 
 Claims about state transitions, invariants, and domain rules MUST reference the model in their `rationale` field.
 
 ### Step 5: Validate model consistency
 
-Check that:
 1. All states in a state machine have defined `allowed_transitions`
 2. All invariants are expressible as claims
-3. All entities referenced in the model exist in the codebase or are planned
-4. The model does not contradict existing claims (if it does, record an exception)
+3. All entities referenced exist in the codebase or are planned
+4. Model does not contradict existing claims (if it does, record an exception)
 5. All `sources` references point to valid evidence lock entries
 
 ### Step 6: Update knowledge map
 
-Record the domain model in the knowledge map:
-- Domain: `domain-rules` (or appropriate domain)
-- Evidence: the model file and its sources
-- Gaps: any invariants that lack evidence
+Record the domain model in the knowledge map with domain, evidence, and gaps.
 
-## Threat modeling
+## Good vs bad models
 
-When `model_kind: threat-model`, the model follows STRIDE:
-
-```yaml
-schema_version: 0.1.0
-id: DM-003
-name: "Auth middleware threat model"
-model_kind: threat-model
-description: "STRIDE analysis of authentication middleware"
-sources:
-  - ref: EL-005#security
-    authority_domain: security
-
-threats:
-  - id: T-001
-    category: spoofing
-    description: "Attacker forges JWT token"
-    severity: high
-    mitigation: "Verify JWT signature with server secret"
-    status: mitigated
-  - id: T-002
-    category: denial-of-service
-    description: "Brute force login attempts"
-    severity: medium
-    mitigation: "Rate limiting per IP"
-    status: mitigated
-  - id: T-003
-    category: information-disclosure
-    description: "Error messages reveal user existence"
-    severity: medium
-    mitigation: "Generic error messages"
-    status: open
-
-created_at: "2026-08-29T10:00:00Z"
-created_by: "agent"
-independence: agent-proposed-human-approved
-linked_passports: [auth.middleware]
-linked_claims: [C-072, C-073]
+**Good**:
+```
+Model: DM-001 "Order lifecycle" (state-machine)
+Sources: EL-002#domain-model (authoritative), CONTEXT.md#Order (product)
+States: PENDING → CONFIRMED → SHIPPED → DELIVERED; CANCELLED from PENDING/CONFIRMED
+Invariants: "Cannot cancel SHIPPED order", "Total = sum of line items"
+Linked claims: C-017, C-055
+Linked passport: order.aggregate
+Evidence: version-matched, domain-authoritative
 ```
 
-## Architecture modeling
-
-When `model_kind: architecture`, the model documents system structure:
-
-```yaml
-schema_version: 0.1.0
-id: DM-005
-name: "System architecture"
-model_kind: architecture
-description: "Component and boundary diagram"
-sources:
-  - ref: project-context.yaml
-    authority_domain: project-architecture
-
-components:
-  - name: "Web App"
-    type: "Next.js application"
-    boundaries: ["src/app/**"]
-    dependencies: ["API Gateway", "Auth Service"]
-  - name: "API Gateway"
-    type: "Node.js service"
-    boundaries: ["src/api/**"]
-    dependencies: ["Database", "Cache"]
-
-boundaries:
-  - name: "Domain-Adapter"
-    rule: "Domain code MUST NOT import adapter code"
-    obligation: "order.no-direct-payment-gateway"
-
-data_flows:
-  - from: "Web App"
-    to: "API Gateway"
-    protocol: "HTTPS"
-    data: "API requests"
-
-created_at: "2026-08-29T10:00:00Z"
-created_by: "agent"
-independence: agent-proposed-human-approved
+**Bad**:
+```
+Model: DM-001 "Order lifecycle" (state-machine)
+Sources: none (designed from memory)
+States: PENDING → CONFIRMED → SHIPPED → DELIVERED → CANCELLED (cancel from any state!)
+Invariants: none
+Linked claims: none
+Linked passport: none
+→ No evidence, contradicts domain rules (SHIPPED orders can't be cancelled),
+  no links to claims or passports. Model is ungrounded and wrong.
 ```
 
-## Artifacts
+## Rationalization table
 
-- Model files in `.ddd/models/DM-*.yaml`
-- Updated claims in `.ddd/claims.yaml` (if model introduces new claims)
-- Updated passports in `.ddd/passports/` (if model defines passport requirements)
-- Updated knowledge map in `.ddd/knowledge-map.yaml`
+| Excuse | Reality |
+|---|---|
+| "I know the domain, I don't need evidence for the model" | Domain knowledge from parametric memory is stale and incomplete. Evidence lock entries ground the model in authoritative sources. |
+| "The model is just documentation, it doesn't need to be validated" | Models that contradict claims or reference non-existent entities create conformance failures. Validate. |
+| "I'll link claims and passports later" | Unlinked models are orphans. The traceability chain breaks: code → claim → ??? → evidence. Link at creation time. |
+| "Threat modeling is overkill for this change" | If `ddd-scope` identified security as a knowledge domain, threat modeling is required. STRIDE takes 15 minutes and catches what you missed. |
+| "The architecture diagram doesn't need evidence" | Architecture models cite `project-context.yaml` as a source. Without it, the diagram is a guess, not a grounded model. |
+
+## Self-improvement
+
+1. Did any model contradict existing claims? If so, either the model or the claims are wrong — investigate before proceeding.
+2. Are models being created but never linked to passports? If so, the passport creation in `ddd-book` is lagging — flag it.
+3. Did a threat model find threats that `ddd-scope` didn't anticipate? If so, the adversarial discovery in scope needs strengthening.
 
 ## Spec reference
 
-- SPEC.md §7.6.12 (Domain model record schema), §9.1 (Knowledge taxonomy — dimension 1: Product and domain), §11 (Object Passports — passports reference models), §13.1 (Nested traceability — models are L0 sources for domain claims)
+- SPEC.md §7.6.12 (Domain model schema), §9.1 (Knowledge taxonomy), §11 (Object Passports), §13.1 (Nested traceability)

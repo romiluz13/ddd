@@ -12,7 +12,9 @@ metadata:
 
 # ddd-book
 
-**Initialize, synchronize, validate, and release the Project Engineering Book. Detect project stack, manage project context, Knowledge Map entries, passports, and artifact references.**
+**THE BOOK IS THE SOURCE OF TRUTH. IF IT'S NOT IN THE BOOK, IT DOESN'T EXIST.**
+
+Initialize, synchronize, validate, and release the Project Engineering Book. Detect project stack, manage project context, Knowledge Map, passports, and artifact references.
 
 ## When to invoke
 
@@ -28,51 +30,19 @@ metadata:
 
 ### Initialize
 
-1. Create `.ddd/` directory structure:
-   ```
-   .ddd/
-     book.yaml
-     project-context.yaml
-     knowledge-map.yaml
-     evidence.lock
-     claims.yaml
-     trace-matrix.yaml
-     constraints.yaml
-     decisions/
-     models/
-     passports/
-     obligations/
-     packets/
-     exceptions/
-     reports/
-     cache/
-   ```
+1. Create `.ddd/` directory structure (see SPEC.md §7.1 for layout)
 2. Create initial `book.yaml` manifest with `schema_version: 0.1.0`
-3. **Detect and record project stack** (SPEC.md §9.8):
-   - Scan for manifest files (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, etc.)
-   - Parse lockfiles for installed versions (`package-lock.json`, `yarn.lock`, etc.)
-   - Scan config files (`tsconfig.json`, `next.config.*`, `Dockerfile`, etc.)
-   - Detect frameworks by examining dependencies AND config files
-   - Detect databases by scanning for ORM/schema files and connection strings
-   - Infer architecture from directory structure and import patterns
-   - Populate `.ddd/project-context.yaml` per §7.6.11
-   - Fields that cannot be auto-detected MUST be marked `unknown` with `detection_note`
-   - NEVER guess stack details from parametric memory
+3. **Detect and record project stack** — scan manifest files, lockfiles, config files. **See `references/stack-detection.md`** (in `ddd-scope`) for the full procedure. Populate `.ddd/project-context.yaml`. NEVER guess from parametric memory.
 4. Index existing project artifacts (requirements, ADRs, CONTEXT.md) as Book references with independence levels
 5. Generate initial `knowledge-map.yaml` with domains derived from detected stack
-6. Create empty `constraints.yaml` for cross-document constraints
-7. Determine conformance profile (Lite or Assurance)
+6. Determine conformance profile (Lite or Assurance)
 
 ### Synchronize
 
 1. Scan for new or updated ADRs, requirements, and project docs
-2. **Re-scan project stack** if dependencies or config files have changed:
-   - Update `project-context.yaml` with new/changed dependencies
-   - Flag dependencies that no longer have matching evidence lock entries
+2. Re-scan project stack if dependencies or config files changed — update `project-context.yaml`, flag dependencies without matching evidence lock entries
 3. Update Book manifest references with correct independence levels
-4. Update `AGENTS.md` as a compact runtime index generated from the Book
-5. Regenerate `trace-matrix.yaml` as a view of the evidence graph
-6. Check for stale cross-document constraints in `constraints.yaml`
+4. Regenerate `trace-matrix.yaml` as a view of the evidence graph
 
 ### Validate
 
@@ -80,55 +50,20 @@ metadata:
 2. Check evidence lock entries have valid content digests
 3. Check no revoked entries are still cited in claims
 4. Check supersession chains are consistent
-5. Check manifest digest matches content
-6. **Check project-context.yaml is current** — compare detected stack against recorded stack, flag drift
-7. Check all dependencies in `project-context.yaml` that are used by DDD-governed code have evidence lock entries
-8. Check constraints.yaml for any unresolved cross-document constraints
+5. Check `project-context.yaml` is current — compare detected stack against recorded stack, flag drift
+6. Check all dependencies used by DDD-governed code have evidence lock entries
 
 ### Release
 
 1. Compute manifest digest (sha256 of all referenced artifact digests)
 2. Tag the Book version (semver)
-3. A code revision MAY declare which Book version governed it
-4. Validate all referenced artifacts before release
+3. Validate all referenced artifacts before release
 
 ### Manage passports
 
-Create and update object passports (SPEC.md §11) for responsibility-bearing design units:
+Create and update object passports for responsibility-bearing design units. **See `references/passport-schema.md`** for the full schema and passport-required criteria.
 
-**Passport required when a unit:**
-- Owns domain meaning or invariants
-- Owns mutable state or a lifecycle
-- Crosses a trust, process, or data boundary
-- Exposes a stable interface
-- Persists data or events
-- Performs irreversible side effects
-- Coordinates multiple components
-- Has high coupling or high failure impact
-
-**Passport schema** (see SPEC.md §11.2):
-```yaml
-id: order.aggregate
-kind: aggregate
-purpose: Protect the consistency of an accepted order
-domain_sources: [CONTEXT.md#Order, EL-002#domain-model, DM-001]
-responsibilities: [...]
-non_responsibilities: [...]
-invariants: [...]
-states: [...]
-collaborators: [...]
-allowed_dependencies: [...]
-forbidden_dependencies: [...]
-methodology: { pattern, source, applicability_rationale }
-risks: [...]
-controls: [...]
-validating_tests: [...]
-symbols: [...]
-```
-
-DTOs, trivial helpers, generated types, and framework glue inherit coverage from a parent passport.
-
-Passports SHOULD reference domain models (§7.6.12) via `domain_sources` when a model exists.
+Passports SHOULD reference domain models via `domain_sources` when a model exists.
 
 ## Artifacts managed
 
@@ -140,24 +75,43 @@ Passports SHOULD reference domain models (§7.6.12) via `domain_sources` when a 
 | Evidence lock | `.ddd/evidence.lock` | Immutable external-source provenance |
 | Claim ledger | `.ddd/claims.yaml` | Atomic assertions requiring support |
 | Trace matrix | `.ddd/trace-matrix.yaml` | Generated view of evidence graph |
-| Cross-doc constraints | `.ddd/constraints.yaml` | Cross-document join constraints |
 | Passports | `.ddd/passports/` | Object design contracts |
 | Decisions | `.ddd/decisions/` | DDD decisions (ADRs) |
 | Models | `.ddd/models/` | Domain, state, threat, architecture models |
 
-## Existing artifact relationships
+## Good vs bad initialization
 
-| Artifact | Relationship |
+**Good**:
+```
+Stack detection: package.json → next@15.1.0, package-lock.json → exact versions
+project-context.yaml: { language: TypeScript, framework: Next.js 15.1.0, database: PostgreSQL 16 }
+Independence levels: ADR-007 → project-authoritative, vendor docs → external-authoritative
+Profile: Lite (no T3 claims expected)
+```
+
+**Bad**:
+```
+Stack detection: "It's a React app" (from memory, no file scan)
+project-context.yaml: { language: JavaScript, framework: React } (no versions)
+Independence levels: all "agent-proposed" (no authority distinction)
+Profile: unset
+```
+
+## Rationalization table
+
+| Excuse | Reality |
 |---|---|
-| `CONTEXT.md` | Discovery workspace; becomes authoritative when referenced in Book with independence level |
-| ADRs | First-class Book decisions, referenced by manifest |
-| `AGENTS.md` | Compact runtime index generated from the Book |
-| `README.md` / onboarding docs | Discovery surface; SHOULD be governed — claims about capabilities MUST trace to Book references |
-| `GETTING_STARTED.md` | Quick-start guide for DDD adoption |
-| Existing project docs | Remain canonical, referenced not copied |
-| Database/vector store | Rebuildable retrieval cache, never source of truth |
+| "I can initialize without stack detection" | Stack detection drives evidence acquisition, drift detection, and adapter selection. Skip it and every downstream skill has garbage input. |
+| "The Book doesn't need validation, I just created it" | New Books can have broken references, missing evidence lock entries, and stale constraints. Validate after every change. |
+| "Passports are overkill for this component" | If it owns state, crosses a boundary, or has high failure impact, it needs a passport. Check the criteria in `references/passport-schema.md`. |
+| "I'll update project-context.yaml later" | Every skill reads it. If it's stale, evidence acquisition uses wrong versions, drift detection produces false positives, and grounding traces to wrong APIs. |
+
+## Self-improvement
+
+1. Did Book validation surface any issues? If yes, the synchronization step missed something — improve the sync scan.
+2. Are there artifacts in `.ddd/` not referenced by `book.yaml`? If so, the manifest is incomplete — add them.
+3. Did stack detection produce `unknown` fields that could have been detected? Improve the detection logic or add config file patterns.
 
 ## Spec reference
 
-- SPEC.md §4.3 (State sharing), §7 (Artifacts: §7.1 directory structure, §7.2 Book manifest schema, §7.6.11 project context, §7.7 artifact relationships), §9.8 (Stack detection), §11 (Object Passports), §17 (Versioning and Migration: §17.1 spec versioning, §17.2 schema versioning, §17.3 incremental adoption, §17.4 monorepo scoping)
-
+- SPEC.md §7 (Artifacts), §9.8 (Stack detection), §11 (Object Passports), §17 (Versioning and Migration)

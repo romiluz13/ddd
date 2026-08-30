@@ -12,7 +12,9 @@ metadata:
 
 # ddd-exception
 
-**Record, review, escalate, and resolve epistemic gaps.**
+**HONEST GAPS BEAT FABRICATED CITATIONS. EVERY EXCEPTION RECORDS WHAT WAS SEARCHED.**
+
+Record, review, escalate, and resolve epistemic gaps.
 
 ## When to invoke
 
@@ -27,135 +29,100 @@ metadata:
 
 ### Step 1: Classify the gap
 
-Determine the exception type:
+Determine the exception type — **see `references/exception-types.md`** for the full type table, escalation model, and anti-Goodhart measures:
 
-| Type | Description |
+| Type | When |
 |---|---|
 | `unknown` | No evidence found after search |
 | `unsupported` | Evidence found but insufficient |
-| `conflicting` | Sources disagree within the same claim domain |
+| `conflicting` | Sources disagree within same claim domain |
 | `experimental` | Runtime behavior documented but not officially supported |
 
 ### Step 2: Determine derived tier
 
-Use the two-axis model (SPEC.md §13.2):
-- `claim_kind`: mechanical | api | behavioral | architectural | operational
-- `impact`: low | medium | high | critical
-- `derived tier`: from the 5×4 matrix
+Use the two-axis model (SPEC.md §13.2): `claim_kind` × `impact` → derived tier.
 
 An undocumented authentication API call is `operational` kind with `critical` impact → T3, not a harmless API exception.
 
 ### Step 3: Record the exception
 
 ```yaml
-schema_version: 0.1.0
 id: EX-007
 claim: C-055
-type: unknown  # unknown | unsupported | conflicting | experimental
+type: unknown
 description: "No official documentation found for..."
-recorded_at: 2026-08-29T14:00:00Z
-recorded_by: agent
-approved_by: null  # required for T2+
-approval_id: null  # references AP-001 when approved
 rationale: "..."
-risk_assessment: "Medium"
 search_record: "Checked: vendor docs, project ADRs, OWASP. None cover this case."
-status: pending-approval  # pending-approval | approved | rejected | superseded
-superseded_by: null
+status: pending-approval
 ```
 
 **Machine API**: `exception(claim_id, type, rationale) → exception_id`
 
 ### Step 4: Risk-based escalation
 
-| Derived tier | Handling |
+| Tier | Handling |
 |---|---|
-| T0 / T1 | Record with rationale. No block. Change remains in current lifecycle state. Non-blocking exceptions do not prevent `CONFORMANT`. |
-| T2 | Record and flag. SHOULD be resolved before merge. If unresolved at merge, MUST receive approval: Lite → agent review, Assurance → human approval. |
-| T3 | **Blocked.** Requires human approval. Cannot proceed without explicit waiver. |
+| T0/T1 | Record with rationale. No block. |
+| T2 | Record and flag. SHOULD resolve before merge. Approval: Lite → agent, Assurance → human. |
+| T3 | **Blocked.** Human approval required. Cannot proceed without waiver. |
 
 ### Step 5: Approval (when required)
 
-Create an approval record:
-
-```yaml
-schema_version: 0.1.0
-id: AP-001
-target_type: exception
-target_id: EX-007
-approver: human
-approver_id: "rom.iluz"
-approved_at: 2026-08-29T14:00:00Z
-rationale: "Runtime behavior confirmed; proceeding under documented risk"
-risk_accepted: true
-expires_at: null
-```
-
-Update exception `approved_by` and `approval_id` fields. Set status to `approved`.
+Create approval record with approver, rationale, and `risk_accepted: true`. Update exception status to `approved`.
 
 ### Step 6: Resolve or supersede
 
-- If evidence is later found: create the claim, trace it, and supersede the exception (`status: superseded`, `superseded_by: null`)
-- If the design changes to eliminate the gap: supersede the exception
-- If the exception is rejected: set `status: rejected`
+- Evidence found → create claim, trace it, supersede exception
+- Design changes to eliminate gap → supersede exception
+- Exception rejected → set `status: rejected`
 
-## Anti-Goodhart measures (SPEC.md §14.4)
+## Good vs bad exceptions
 
-- An exception count that is too high triggers a methodology review, not a block
-- Exceptions MUST cite what was searched and why no evidence was found
-- An exception without a `search_record` is a conformance failure
-- The goal is honest gaps, not exception inflation or citation fabrication
+**Good**:
+```
+Type: unknown
+Search record: "Checked: Next.js docs v15.1, React docs, GitHub issues #1234, Stack Overflow. None mention this edge case."
+Rationale: "Behavior observed in production but not documented. Risk accepted for T1 claim."
+Status: approved (agent, T1 non-blocking)
+```
 
-## Cross-domain discrepancies (SPEC.md §5.5)
+**Bad**:
+```
+Type: unknown
+Search record: "" (empty)
+Rationale: "Couldn't find docs"
+Status: pending-approval
+→ Conformance failure: no search_record. This is citation fabrication, not an honest gap.
+```
+
+## Rationalization table
+
+| Excuse | Reality |
+|---|---|
+| "I'll just mark it as T0 to avoid the approval" | Tier is derived from claim_kind × impact, not chosen. Downgrading to avoid approval is Goodhart. |
+| "I don't need a search record, there's obviously no docs" | An exception without a search_record is a conformance failure. Document what you checked. |
+| "The exception count is high, I'll skip recording some" | High exception counts trigger methodology review, not shortcuts. Every gap must be visible. |
+| "Runtime behavior overrides the docs" | Runtime behavior is a cross-domain discrepancy, not an override. Record it as `experimental`. |
+| "I'll retract this claim silently" | Claim retraction requires updating all affected constructs and returning the change to UNSCOPED. Silent retraction is a conformance failure. |
+
+## Claim retraction
+
+A claim MAY be retracted when false, superseded, or no longer applicable. **See `references/exception-types.md`** for the full retraction procedure. Key rule: a retracted claim MUST NOT be cited by any active construct. Any change citing the retracted claim MUST return to `UNSCOPED`.
+
+## Cross-domain discrepancies
 
 When documentation and runtime behavior disagree:
 - This is NOT a same-authority contradiction
 - Vendor docs are authoritative for *supported* API semantics
 - Experiments are authoritative for *observed* runtime behavior
 - The experiment does not override documentation; it records a discrepancy
-- The observation MAY justify an experimental implementation under human approval
 
-## Conflict resolution (SPEC.md §5.5)
+## Self-improvement
 
-1. Identify the claim domain (§5.1) and determine the primary authority
-2. The primary authority prevails
-3. If same-authority sources conflict within the same domain → `BLOCKED_CONTRADICTION`
-4. If documentation vs runtime → record as cross-domain discrepancy, not override
-5. Record the conflict and resolution in the exception ledger
-
-## Lifecycle transitions
-
-| From | To | Condition |
-|---|---|---|
-| Any state | `BLOCKED_EVIDENCE_GAP` | T3 exception without approval |
-| `BLOCKED_EVIDENCE_GAP` | `EVIDENCE_REQUIRED` | New evidence found |
-| `BLOCKED_EVIDENCE_GAP` | `WAIVED` | Human approves waiver |
-| `BLOCKED_CONTRADICTION` | `EVIDENCE_REQUIRED` | Conflict resolved |
-| `BLOCKED_CONTRADICTION` | `WAIVED` | Human approves under conflict |
-| `WAIVED` | `CONFORMANT` | Exception resolved (evidence found or design changed) |
-
-## Artifacts
-
-- Exception records in `.ddd/exceptions/`
-- Approval records in `.ddd/exceptions/` (or inline)
-- Updated claim status in `.ddd/claims.yaml`
-
-## Claim retraction (SPEC.md §14.5)
-
-A claim MAY be retracted when discovered to be false, superseded, or no longer applicable:
-
-1. Mark the claim with `status: retracted` and add `retracted_at` timestamp
-2. Record `retraction_reason` (e.g., "Evidence source superseded", "Claim found false during refutation")
-3. Identify all constructs tracing to the retracted claim (via trace matrix)
-4. For each affected construct:
-   - If behavior still needed: find or create a replacement claim with valid evidence
-   - If behavior no longer needed: mark construct for removal
-   - If neither: record an exception (type: `unknown`) for the construct
-5. Update the trace matrix
-6. Any change citing the retracted claim MUST return to `UNSCOPED` for re-scoping
-
-A retracted claim MUST NOT be cited by any active construct. A construct still citing a retracted claim is a conformance failure.
+1. Are exceptions clustering around a specific dependency or domain? If so, that area needs better evidence acquisition in `ddd-scope`.
+2. Are T3 exceptions common? If so, the project may need Assurance profile by default, or the risk classification in `ddd-scope` is too conservative.
+3. Are exceptions being resolved quickly or accumulating? Accumulating exceptions indicate documentation debt — route to `ddd-book` for sync.
 
 ## Spec reference
 
-- SPEC.md §5.5 (Conflict resolution), §7.6.6 (Approval record), §7.6.7 (Exception record), §8.3 (Lifecycle transitions), §14 (Exceptions and Epistemic Gaps: §14.1-§14.4 exception types, §14.5 claim retraction), §16 (Conformance Profiles)
+- SPEC.md §5.5 (Conflict resolution), §14 (Exceptions and Epistemic Gaps), §16 (Conformance Profiles)

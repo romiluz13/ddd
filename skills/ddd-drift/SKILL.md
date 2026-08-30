@@ -1,10 +1,10 @@
 ---
 name: ddd-drift
 description: >
-  Drift detection for DDD. Scans five dimensions: evidence, documentation, decision, control,
-  and code drift. Produces severity-classified drift reports with routing recommendations.
-  Use for scheduled drift checks, after external documentation updates, before Book release,
-  or when troubleshooting unexplained behavior.
+  Drift detection for DDD. Scans seven dimensions: evidence, documentation, decision, control,
+  code, project context, and cache drift. Produces severity-classified drift reports with
+  routing recommendations. Use for scheduled drift checks, after external documentation
+  updates, before Book release, or when troubleshooting unexplained behavior.
 metadata:
   author: ddd-methodology
   version: "0.3.0"
@@ -12,9 +12,9 @@ metadata:
 
 # ddd-drift
 
-**Detect evidence, documentation, decision, control, and code drift.**
+**DRIFT IS INEVITABLE. UNDETECTED DRIFT IS A SILENT CONFORMANCE FAILURE.**
 
-V3 skill — continuous integrity monitoring across the DDD system.
+Detect evidence, documentation, decision, control, code, project context, and cache drift.
 
 ## When to invoke
 
@@ -26,189 +26,91 @@ V3 skill — continuous integrity monitoring across the DDD system.
 
 ## What it does
 
-The drift checker scans five dimensions and produces a drift report for each finding.
+The drift checker scans seven dimensions. **See `references/drift-dimensions.md`** for the full dimension details, severity guidance, and lifecycle re-entry rules.
 
 **Machine API**: `drift_check() → drift_report[]`
 
-### Drift dimension 1: Evidence drift
+### The seven dimensions
 
-Evidence lock entries become stale when:
-- A source's content digest no longer matches (source changed)
-- A source's freshness policy has expired
-- A source has been superseded by a newer version
-- A source URL returns 404 or redirect to different content
+| # | Dimension | What drifts | Route to |
+|---|---|---|---|
+| 1 | Evidence | Source content digest changed, freshness expired, URL dead | `ddd-scope` |
+| 2 | Documentation | Code changed but ADRs/CONTEXT.md/Book refs not updated | `ddd-book` |
+| 3 | Decision | Implementation diverges from accepted ADR | `ddd-decide` |
+| 4 | Control | Compiled control no longer catches violations, adapter changed | `ddd-controls` |
+| 5 | Code | Grandfathered code modified without DDD scope, new constructs without passports | `ddd-ground` |
+| 6 | Project context | Dependencies changed but `project-context.yaml` not updated | `ddd-book` |
+| 7 | Cache | Cache files not content-addressed, missing entries, digest mismatch | `ddd-scope` |
 
-**Check**: For each entry in `.ddd/evidence.lock`, re-fetch (or check cached copy) and compare digest.
+### Drift report format
 
-**Drift report**:
 ```yaml
-schema_version: 0.1.0
 id: DRFT-001
 type: evidence_drift
 lock_entry: EL-003
-source_url: https://docs.example.com/api/v3
 expected_digest: sha256:abc123...
 actual_digest: sha256:def456...
 severity: high
 description: "Source content has changed since evidence lock was created"
-recommended_action: "Re-evaluate claims citing EL-003. Update evidence lock with new entry."
-detected_at: 2026-08-29T18:00:00Z
+recommended_action: "Re-evaluate claims citing EL-003. Update evidence lock."
 ```
 
-### Drift dimension 2: Documentation drift
-
-Documentation drifts from code when:
-- Code behavior has changed but ADRs, CONTEXT.md, or Book references have not been updated
-- API signatures in code no longer match documented signatures
-- Domain model in `.ddd/models/` no longer matches implemented domain logic
-
-**Check**: Compare current code structure against Book references and passports.
-
-### Drift dimension 3: Decision drift
-
-Decision drift occurs when:
-- An ADR is marked "accepted" but the implementation diverges from the selected alternative
-- Negative knowledge (rejected alternatives) has been silently adopted
-- A decision's constraints are violated by later changes
-
-**Check**: Compare ADR decisions against current implementation and obligation status.
-
-### Drift dimension 4: Control drift
-
-Control drift occurs when:
-- A compiled control no longer catches violations it was validated to catch
-- An adapter has been updated and the control's behavior changed
-- An obligation exists but no control has been compiled
-- A control exists but its obligation has been superseded
-
-**Check**: Re-run control validation fixtures. Check obligation-control mapping.
-
-### Drift dimension 5: Code drift
-
-Code drift occurs when:
-- Grandfathered code (pre-DDD) has been modified without entering DDD scope
-- A construct's traced claims no longer match its implementation
-- New constructs exist without passports (if responsibility-bearing)
-- Reverse sweep violations have accumulated since last check
-
-**Check**: Run reverse sweep on changed code. Check passport coverage.
-
-### Drift dimension 6: Project context drift
-
-Project context drifts when the detected stack no longer matches what is recorded:
-
-- A new dependency was added but `project-context.yaml` was not updated
-- A dependency version was upgraded but the recorded version is stale
-- A framework was added or removed but `project-context.yaml` doesn't reflect it
-- A database was changed but the context still shows the old one
-
-**Check**: Re-run stack detection (§9.8) and compare against `project-context.yaml`. Flag any mismatches.
-
-**Drift report**:
-```yaml
-schema_version: 0.1.0
-id: DRFT-006
-type: project_context_drift
-field: "dependencies"
-description: "project-context.yaml lists zod@3.23.0 but package-lock.json has zod@3.24.0"
-severity: medium
-recommended_action: "Update project-context.yaml. Re-verify evidence lock entries for zod — version may have changed."
-detected_at: "2026-08-29T18:00:00Z"
-```
-
-### Drift dimension 7: Cache drift
-
-Cache drift occurs when:
-- Cache files are not content-addressed (named by slug instead of hash)
-- Cache entries are missing (evicted but still referenced by evidence lock)
-- Cache content doesn't match the evidence lock digest (corruption)
-
-**Check**: Verify cache file naming, check that all evidence lock entries have corresponding cache files, verify digest consistency.
-
-## Drift report summary
-
-```yaml
-schema_version: 0.1.0
-id: DRFT-SUMMARY-001
-generated_at: 2026-08-29T18:00:00Z
-total_findings: 5
-by_type:
-  evidence_drift: 2
-  documentation_drift: 1
-  decision_drift: 0
-  control_drift: 1
-  code_drift: 1
-by_severity:
-  critical: 0
-  high: 2
-  medium: 2
-  low: 1
-findings:
-  - DRFT-001
-  - DRFT-002
-  - DRFT-003
-  - DRFT-004
-  - DRFT-005
-recommended_actions:
-  - "Re-evaluate claims citing EL-003 and EL-007 (evidence drift)"
-  - "Update CONTEXT.md#Order to match new code structure (documentation drift)"
-  - "Recompile control for obligation order.no-direct-payment-gateway (control drift)"
-  - "Add passport for new class PaymentReconciliation (code drift)"
-```
-
-## Severity guidance
+### Severity guidance
 
 | Severity | Meaning |
 |---|---|
 | `critical` | Evidence underlying a T3 claim has drifted — claims may be unfounded |
-| `high` | Evidence for T2 claims has drifted, or documentation significantly mismatches code |
+| `high` | Evidence for T2 claims drifted, or doc significantly mismatches code |
 | `medium` | Freshness expired, minor doc mismatch, uncompiled obligation |
 | `low` | Cosmetic drift, grandfathered code minor change |
 
-## Routing
+## Good vs bad drift check
 
-Drift findings route to appropriate skills:
+**Good**:
+```
+Evidence drift: EL-003 (Next.js docs) — re-fetched, digest changed
+→ New content contradicts C-055 ("fetch caches by default")
+→ Severity: high (T2 claim affected)
+→ All changes citing EL-003 return to UNSCOPED
+→ Route to ddd-scope for re-acquisition
+```
 
-| Finding | Route to |
+**Bad**:
+```
+Evidence drift: EL-003 — "source probably changed, I'll just re-lock it"
+→ No digest comparison
+→ No check of which claims are affected
+→ No lifecycle re-entry
+→ Silent conformance failure: claims may be unfounded but still active
+```
+
+## Rationalization table
+
+| Excuse | Reality |
 |---|---|
-| Evidence drift | `ddd-scope` (re-acquire and re-lock) |
-| Documentation drift | `ddd-book` (update references) |
-| Decision drift | `ddd-decide` (re-evaluate if needed) |
-| Control drift | `ddd-controls` (recompile) |
-| Code drift | `ddd-ground` (trace new constructs) or `ddd-exception` (if gaps found) |
+| "Drift checks are overkill, we just locked the evidence" | Evidence drifts the moment vendor docs are updated. Daily checks catch it before claims become unfounded. |
+| "I'll just re-lock without checking affected claims" | Re-locking without checking which claims depend on the drifted evidence leaves potentially false claims active. Trace the dependency. |
+| "Project context drift doesn't matter" | If `project-context.yaml` says `zod@3.23` but `package-lock.json` has `zod@3.24`, every evidence lock entry for zod may be stale. |
+| "Cache drift is cosmetic" | Corrupted cache means verification is checking against wrong content. That's a conformance failure, not cosmetics. |
+| "I'll skip the pre-release drift check" | Critical drift findings SHOULD block Book release. Skipping means shipping a Book with potentially unfounded claims. |
 
-## Lifecycle re-entry (SPEC.md §8.3)
+## Lifecycle re-entry
 
-When drift is detected, the affected change's lifecycle state transitions depend on the drift type:
-
-| Drift type | Transition | Precondition |
-|---|---|---|
-| Evidence drift (contradictory content) | Any active change → `UNSCOPED` | Evidence lock entry invalidated, new content contradicts existing claims |
-| Evidence drift (version refresh only) | Any active change → `EVIDENCE_LOCKED` | Evidence lock entry invalidated, new content is consistent |
-| Documentation drift | Route to `ddd-book` → update references | No lifecycle state change (Book updated in place) |
-| Decision drift | Route to `ddd-decide` → re-evaluate | Change returns to `UNSCOPED` if decision is revised |
-| Control drift | Route to `ddd-controls` → recompile | No lifecycle state change (control updated in place) |
-| Code drift | Route to `ddd-ground` → trace new constructs | Change enters `IMPLEMENTING` → `VERIFYING` cycle |
-
-**Re-entry scope:** Only changes that depend on the invalidated evidence lock entry are affected. Unrelated changes are not disrupted. When an evidence lock entry is superseded, all claims depending on that entry are flagged.
+When drift is detected, affected changes re-enter the lifecycle — **see `references/drift-dimensions.md`** for the full transition table. Key rule: only changes depending on the invalidated evidence are affected. Unrelated changes are not disrupted.
 
 ## CI integration
 
-- Drift checks SHOULD run on a schedule (e.g., daily or weekly)
+- Drift checks SHOULD run on a schedule (daily or weekly)
 - Drift checks MUST run before Book release
 - Critical drift findings SHOULD block Book release
 - Drift summary is stored in `.ddd/reports/`
 
-## Worked example (SPEC.md §20.5)
+## Self-improvement
 
-1. Evidence lock entry EL-003 (vendor API docs) becomes stale (freshness expired)
-2. Drift checker re-fetches source, computes new digest
-3. New content contradicts existing claims about API behavior
-4. Drift report generated: `evidence_drift`, severity `high`
-5. All changes citing EL-003 return to `UNSCOPED`
-6. Knowledge Curator re-acquires and locks new evidence
-7. Claims updated, traces re-validated
+1. Is the same evidence drifting repeatedly? If so, the freshness policy is too lenient — tighten it in the evidence lock entry.
+2. Are drift checks finding issues that code review should have caught? If so, the review process needs DDD awareness — add drift findings to the review checklist.
+3. Are lifecycle re-entries too disruptive? If unrelated changes keep getting disrupted, the dependency tracing in the drift checker is too broad — tighten the scope.
 
 ## Spec reference
 
-- SPEC.md §8.3 (Lifecycle state machine — drift re-entry transitions), §9.8 (Stack detection — project context drift baseline), §12 (Executable Controls), §17 (Versioning and Migration: §17.1 spec versioning, §17.2 schema versioning), §20.5 (Worked example: stale documentation and content drift)
+- SPEC.md §8.3 (Lifecycle re-entry), §12 (Executable Controls), §20.5 (Worked example)

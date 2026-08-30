@@ -13,56 +13,74 @@ metadata:
 
 # ddd
 
-**Router skill for Docs-Driven Development (DDD).**
+**NO CODE WITHOUT EVIDENCE. NO CLAIMS WITHOUT TRACES. NO MERGE WITHOUT CONFORMANCE.**
 
-Determines the appropriate DDD operation and reports project status. Routes to fast paths when eligible.
+The router for Docs-Driven Development. It tells the story of a change traveling from scope to ship, and routes you to the right skill at each gate.
 
 ## When to invoke
 
 - A change is about to be implemented in a DDD-conformant project
-- Someone asks "what DDD state is this project in?"
-- Someone asks "what DDD step should I do next?"
+- Someone asks "what DDD state is this project in?" or "what DDD step should I do next?"
 - A workflow hook fires (Evidence Scope, Evidence Lock, Grounding Check, Compliance Sweep, Assurance Review)
 - Adopting DDD on an existing (brownfield) codebase
 
-## What it does
+## The story of a change
 
-1. Reads `.ddd/book.yaml` to determine if the project is DDD-conformant
-2. Reads `.ddd/project-context.yaml` to understand the project's tech stack
-3. Reads the current change's lifecycle state (if a change is in progress)
-4. Determines which DDD skill or machine API primitive is appropriate
-5. Checks for fast path eligibility (T0-only or T1 fast path)
-6. Reports: project profile (Lite/Assurance), current lifecycle state, active exceptions, coverage status, stack summary
+Every change in DDD travels the same road: **scope → ground → implement → verify → ship**. The gates between stages are what make DDD more than "read docs and code." Here's how to find where you are.
 
-## Routing table
+### First, is DDD even set up?
 
-| Situation | Route to | Machine API |
-|---|---|---|
-| `.ddd/` does not exist — initialize DDD | `ddd-book` | — |
-| Brownfield codebase — audit existing code | `ddd-audit` | — |
-| New change, no evidence gathered | `ddd-scope` | `classify(change) → domains` |
-| Stack not yet detected (no project-context.yaml) | `ddd-scope` (Step 0) / `ddd-book` | — |
-| Evidence scoped, need to acquire and lock | `ddd-scope` (continue) | `discover(domains) → evidence[]` then `lock(evidence[]) → lock_entry` |
-| Need to assemble context for implementation | `ddd-ground` | `packet(change, lock) → evidence_packet` |
-| Need to extract claims from sources | `ddd-ground` | `claim(statement, source) → claim_id` |
-| Need to trace constructs to claims | `ddd-ground` | `trace(claim_id, construct) → trace_entry` |
-| Domain modeling needed (state machines, aggregates, threat models) | `ddd-model` | — |
-| Implementation done, need verification | `ddd-verify` | `sweep(direction) → violations[]` |
-| Gap, conflict, or unsupported claim found | `ddd-exception` | `exception(claim_id, type, rationale) → exception_id` |
-| Claim discovered to be false or superseded | `ddd-exception` (retraction) | — |
-| Consequential design decision needed | `ddd-decide` (V2) | — |
-| T3 claim needs adversarial review | `ddd-refute` (V2) | `refute(claim_id) → refutation_report` |
-| Control obligation needs compilation | `ddd-controls` (V3) | `compile(obligation_id, adapter) → control` |
-| Need to check for drift | `ddd-drift` (V3) | `drift_check() → drift_report[]` |
-| Book needs initialization or update | `ddd-book` | — |
+Read `.ddd/book.yaml`. If it doesn't exist, you're at the very beginning. Route to **`ddd-book`** to initialize the Project Engineering Book, detect the project stack, and create the `.ddd/` directory structure. If the project is brownfield (existing code, no DDD coverage), route to **`ddd-audit`** to retroactively extract claims from code and match them to existing docs.
 
-## Fast path routing
+### A new change enters the pipeline
 
-| Change classification | Route | Required artifacts |
-|---|---|---|
-| **T0-only** (all claims mechanical, low impact) | `ddd-scope` → T0 scope record → `ddd-verify` (lite) | T0 scope record only (§4.2.1) |
-| **T1 fast path** (all claims API-level, low/medium impact) | `ddd-scope` → lightweight evidence record → `ddd-ground` (claims only) → `ddd-verify` | Lightweight record with version-matched evidence per API (§4.2.2) |
-| **T2+** (any behavioral, architectural, or operational claim) | Full pipeline: `ddd-scope` → `ddd-ground` → `ddd-verify` → (`ddd-refute` if T3) | Full evidence packet, claims, traces, validations |
+When requirements are known but evidence hasn't been gathered, the change is `UNSCOPED`. Route to **`ddd-scope`**. This skill detects the project stack, classifies the change against the 18-dimension knowledge taxonomy, discovers version-matched evidence via doc adapters, and produces the evidence lock. The change exits `ddd-scope` as `EVIDENCE_REQUIRED` or, if evidence is already locked, `EVIDENCE_LOCKED`.
+
+**Fast path check**: If `ddd-scope` classifies all claims as T0 (mechanical, low impact), skip to a T0 scope record and go straight to `ddd-verify`. If all claims are T1 (API-level, low/medium impact), take the T1 fast path: lightweight evidence record → `ddd-ground` (claims only) → `ddd-verify`. For T2+ (any behavioral, architectural, or operational claim), take the full pipeline.
+
+### Evidence is locked — prepare for implementation
+
+When evidence is locked, the change is `EVIDENCE_LOCKED`. Route to **`ddd-ground`**. This skill assembles the evidence packet (a bounded, change-specific context bundle), extracts atomic claims from sources, traces code constructs to claims, and extracts control obligations. The change exits `ddd-ground` as `IMPLEMENTING`.
+
+If domain modeling is needed (state machines, aggregates, threat models), route to **`ddd-model`** before or during grounding. Models ground design decisions and object passports.
+
+### Implementation is done — verify
+
+When implementation is declared complete, the change is `VERIFYING`. Route to **`ddd-verify`**. This skill runs forward sweep (every claim has a construct), reverse sweep (every construct has a claim or exception), citation entailment (sources actually say what claims say), and produces a compliance report. The change exits as `CONFORMANT`, `WAIVED`, `NONCONFORMANT`, `BLOCKED_EVIDENCE_GAP`, or `BLOCKED_CONTRADICTION`.
+
+If `NONCONFORMANT`: fix the violations and re-enter `VERIFYING`. If a gap is found: route to **`ddd-exception`**.
+
+### Assurance profile — adversarial review
+
+If the project is Assurance profile and T3 claims exist, route to **`ddd-refute`** after verification. An independent agent attempts to refute each T3 claim by challenging citations, evidence, and reasoning. The Assurance Review gate requires all refutation reports to be reviewed.
+
+### Gaps and conflicts — anytime
+
+At any point, if a consequential claim has no supporting documentation, sources conflict, or runtime behavior differs from docs, route to **`ddd-exception`**. This skill records the gap, determines the derived tier, and escalates: T0/T1 non-blocking, T2 should resolve before merge, T3 blocked until human approval.
+
+If a claim is discovered to be false or superseded, `ddd-exception` also handles claim retraction — marking the claim retracted, finding affected constructs, and returning the change to `UNSCOPED`.
+
+### Consequential design decisions — when needed
+
+When a decision is architecturally consequential, security-sensitive, expensive to reverse, or supported by multiple plausible methodologies, route to **`ddd-decide`**. This runs a grounded design tournament with predeclared weighted criteria, 2-3 alternatives, and negative knowledge preservation. Do NOT run tournaments for naming variables or ordinary CRUD.
+
+### Controls — when obligations exist
+
+When `ddd-ground` has extracted control obligations (enforceable rules from documentation), route to **`ddd-controls`**. This compiles obligations into executable guardrails (dependency-cruiser rules, eslint plugins, etc.), validates them with three-check protocol, and sets enforcement levels.
+
+### Drift — scheduled
+
+Route to **`ddd-drift`** on a schedule (CI cron, pre-commit, or on-demand). This scans 7 dimensions: evidence, documentation, decision, control, code, project context, and cache drift. Findings route back to the appropriate skill for remediation.
+
+## Rationalization table
+
+| Excuse | Reality |
+|---|---|
+| "I know this API from training data" | Your parametric memory is stale. That's why evidence lock exists. Run `ddd-scope`. |
+| "This change is too simple for DDD" | Simple changes get T0 fast path. The scope check takes 30 seconds. Run `ddd-scope`. |
+| "I'll verify after merge" | Reverse sweep catches undocumented behavior. Fixing it post-merge costs 10x. Run `ddd-verify` before merge. |
+| "The docs probably say the same thing" | Citation entailment checks whether sources actually support claims. "Probably" is a conformance failure. Run `ddd-verify`. |
+| "I don't need an exception, I'll just skip it" | An undocumented consequential claim is a reverse-sweep violation. Record the exception honestly. Run `ddd-exception`. |
 
 ## Machine API
 
@@ -94,7 +112,7 @@ project:
     language: TypeScript
     framework: Next.js 15.1.0
     database: PostgreSQL 16
-  coverage: 20%  # DDD-governed vs total
+  coverage: 20%
 current_change:
   id: CH-001
   lifecycle_state: EVIDENCE_LOCKED
@@ -105,7 +123,12 @@ next_action: "Assemble evidence packet and begin implementation"
 route_to: ddd-ground
 ```
 
+## Self-improvement
+
+1. Did the routing decision match the change's actual complexity? If you routed to a fast path but ended up doing full pipeline work, the scope classification was wrong.
+2. Did any gate pass too easily? If verification found zero violations on a complex change, the reverse sweep may have missed constructs.
+3. Did you discover a routing pattern not covered above? Add it to this skill's narrative.
+
 ## Spec reference
 
-- SPEC.md §1 (Purpose), §2 (Terminology), §3 (Principles), §4 (Architecture: §4.1, §4.2, §4.2.1 enforcement modes, §4.2.2 T1 fast path), §8 (Gates and Lifecycle: §8.3 state machine), §9.8 (Stack detection), §15 (Integration: §15.1, §15.2, §15.3 machine API), Annex A.1
-
+- SPEC.md §4 (Architecture), §8 (Gates and Lifecycle), §15.3 (Machine API)
