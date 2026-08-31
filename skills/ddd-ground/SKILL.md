@@ -1,169 +1,74 @@
 ---
 name: ddd-ground
 description: >
-  Use after evidence is locked and before implementation begins, during implementation
-  to extract claims and trace constructs, or when a new control obligation is identified
-  from documentation.
+  Use after external evidence is locked to record atomic claims, build a bounded
+  packet, trace changed constructs, or build a Proofline assurance case.
 metadata:
   author: ddd-methodology
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
-# ddd-ground
+# Ground a change
 
-**EVERY CONSTRUCT TRACES TO A CLAIM. EVERY CLAIM TRACES TO EVIDENCE. NO ORPHANS.**
+**Every supported claim cites locked evidence. Every declared construct has a
+trace.**
 
-Core principle: Implementation is grounded when every code construct has documentary lineage through claims to evidence.
+## Record claims
 
-Violating the letter of the rules is violating the spirit of the rules.
+For each external API statement used by the implementation:
 
-## When to invoke
-
-- Evidence Lock gate has passed (sources acquired and locked)
-- Before implementation begins (assemble the evidence packet)
-- During implementation (extract claims, trace constructs)
-- When a new control obligation is identified from documentation
-
-### When NOT to use
-
-- Evidence has not been locked yet — route to `ddd-scope` first
-- Implementation is declared complete — route to `ddd-verify` for conformance checking
-- You need to discover new evidence — route to `ddd-scope`
-
-## What it does
-
-### Step 1: Extract claims
-
-For each locked source, extract atomic normative statements as shown in Step 2
-below. Claims must exist before the CLI can select them for a packet.
-
-### Step 2: Assemble evidence packet
-
-Create a bounded, change-specific context bundle (SPEC.md §7.5):
-
-```yaml
-id: PKT-001
-change_id: CH-001
-claims: [C-042, C-017, C-055]
-evidence: [EL-001, EL-003, EL-008]
-passports: [order.aggregate]
-obligations: [order.no-direct-payment-gateway]
-invariants: ["Order can only be cancelled if status is PENDING or CONFIRMED"]
-forbidden: ["Cancelling a SHIPPED order"]
-context_budget: { max_chars: 200000, content_chars: 48720, sections_selected: 12 }
+```sh
+ddd claim "<statement>" \
+  --source "EL-NNN#section" \
+  --authority <domain> \
+  --kind <kind> \
+  --impact <impact> \
+  --entailment <explicit|implicit|paraphrase> \
+  --construct "<path#symbol>"
 ```
 
-**Machine API**: `packet(change, lock) → evidence_packet`
+Keep each claim atomic. `--entailment` is a verifier attestation, not an
+automatic semantic proof.
 
-Evidence packets prevent context rot by delivering only the relevant slice of the Book.
+## Build the bounded packet
 
-### Claim record
-
-For each source, extract atomic normative statements:
-
-```yaml
-id: C-042
-statement: "Server components cannot use browser-only APIs"
-rationale: "ADR-007: Server components render on the server"
-sources:
-  - ref: EL-001#Server Components
-    authority_domain: api-semantics
-claim_kind: api
-impact: medium
-tier: T1  # api raises to at least T1, medium impact minimum is T1
-status: known-and-supported
-constructs: [OrderList.component]
+```sh
+ddd packet <change-id> --claims <C-NNN,...> --max-chars <limit>
 ```
 
-**Claim classification** (SPEC.md §13.2):
-- `claim_kind`: mechanical | api | behavioral | architectural | operational
-- `impact`: low | medium | high | critical
-- `tier`: derived from the 5×4 matrix (impact sets minimum, kind may increase)
-- Ambiguous classification escalates to the higher tier
+The packet is complete when it contains only the claims and immutable cached
+evidence required by the change.
 
-**Machine API**: `claim(statement, source) → claim_id`
+## Trace implementation
 
-### Step 3: Trace constructs to claims
-
-For each code construct:
-
-```yaml
-id: CL-001
-symbol: src/domain/order/Order.ts#cancelOrder
-symbol_kind: method
-claims: [C-055, C-017]
-passport: order.aggregate
-coverage_status: covered  # covered | t0-exempt | uncovered
+```sh
+ddd trace <C-NNN> "<path#symbol>"
 ```
 
-Every L2 construct MUST trace to at least one L1 claim. Every L1 claim MUST trace to at least one L0 source OR an explicit exception.
+A trace declares coverage; it does not prove that all repository behavior was
+discovered. Use `scope-change` to create an independently generated denominator
+for the supported TypeScript boundary.
 
-**Machine API**: `trace(claim_id, construct) → trace_entry`
+## Build an assurance case
 
-### Step 4: Extract control obligations
-
-When documentation contains enforceable rules:
-
-```yaml
-id: order.no-direct-payment-gateway
-rule: "Order domain code must not import payment adapters"
-source: ADR-004
-scope: "src/domain/order/**"
-severity: blocking
-preferred_enforcement: architecture-test
+```sh
+ddd build-case <ENV-NNN>
 ```
 
-**Machine API**: `obligation(rule, source, scope) → obligation_id`
+The builder maps:
 
-Obligations are stored in `.ddd/obligations/` and compiled by `ddd-controls` (V3).
+- active external evidence to contract or observation nodes;
+- supported claims to requirement nodes;
+- changed symbols to implementation nodes;
+- declared traces to `implements` edges;
+- source citations to `supports` edges;
+- OpenAPI and JSON Schema files to descriptive contract nodes.
 
-### Step 5: Update passports
+The step is complete when every goal and changed symbol appears in
+`.ddd/cases/CASE-NNN.json`, and any gap remains explicit.
 
-If the change introduces or modifies a responsibility-bearing unit, update its passport. See `ddd-book/references/passport-schema.md` for schema.
+## Boundaries
 
-## Grounding Check (during implementation)
-
-The Grounding Check gate fires during implementation:
-- **Trigger**: each code construct written
-- **Pass condition**: every construct traces to a claim or T0 exemption
-- **Block condition**: unsupported decisions trigger retrieval or an exception
-
-## Examples
-
-<Good>
-```
-Construct: src/domain/order/Order.ts#cancelOrder
-Traces to: C-055 ("Order can be cancelled from PENDING or CONFIRMED")
-C-055 traces to: EL-002#domain-model
-Coverage: covered
-```
-
-</Good>
-
-<Bad>
-```
-Construct: src/domain/order/Order.ts#cancelOrder
-Traces to: nothing
-Coverage: uncovered
-→ Grounding Check BLOCKS. Must trace or record exception.
-```
-</Bad>
-
-## Rationalization table
-
-| Excuse | Reality |
-|---|---|
-| "I'll trace constructs after implementation" | Grounding Check fires on each construct. Untraced constructs block implementation. Trace as you go. |
-| "This claim is obvious, no need to extract it" | If it's not in `claims.yaml`, it doesn't exist for verification. Reverse sweep will catch the undocumented behavior. |
-| "The evidence packet is too big, I'll just read the spec" | The packet is bounded to prevent context rot. Reading the full spec defeats the purpose. Trust the packet. |
-| "This construct is too simple to trace" | T0 exemption exists for mechanical plumbing. But if it has any behavioral impact, it needs a claim. |
-
-## Self-improvement
-
-1. Did any constructs fail Grounding Check? If so, the evidence packet was incomplete — check if scope missed a domain.
-2. Were any extracted claims unused in traces? If so, the scope was too broad — tighten domain classification.
-3. Did any obligations surface that weren't anticipated in scope? Feed those back into `ddd-scope` for future changes.
-
-## Spec reference
-
-- SPEC.md §7.4 (Claim ledger), §7.5 (Evidence packet), §8.1 (Grounding Check gate), §12 (Executable Controls), §13 (Traceability)
+Control compilation, object passports, automatic obligation extraction, and
+broad internal-artifact discovery are research. Do not route to archived skills
+as if they were supported gates.

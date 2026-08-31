@@ -1,4 +1,4 @@
-# Stack Detection Procedure (SPEC.md §9.8)
+# Stack and dependency version detection
 
 ## Manifest files to scan
 

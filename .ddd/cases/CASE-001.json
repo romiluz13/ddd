@@ -1,0 +1,231 @@
+{
+  "schema_version": "0.4.0",
+  "id": "CASE-001",
+  "envelope": {
+    "schema_version": "0.4.0",
+    "id": "ENV-001",
+    "base_revision": "8a2d09266faead882d740f317b0ffcd72bbe40bc",
+    "head_revision": "277427fc43cef7bad6f05f28fa4d453df6b3a23d",
+    "changed_files": [
+      "skills/ddd/SKILL.md"
+    ],
+    "changed_symbols": [
+      "skills/ddd/SKILL.md#frontmatter",
+      "skills/ddd/SKILL.md#name",
+      "skills/ddd/SKILL.md#description"
+    ],
+    "affected_dependencies": [],
+    "affected_contracts": [],
+    "known_consumers": [
+      "Agent Skills-compatible harnesses"
+    ],
+    "risk": "medium",
+    "owner": "ddd-methodology",
+    "exclusions": [],
+    "boundary_confidence": "partial",
+    "detector": {
+      "name": "historical-manual-migration",
+      "version": "0.4.0"
+    },
+    "created_at": "2026-08-31T00:00:00.000Z"
+  },
+  "goals": [
+    "C-001",
+    "C-002",
+    "C-003"
+  ],
+  "nodes": [
+    {
+      "id": "EL-001",
+      "node_type": "contract",
+      "label": "Agent Skills Specification",
+      "epistemic_role": "normative",
+      "approval_state": "approved",
+      "derived_from": [],
+      "provenance": {
+        "origin": "external",
+        "actor": "agentskills.io",
+        "tool": "web-fetch",
+        "revision": "1.0",
+        "captured_at": "2026-08-30T00:00:00Z"
+      }
+    },
+    {
+      "id": "EL-002",
+      "node_type": "contract",
+      "label": "Skills CLI",
+      "epistemic_role": "descriptive",
+      "approval_state": "not-applicable",
+      "derived_from": [],
+      "provenance": {
+        "origin": "external",
+        "actor": "skills.sh",
+        "tool": "web-fetch",
+        "revision": "unversioned",
+        "captured_at": "2026-08-30T00:00:00Z"
+      }
+    },
+    {
+      "id": "C-001",
+      "node_type": "requirement",
+      "label": "A skill's SKILL.md file contains YAML frontmatter followed by Markdown content.",
+      "epistemic_role": "normative",
+      "approval_state": "approved",
+      "derived_from": [],
+      "risk_tier": "T1",
+      "rationale": "The router skill must be loadable by Agent Skills-compatible harnesses.",
+      "provenance": {
+        "origin": "project",
+        "actor": "claim-author",
+        "tool": "claim",
+        "revision": "277427fc43cef7bad6f05f28fa4d453df6b3a23d",
+        "captured_at": "2026-08-31T00:00:00.000Z"
+      }
+    },
+    {
+      "id": "C-002",
+      "node_type": "requirement",
+      "label": "The skill name uses lowercase letters, numbers, and hyphens and matches its parent directory.",
+      "epistemic_role": "normative",
+      "approval_state": "approved",
+      "derived_from": [],
+      "risk_tier": "T1",
+      "rationale": "The router skill name must satisfy the external skill format.",
+      "provenance": {
+        "origin": "project",
+        "actor": "claim-author",
+        "tool": "claim",
+        "revision": "277427fc43cef7bad6f05f28fa4d453df6b3a23d",
+        "captured_at": "2026-08-31T00:00:00.000Z"
+      }
+    },
+    {
+      "id": "C-003",
+      "node_type": "requirement",
+      "label": "The skill description states what the skill does and when to use it.",
+      "epistemic_role": "normative",
+      "approval_state": "approved",
+      "derived_from": [],
+      "risk_tier": "T1",
+      "rationale": "The router must be discoverable from its external skill metadata.",
+      "provenance": {
+        "origin": "project",
+        "actor": "claim-author",
+        "tool": "claim",
+        "revision": "277427fc43cef7bad6f05f28fa4d453df6b3a23d",
+        "captured_at": "2026-08-31T00:00:00.000Z"
+      }
+    },
+    {
+      "id": "IMP-001",
+      "node_type": "implementation",
+      "label": "skills/ddd/SKILL.md#frontmatter",
+      "epistemic_role": "implementation",
+      "approval_state": "not-applicable",
+      "derived_from": [],
+      "construct": "skills/ddd/SKILL.md#frontmatter",
+      "coverage_status": "covered",
+      "provenance": {
+        "origin": "project",
+        "actor": "change-author",
+        "tool": "historical-manual-migration",
+        "revision": "277427fc43cef7bad6f05f28fa4d453df6b3a23d",
+        "captured_at": "2026-08-31T00:00:00.000Z"
+      }
+    },
+    {
+      "id": "IMP-002",
+      "node_type": "implementation",
+      "label": "skills/ddd/SKILL.md#name",
+      "epistemic_role": "implementation",
+      "approval_state": "not-applicable",
+      "derived_from": [],
+      "construct": "skills/ddd/SKILL.md#name",
+      "coverage_status": "covered",
+      "provenance": {
+        "origin": "project",
+        "actor": "change-author",
+        "tool": "historical-manual-migration",
+        "revision": "277427fc43cef7bad6f05f28fa4d453df6b3a23d",
+        "captured_at": "2026-08-31T00:00:00.000Z"
+      }
+    },
+    {
+      "id": "IMP-003",
+      "node_type": "implementation",
+      "label": "skills/ddd/SKILL.md#description",
+      "epistemic_role": "implementation",
+      "approval_state": "not-applicable",
+      "derived_from": [],
+      "construct": "skills/ddd/SKILL.md#description",
+      "coverage_status": "covered",
+      "provenance": {
+        "origin": "project",
+        "actor": "change-author",
+        "tool": "historical-manual-migration",
+        "revision": "277427fc43cef7bad6f05f28fa4d453df6b3a23d",
+        "captured_at": "2026-08-31T00:00:00.000Z"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "EDGE-001",
+      "edge_type": "supports",
+      "source_node": "EL-001",
+      "target_node": "C-001",
+      "rationale": "entailment: explicit"
+    },
+    {
+      "id": "EDGE-002",
+      "edge_type": "supports",
+      "source_node": "EL-001",
+      "target_node": "C-002",
+      "rationale": "entailment: explicit"
+    },
+    {
+      "id": "EDGE-003",
+      "edge_type": "supports",
+      "source_node": "EL-001",
+      "target_node": "C-003",
+      "rationale": "entailment: paraphrase"
+    },
+    {
+      "id": "EDGE-004",
+      "edge_type": "implements",
+      "source_node": "IMP-001",
+      "target_node": "C-001",
+      "rationale": "TR-001"
+    },
+    {
+      "id": "EDGE-005",
+      "edge_type": "implements",
+      "source_node": "IMP-002",
+      "target_node": "C-002",
+      "rationale": "TR-002"
+    },
+    {
+      "id": "EDGE-006",
+      "edge_type": "implements",
+      "source_node": "IMP-003",
+      "target_node": "C-003",
+      "rationale": "TR-003"
+    }
+  ],
+  "defeaters": [],
+  "capabilities": {
+    "boundary_discovery": "tool-enforced",
+    "external_evidence": "tool-enforced",
+    "dependency_detection": "not-evaluated",
+    "contract_detection": "not-evaluated",
+    "contract_compatibility": "not-evaluated",
+    "consumer_impact": "not-evaluated",
+    "semantic_entailment": "recorded-attestation"
+  },
+  "required_capabilities": [
+    "boundary_discovery",
+    "external_evidence",
+    "consumer_impact"
+  ],
+  "created_at": "2026-08-31T07:31:13.981Z"
+}

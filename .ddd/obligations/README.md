@@ -1,3 +1,4 @@
 # obligations/
-Control obligations extracted from documentation, and their compilation/validation records.
+Legacy control-obligation artifacts. Automatic extraction and compilation are
+research and are not required by the current Proofline specification.
 Files: <obligation-id>.yaml

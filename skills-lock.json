@@ -4,62 +4,32 @@
     "ddd": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "eeff96dd4991edf5930d6e12c8973ff561e551be1f4941b09c38445c8f6f98c0"
-    },
-    "ddd-audit": {
-      "source": ".",
-      "sourceType": "local",
-      "computedHash": "22d4b2e9ffb20256dd0bac90157febde0c8c2910fd01647cea54e5c99be1794d"
+      "computedHash": "75487ea6853296442aa886e888599e91724c065f37b1892c884f7b636cdf1d15"
     },
     "ddd-book": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "1803a09f4170e4280030e7e2c329975a0ae4d03ab71bf3f3e83092f99cde7357"
-    },
-    "ddd-controls": {
-      "source": ".",
-      "sourceType": "local",
-      "computedHash": "086a27b6c73fbe11659a7d21dcbad6f90c9e8bf4edbfa8ef633b5d956cffcb15"
-    },
-    "ddd-decide": {
-      "source": ".",
-      "sourceType": "local",
-      "computedHash": "4eaa2e2fcf98883bbb0fa44bf579cdb74ce4c5fd7c45a2428962d80b1e5c65aa"
-    },
-    "ddd-drift": {
-      "source": ".",
-      "sourceType": "local",
-      "computedHash": "4d7724ef228553d737751dc1bff3a6de2547f2a087276cb7b452bfbe083c60bd"
+      "computedHash": "3f92a5656c2982a72206349826d791040871a56b4e717752a220b5533edbcd1e"
     },
     "ddd-exception": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "cb0545ffe503679b73e3ca91ee032a288f6431335f0be126355d90d1b0e0efac"
+      "computedHash": "a3e0a258a632c4105f4fe2f5fa42868b331ef81c6db512b2caae1b0ce2ab41a5"
     },
     "ddd-ground": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "e404abf0a4772448482f5e4542ccedd5a08e40939764ac5d0e8b659a37a09ad5"
-    },
-    "ddd-model": {
-      "source": ".",
-      "sourceType": "local",
-      "computedHash": "be6e159c75412d0b83058529bdeb00461951e563fcc9abfe11a5bee7aa4b867d"
-    },
-    "ddd-refute": {
-      "source": ".",
-      "sourceType": "local",
-      "computedHash": "216d783d88cbf7d1fbb4a8ecc34f931008cdbc837ad5e2f31b191ec8e57ee997"
+      "computedHash": "069fc22f2f10f070fb4e4d6cb882cfa76f0a8850a8197fe6350b78c0e6464f89"
     },
     "ddd-scope": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "1582c2c7c38da9c47f2e43f3c242b15566164e7c01af79022520dd36e2f2c9c1"
+      "computedHash": "0f8dbcb7ea8cf219000e12475ad3c94046806302c0713d00c0c774c2fbb74e8b"
     },
     "ddd-verify": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "d3c36b6b2e68ca236dbb74bed7cc4c64d9c4d2b1584df4888cbddf732db2b0ee"
+      "computedHash": "03d416c830b7dac6e178b6bff130398178b331f6a0382b27ec078a0d5ffdd986"
     }
   }
 }

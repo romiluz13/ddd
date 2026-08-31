@@ -1,0 +1,28 @@
+{
+  "schema_version": "0.4.0",
+  "id": "ENV-001",
+  "base_revision": "8a2d09266faead882d740f317b0ffcd72bbe40bc",
+  "head_revision": "277427fc43cef7bad6f05f28fa4d453df6b3a23d",
+  "changed_files": [
+    "skills/ddd/SKILL.md"
+  ],
+  "changed_symbols": [
+    "skills/ddd/SKILL.md#frontmatter",
+    "skills/ddd/SKILL.md#name",
+    "skills/ddd/SKILL.md#description"
+  ],
+  "affected_dependencies": [],
+  "affected_contracts": [],
+  "known_consumers": [
+    "Agent Skills-compatible harnesses"
+  ],
+  "risk": "medium",
+  "owner": "ddd-methodology",
+  "exclusions": [],
+  "boundary_confidence": "partial",
+  "detector": {
+    "name": "historical-manual-migration",
+    "version": "0.4.0"
+  },
+  "created_at": "2026-08-31T00:00:00.000Z"
+}

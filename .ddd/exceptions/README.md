@@ -1,3 +1,4 @@
 # exceptions/
-Exception records and approval records for epistemic gaps (SPEC.md §14).
+Exception and waiver records for explicit epistemic gaps and accepted residual
+risk.
 Files: EX-NNN.yaml, AP-NNN.yaml

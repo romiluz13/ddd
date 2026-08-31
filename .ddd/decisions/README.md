@@ -1,3 +1,3 @@
 # decisions/
-Design decisions (ADRs) produced by DDD, including tournament records from `ddd-decide`.
+Project decisions and ADRs. The archived design-tournament workflow is research.
 Files: ADR-NNN-title.md

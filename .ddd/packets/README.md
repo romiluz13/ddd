@@ -1,3 +1,4 @@
 # packets/
-Evidence packets — bounded, change-specific context bundles (SPEC.md §7.5).
+Evidence packets are bounded, change-specific bundles of selected claims and
+immutable external evidence.
 Files: PKT-NNN.yaml

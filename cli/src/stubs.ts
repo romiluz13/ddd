@@ -1,6 +1,6 @@
 /**
  * Stubs for machine API primitives that are not yet implemented.
- * (SPEC.md §15.3: discover, packet, claim, refute, exception, obligation, compile)
+ * Unsupported compatibility primitives.
  */
 
 export const STUB_PRIMITIVES = [

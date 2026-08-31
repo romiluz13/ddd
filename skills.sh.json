@@ -3,33 +3,15 @@
   "notGrouped": "bottom",
   "groupings": [
     {
-      "title": "V1 — Foundation",
-      "description": "Core DDD skills for evidence scoping, grounding, verification, and exception management. Required for any DDD-conformant project.",
+      "title": "Supported workflow",
+      "description": "External-evidence scoping, grounding, declared-scope verification, compatibility storage, and explicit gap handling.",
       "skills": [
         "ddd",
         "ddd-scope",
         "ddd-book",
         "ddd-ground",
         "ddd-verify",
-        "ddd-exception",
-        "ddd-model",
-        "ddd-audit"
-      ]
-    },
-    {
-      "title": "V2 — Assurance",
-      "description": "Design tournament and adversarial refutation skills for high-stakes decisions. Required for Assurance profile when T3 claims are present.",
-      "skills": [
-        "ddd-decide",
-        "ddd-refute"
-      ]
-    },
-    {
-      "title": "V3 — Engineering Intelligence",
-      "description": "Executable control compilation and drift detection for continuous integrity monitoring.",
-      "skills": [
-        "ddd-controls",
-        "ddd-drift"
+        "ddd-exception"
       ]
     }
   ]

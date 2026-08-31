@@ -1,52 +1,73 @@
-# Context: DDD — Docs-Driven Development
+# Proofline context
+
+## Product
+
+**Proofline** is a change-assurance tool. The `ddd` command and `.ddd/` storage
+remain compatibility interfaces from the earlier Docs-Driven Development name.
+
+The supported product grounds declared external API and protocol usage in
+immutable, version-matched evidence. The experimental kernel evaluates typed
+assurance cases over Git-bounded TypeScript changes and explicit OpenAPI or JSON
+Schema contracts.
 
 ## Glossary
 
-### Docs-Driven Development (DDD)
-An agentic engineering methodology in which approved, versioned documentation drives the engineering process: knowledge discovery, method selection, system design, object responsibilities, executable constraints, implementation context, and verification. Not to be confused with Domain-Driven Design (Eric Evans, 2003).
+### Change envelope
 
-### Engineering Intelligence Plane
-The architectural concept that DDD operates as: a shared services layer that existing workflows call into at lifecycle events, rather than owning the product development lifecycle.
+The base and head revisions, changed files and symbols, affected contracts,
+known consumers, exclusions, risk, owner, and boundary confidence for one
+change.
 
-### Project Engineering Book
-The federated, Git-versioned, manifest-rooted set of authoritative engineering artifacts for a project. Not a single document. Lives in `.ddd/`.
+### Assurance case
 
-### Evidence Lock
-An immutable, content-addressed record of acquired external sources with full provenance (URL, version, hash, timestamp, trust tier).
+A typed graph connecting goals, contracts, implementation, observations,
+validations, decisions, and exceptions.
+
+### Epistemic role
+
+How a node participates in an assurance argument: normative, descriptive,
+observation, validation, implementation, or waiver. This role is independent
+of whether the source is external, project-local, generated, runtime, or human.
+
+### Derivation lineage
+
+The transitive `derived_from` relationship. It prevents generated schemas,
+tests, or documents from proving the implementation that produced them.
+
+### Boundary confidence
+
+`complete`, `partial`, or `unknown`, based on the supported detector's ability
+to enumerate the changed surface.
+
+### Defeater
+
+A contradiction, missing premise, or unresolved unknown that blocks an
+unqualified verdict.
+
+### Waiver
+
+Human acceptance of named residual risk. A waiver does not establish
+correctness.
+
+### Evidence lock
+
+An immutable record of an external source's exact content, version, digest, and
+provenance.
 
 ### Claim
-An atomic, normative statement extracted from a source, requiring support. Has an ID, rationale, source citation, tier, and linked constructs.
 
-### Construct
-A code element (class, function, module, boundary, data model) that implements a claim.
+An atomic normative statement with a source citation and declared constructs.
 
-### Object Passport
-A durable design contract for a responsibility-bearing engineering unit. Contains purpose, domain concept, responsibilities, invariants, lifecycle, collaborators, dependencies, methodology, risks, and validating tests.
+### Declared-scope sweep
 
-### Evidence Packet
-A bounded, change-specific context bundle containing the claims, evidence, passports, and controls relevant to one implementation task.
-
-### Control Obligation
-A target-agnostic, machine-readable rule extracted from documentation, to be compiled into an executable guardrail by a toolchain adapter.
-
-### Epistemic Gap
-A known unknown, conflict, or unsupported state that is explicitly surfaced, classified, and handled. Legitimate states include: known-and-supported, known-but-conflicting, unknown, unsupported, experimentally-observed, human-approved-exception, blocked-pending-evidence.
-
-### Consequential Claim
-A claim whose failure would affect externally observable behavior, architectural integrity, security, data integrity, or operational correctness.
-
-### Design Tournament
-A structured, evidence-grounded evaluation of 2-3 competing design alternatives for consequential, uncertain, or hard-to-reverse decisions. Produces a selected design with rationale and rejected alternatives as negative knowledge.
-
-### Knowledge Map
-A persistent record of which engineering knowledge domains are relevant to the project, with applicability hypotheses and gaps.
-
-### Proof Tier
-Risk-based traceability level: T0 (mechanical), T1 (API), T2 (behavioral), T3 (critical). Determines what evidence and validation are required.
-
-### Independence Level
-Classification of an L0 source's authorship: external, human-authored, agent-proposed-human-approved, agent-authored-unapproved. Only the first three count as evidence.
+The compatibility verifier over constructs named in claims and traces. It does
+not discover a repository-wide denominator.
 
 ## Decisions
 
-See `docs/adr/` (to be created when ADRs are needed).
+- Keep the external-documentation kernel as the supported product.
+- Preserve epistemic distinctions as evaluator invariants.
+- Test the broader change-assurance architecture through one
+  TypeScript/OpenAPI/JSON Schema slice.
+- Preserve the superseded broad methodology under `research/`.
+- Use Proofline as the working product name before wider adoption.

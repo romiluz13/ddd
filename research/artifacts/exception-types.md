@@ -1,4 +1,4 @@
-# Exception Types and Escalation (SPEC.md §14)
+# Exception types and escalation
 
 ## Exception types
 

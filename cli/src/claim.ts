@@ -19,7 +19,7 @@ import {
 
 const CLAIMS_HEADER = `# DDD Claim Ledger
 # Atomic statements extracted from locked evidence.
-# Schema: SPEC.md §7.4
+# Legacy claim ledger schema
 
 schema_version: 0.1.0
 

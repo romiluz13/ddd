@@ -1,4 +1,4 @@
-# Test-Code Traceability (SPEC.md §13.6)
+# Test-code traceability
 
 Tests are L3 validations but are also code. They must be classified and traced.
 

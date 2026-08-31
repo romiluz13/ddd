@@ -1,3 +1,4 @@
 # passports/
-Object passports for responsibility-bearing design units (SPEC.md §11).
+Legacy object-passport artifacts. Object passports are research and are not
+required by the current Proofline specification.
 Files: <object-id>.yaml

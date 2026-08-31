@@ -1,20 +1,25 @@
 #!/usr/bin/env bun
 /**
- * ddd — Docs-Driven Development machine API CLI (SPEC.md §15.3).
+ * Proofline change-assurance CLI. The ddd name is retained for compatibility.
  *
  * Usage: bun run cli/bin/ddd.ts <command> [args] [--flags]
  */
+import { mkdirSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { evaluateAssuranceCase } from "../src/assurance";
+import { buildAssuranceCase, loadAssuranceCase } from "../src/build-case";
 import { classifyReport } from "../src/classify";
 import { addClaim, type ClaimImpact, type ClaimKind } from "../src/claim";
 import { driftCheck } from "../src/drift";
 import { LOCKABLE_SOURCE_CLASSES, lockEvidence } from "../src/lock";
 import { assemblePacket } from "../src/packet";
+import { scopeChange } from "../src/scope-change";
 import { sweep, type SweepDirection } from "../src/sweep";
 import { addTrace } from "../src/trace";
 import { isStubPrimitive, runStub } from "../src/stubs";
 import { csv, findDddDir, parseArgs, readText } from "../src/utils";
 
-const HELP = `ddd — Docs-Driven Development machine API CLI (SPEC.md §15.3)
+const HELP = `proofline — change assurance (ddd compatibility command)
 
 Usage:
   bun run cli/bin/ddd.ts <command> [args] [--flags]
@@ -55,6 +60,12 @@ Commands (implemented):
       --notes "<text>"                Free-form notes
   drift-check                       Freshness drift report over .ddd/evidence.lock
                                       (alias: drift_check)
+  scope-change --base <rev> --head <rev>
+                                    Create a bounded change envelope
+      --risk <level>                  low | medium | high | critical (default: medium)
+      --owner <name>                  Accountable change owner
+  build-case <ENV-NNN|path>         Build a typed assurance case from DDD artifacts
+  evaluate-case <CASE-NNN|path>     Evaluate a case and write its assurance report
 
 Commands (stubs — print "not yet implemented"):
   discover, refute, exception, obligation, compile
@@ -63,7 +74,7 @@ Other:
   --ddd-dir <path>                  Override the .ddd directory (default: nearest ancestor)
   --help, -h                        Show this help
 
-All commands read/write DDD artifacts in the .ddd/ directory (found by walking
+All commands read/write compatibility artifacts in the .ddd/ directory (found by walking
 up from the current working directory). Reports are emitted as JSON on stdout.
 `;
 
@@ -210,6 +221,61 @@ async function main(): Promise<void> {
     case "drift_check":
     case "drift": {
       console.log(JSON.stringify(driftCheck(dddDir), null, 2));
+      return;
+    }
+
+    case "scope-change": {
+      const base = str(flags.base);
+      const head = str(flags.head);
+      const risk = (str(flags.risk) ?? "medium") as "low" | "medium" | "high" | "critical";
+      if (!base || !head) {
+        console.error("Usage: ddd scope-change --base <revision> --head <revision> [--risk <level>]");
+        process.exit(2);
+      }
+      if (!["low", "medium", "high", "critical"].includes(risk)) {
+        throw new Error("--risk must be one of: low, medium, high, critical");
+      }
+      console.log(
+        JSON.stringify(
+          scopeChange(dirname(dddDir), dddDir, {
+            base,
+            head,
+            risk,
+            owner: str(flags.owner),
+          }),
+          null,
+          2,
+        ),
+      );
+      return;
+    }
+
+    case "build-case": {
+      const envelope = positional[0];
+      if (!envelope) {
+        console.error("Usage: ddd build-case <ENV-NNN|path>");
+        process.exit(2);
+      }
+      console.log(JSON.stringify(buildAssuranceCase(dddDir, envelope), null, 2));
+      return;
+    }
+
+    case "evaluate-case": {
+      const caseId = positional[0];
+      if (!caseId) {
+        console.error("Usage: ddd evaluate-case <CASE-NNN|path>");
+        process.exit(2);
+      }
+      const assuranceCase = loadAssuranceCase(dddDir, caseId);
+      const report = evaluateAssuranceCase(assuranceCase);
+      const reportsDir = join(dddDir, "reports");
+      mkdirSync(reportsDir, { recursive: true });
+      writeFileSync(
+        join(reportsDir, `${assuranceCase.id}.assurance.json`),
+        `${JSON.stringify(report, null, 2)}\n`,
+      );
+      console.log(JSON.stringify(report, null, 2));
+      if (!["SATISFIED", "WAIVED"].includes(report.verdict)) process.exit(1);
       return;
     }
 

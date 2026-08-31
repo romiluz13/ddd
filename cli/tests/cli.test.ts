@@ -26,9 +26,20 @@ afterEach(() => {
 function runCli(...args: string[]) {
   return Bun.spawnSync({
     cmd: [process.execPath, cliPath, ...args, "--ddd-dir", dddDir],
+    cwd: workDir,
     stdout: "pipe",
     stderr: "pipe",
   });
+}
+
+function runGit(...args: string[]): string {
+  const result = Bun.spawnSync({
+    cmd: ["git", "-C", workDir, ...args],
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  if (result.exitCode !== 0) throw new Error(result.stderr.toString());
+  return result.stdout.toString();
 }
 
 describe("external API documentation workflow", () => {
@@ -492,5 +503,80 @@ describe("external API documentation workflow", () => {
     expect(violationTypes).toContain("claim-without-validation");
     expect(violationTypes).toContain("t3-not-allowed-in-lite");
     expect(violationTypes).toContain("t3-without-refutation");
+  });
+});
+
+describe("change assurance workflow", () => {
+  test("scopes, builds, and evaluates a supported change", () => {
+    mkdirSync(join(workDir, "src"), { recursive: true });
+    runGit("init");
+    writeFileSync(join(workDir, "src", "widget.ts"), "export function createWidget() { return 1; }\n");
+    runGit("add", "src/widget.ts");
+    runGit("-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "base");
+    const base = runGit("rev-parse", "HEAD").trim();
+    writeFileSync(join(workDir, "src", "widget.ts"), "export function createWidget() { return 2; }\n");
+    runGit("add", "src/widget.ts");
+    runGit("-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "head");
+    const head = runGit("rev-parse", "HEAD").trim();
+
+    const evidenceContent = "# Widget API v2\n\ncreateWidget is supported.\n";
+    mkdirSync(join(dddDir, "cache"), { recursive: true });
+    writeFileSync(join(dddDir, "cache", "widget.md"), evidenceContent);
+    writeFileSync(
+      join(dddDir, "evidence.lock"),
+      `schema_version: 0.1.0
+entries:
+  - id: EL-001
+    source_class: vendor-doc
+    source_url: https://docs.example.com/widget/v2
+    version: 2.0.0
+    doc_version: 2.0.0
+    status: normative
+    independence: external
+    authority_for: [api-semantics]
+    cache_path: cache/widget.md
+    content_digest: sha256:${sha256Hex(evidenceContent)}
+    retrieved_at: 2026-08-31T00:00:00.000Z
+`,
+    );
+    writeFileSync(
+      join(dddDir, "claims.yaml"),
+      `schema_version: 0.1.0
+entries:
+  - id: C-001
+    statement: "Use createWidget from v2"
+    status: known-and-supported
+    tier: T1
+    sources:
+      - ref: EL-001#createWidget
+        authority_domain: api-semantics
+        entailment: explicit
+    constructs: [src/widget.ts#createWidget]
+    validations: []
+`,
+    );
+    writeFileSync(
+      join(dddDir, "trace-matrix.yaml"),
+      `schema_version: 0.1.0
+traces:
+  - id: TR-001
+    claim_id: C-001
+    construct_id: src/widget.ts#createWidget
+    direction: forward
+`,
+    );
+
+    const scoped = runCli("scope-change", "--base", base, "--head", head);
+    expect(scoped.exitCode).toBe(0);
+    expect(JSON.parse(scoped.stdout.toString()).id).toBe("ENV-001");
+
+    const built = runCli("build-case", "ENV-001");
+    expect(built.exitCode).toBe(0);
+    expect(JSON.parse(built.stdout.toString()).id).toBe("CASE-001");
+
+    const evaluated = runCli("evaluate-case", "CASE-001");
+    expect(evaluated.exitCode).toBe(0);
+    expect(JSON.parse(evaluated.stdout.toString()).verdict).toBe("SATISFIED");
+    expect(existsSync(join(dddDir, "reports", "CASE-001.assurance.json"))).toBe(true);
   });
 });

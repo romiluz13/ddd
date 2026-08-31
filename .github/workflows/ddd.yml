@@ -21,3 +21,10 @@ jobs:
         run: bun test
       - name: Check declared DDD scope
         run: bun run cli/bin/ddd.ts sweep --direction both
+      - name: Check dogfood assurance boundary
+        run: |
+          if bun run cli/bin/ddd.ts evaluate-case CASE-001; then
+            echo "Expected the historical partial boundary to remain indeterminate"
+            exit 1
+          fi
+          grep -q '"verdict": "INDETERMINATE"' .ddd/reports/CASE-001.assurance.json

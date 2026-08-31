@@ -1,7 +1,7 @@
 /**
  * trace(claim_id, construct) -> trace_entry
  *
- * Appends a trace entry (SPEC.md §7.6.10) to .ddd/trace-matrix.yaml linking a
+ * Appends a trace entry to .ddd/trace-matrix.yaml linking a
  * claim to a construct, in the given direction.
  */
 import { existsSync } from "node:fs";
@@ -11,7 +11,7 @@ import { nextId, nowIso, parseYaml, readText, writeText, yamlScalar } from "./ut
 
 const TRACE_HEADER = `# DDD Trace Matrix
 # Generated view of the evidence graph: trace entries mapping claims <-> constructs.
-# Schema: SPEC.md §7.6.10 (Trace entry)
+# Legacy trace entry schema
 
 schema_version: 0.1.0
 

@@ -1,0 +1,36 @@
+{
+  "schema_version": "0.4.0",
+  "case_id": "CASE-001",
+  "evaluated_at": "2026-08-31T08:24:48.390Z",
+  "verdict": "INDETERMINATE",
+  "evaluated_boundary": [
+    "skills/ddd/SKILL.md#frontmatter",
+    "skills/ddd/SKILL.md#name",
+    "skills/ddd/SKILL.md#description",
+    "consumer:Agent Skills-compatible harnesses"
+  ],
+  "boundary_confidence": "partial",
+  "supported_capabilities": [
+    "boundary_discovery",
+    "external_evidence",
+    "semantic_entailment"
+  ],
+  "unevaluated_capabilities": [
+    "dependency_detection",
+    "contract_detection",
+    "contract_compatibility",
+    "consumer_impact"
+  ],
+  "open_defeaters": [],
+  "approved_exceptions": [],
+  "violations": [
+    {
+      "type": "uncovered-construct",
+      "message": "Impact boundary confidence is partial."
+    },
+    {
+      "type": "unresolved-defeater",
+      "message": "Required capability consumer_impact was not evaluated."
+    }
+  ]
+}

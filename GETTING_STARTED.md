@@ -1,98 +1,75 @@
-# Getting Started with DDD
+# Get started with Proofline
 
-Docs-Driven Development (DDD) is a harness-agnostic methodology where
-documentation is the source of truth. This guide follows the implemented
-external API documentation path without claiming whole-repository coverage.
+Proofline stores compatibility artifacts in `.ddd/` and exposes both
+`proofline` and `ddd` binary names.
 
 ## Prerequisites
 
-- A software project with at least one source file
-- A way to run an AI agent (Claude, GPT, etc.) that supports Agent Skills
-- Git (recommended — DDD artifacts are designed for version control)
+- Bun 1.3 or later.
+- A Git repository.
+- A `.ddd/` Book initialized by `ddd-book`.
+- Locked evidence, claims, and traces for goals you expect to satisfy.
 
-## Step 1: Install DDD skills
+## Evaluate a change
 
-Install the DDD skill pack from skills.sh:
+### 1. Scope the Git range
 
-```bash
-# If using Factory Droid or skills.sh-compatible agent:
-# The skills are listed in skills.sh.json
+```sh
+bun run cli/bin/ddd.ts scope-change \
+  --base origin/main \
+  --head HEAD \
+  --risk medium \
+  --owner your-name
 ```
 
-Or manually clone this repo and point your agent at the `skills/` directory.
+This writes `.ddd/cases/ENV-NNN.json`. The TypeScript detector enumerates
+top-level declarations and bare dependency imports. It also finds unchanged
+TypeScript modules that directly import a changed module. OpenAPI and
+`*.schema.json` files become affected contracts. Unsupported changed file
+classes lower `boundary_confidence`.
 
-## Step 2: Initialize the Book
+Contract detection does not yet prove compatibility. A case with an affected
+contract requires the `contract_compatibility` capability and therefore remains
+`INDETERMINATE` until an adapter or reviewed attestation supplies that check.
 
-Tell your agent:
+Review the envelope before continuing. Add an explicit exclusion and reason
+only when a changed construct is intentionally outside the assurance boundary.
 
-> "Run the ddd-book skill to initialize DDD on this project."
+### 2. Build the assurance case
 
-This will:
-- Create the `.ddd/` directory with all required subdirectories
-- Detect your tech stack and create `project-context.yaml`
-- Create initial `book.yaml`, `knowledge-map.yaml`, `evidence.lock`, and `claims.yaml`
-- Index existing project docs (ADRs, CONTEXT.md) as Book references
-
-You should see a `.ddd/` directory appear with:
-
-```
-.ddd/
-  book.yaml              # Book manifest (root)
-  project-context.yaml   # Your detected tech stack
-  knowledge-map.yaml     # Engineering domains relevant to your project
-  evidence.lock          # Source provenance and captured-content references
-  claims.yaml            # Atomic normative statements
-  trace-matrix.yaml      # Construct → claim mappings
-  constraints.yaml       # Cross-document constraints
-  decisions/             # ADRs
-  models/                # Domain models
-  passports/             # Object design contracts
-  ...
+```sh
+bun run cli/bin/ddd.ts build-case ENV-001
 ```
 
-## Step 3: Scope your first external API change
+This bridges active entries from `.ddd/evidence.lock`, `.ddd/claims.yaml`, and
+`.ddd/trace-matrix.yaml` into `.ddd/cases/CASE-NNN.json`. Changed symbols without
+a matching trace remain coverage gaps.
 
-Tell your agent:
+### 3. Evaluate the case
 
-> "Run the ddd-scope skill for [describe your change]."
+```sh
+bun run cli/bin/ddd.ts evaluate-case CASE-001
+```
 
-The scope gate will:
-1. Detect and record your project stack (if not already done)
-2. Classify the change against the 18-dimension knowledge taxonomy
-3. Enumerate dependencies and check for version-matched evidence
-4. Discover version-matched vendor documentation
-5. Lock the exact reviewed content with provenance in `evidence.lock` and `.ddd/cache/`
-6. Determine your risk profile (Lite or Assurance)
+The evaluator writes `.ddd/reports/CASE-001.assurance.json`.
 
-**Fast paths**: If all claims are mechanical (T0), you get a lightweight scope record. If all claims are API-level (T1), you get a lightweight evidence record. Only behavioral/architectural claims (T2+) require the full pipeline.
+| Verdict | Meaning | Exit |
+|---|---|---|
+| `SATISFIED` | Goals are supported inside a complete evaluated boundary. | 0 |
+| `WAIVED` | An accountable human accepted named residual risk. | 0 |
+| `UNSATISFIED` | A hard invariant failed or a goal was contradicted. | 1 |
+| `INDETERMINATE` | Coverage, a premise, or a required capability is incomplete. | 1 |
 
-You can lock a source directly with the reference CLI:
+## Ground external API usage
 
-```bash
+Use the compatibility workflow before building a case:
+
+```sh
 bun run cli/bin/ddd.ts lock "https://vendor.example/api/v2" \
   --version "2.0.0" \
   --sections "createWidget" \
   --authority "api-semantics"
-```
 
-External documentation requires `--version`. Use `--content-file <path>` when
-the content was retrieved by a trusted adapter or when working offline.
-
-## Step 4: Record claims and build a packet
-
-Tell your agent:
-
-> "Run the ddd-ground skill to assemble the evidence packet and extract claims."
-
-This will:
-- Assemble an evidence packet from the selected claims and their locked sources
-- Extract atomic claims from sources (each claim is a single normative statement)
-- Trace code constructs to claims (every construct must trace to a claim or T0 exemption)
-- Extract control obligations (things that MUST be true)
-
-The implemented CLI seam records an explicit entailment assessment:
-
-```bash
 bun run cli/bin/ddd.ts claim "createWidget() returns a Widget" \
   --source "EL-001#createWidget" \
   --authority "api-semantics" \
@@ -101,122 +78,34 @@ bun run cli/bin/ddd.ts claim "createWidget() returns a Widget" \
   --entailment explicit \
   --construct "src/widget.ts#createWidget"
 
-bun run cli/bin/ddd.ts packet CH-001 --claims C-001 --max-chars 50000
-```
-
-`--entailment` records the verifier's assessment. The CLI verifies that the
-section label occurs in the captured content, but it does not independently
-understand whether the prose semantically entails the claim.
-
-## Step 5: Implement
-
-Write code as you normally would. The evidence packet is your context. Every
-consequential construct should trace to a claim:
-
-```bash
 bun run cli/bin/ddd.ts trace C-001 "src/widget.ts#createWidget"
+bun run cli/bin/ddd.ts sweep --direction both
 ```
 
-For T2 or T3 claims, record validation IDs with `claim --validation` and
-`trace --validation`. Each ID must also have a passing record in
-`.ddd/reports/validations.yaml` that links back to the claim:
+`lock` requires an explicit version and stores the exact reviewed content.
+`--entailment` records a verifier attestation; Proofline does not infer semantic
+entailment from prose.
 
-```yaml
-schema_version: 0.1.0
-entries:
-  - id: V-001
-    claim: C-001
-    construct: src/widget.ts#createWidget
-    method: test
-    target: test:create-widget
-    result: pass
-    run_at: 2026-08-30T12:00:00Z
-    evidence_hash: sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
-```
+The legacy sweep covers declared constructs only. A successful result is
+`CONFORMANT_DECLARED_SCOPE`, not whole-repository conformance.
 
-## Step 6: Run the Compliance Sweep
+## Handle incomplete results
 
-Tell your agent:
+- For `uncovered-construct`, add a real claim and trace, or record a justified
+  exclusion in the envelope.
+- For `unsupported-goal`, lock authoritative evidence and cite it from the
+  claim.
+- For `self-derived-support` or `retrospective-baseline`, replace generated
+  evidence with an independent normative source or adopt it prospectively for a
+  later revision.
+- For `INDETERMINATE`, complete the named boundary or capability. Do not treat
+  the result as a pass.
+- Use a waiver only when a human approver is accountable, the rationale is
+  recorded, and no hard invariant failed.
 
-> "Run the ddd-verify skill to check compliance."
+## Current boundary
 
-This will:
-- Run a forward sweep: every claim → traced to a construct?
-- Run a reverse sweep over declared constructs and traces
-- Check locked-content integrity, authority domains, cited section presence, and recorded entailment assessments
-- Enforce passing validation records for T2/T3 and independent-refutation metadata for T3
-- Produce a compliance report with violations, if any
-
-The successful verdict is `CONFORMANT_DECLARED_SCOPE`. It covers only constructs
-declared in Book artifacts. Repository-wide construct discovery is not yet
-implemented by the CLI.
-
-If violations are found, fix them or record exceptions through `ddd-exception`.
-The `exception` machine command is currently a stub.
-
-## Step 7: Handle exceptions (if needed)
-
-If a claim can't be supported, tell your agent:
-
-> "Run the ddd-exception skill for [describe the gap]."
-
-Exceptions can be:
-- `unknown`: no evidence found
-- `unsupported`: the source does not support the required behavior
-- `conflicting`: authoritative sources disagree
-- `experimental`: runtime evidence is used with explicit risk acceptance
-
-High-severity exceptions require human approval.
-
-## Tiers at a glance
-
-| Tier | What it means | Example | Evidence required |
-|---|---|---|---|
-| T0 | Mechanical, low impact | Type annotation, import | None (scope record only) |
-| T1 | API-level, low/medium impact | Library call, config | Version-matched docs |
-| T2 | Behavioral | Business logic, state machine | Authoritative primary source |
-| T3 | Architectural/operational | Auth system, data migration | Primary source + adversarial review |
-
-## Lifecycle states
-
-```
-UNSCOPED → EVIDENCE_REQUIRED → EVIDENCE_LOCKED → IMPLEMENTING →
-  VERIFYING → CONFORMANT
-                 ↘ WAIVED
-                 ↘ BLOCKED_EVIDENCE_GAP
-                 ↘ BLOCKED_CONTRADICTION
-                 ↘ NONCONFORMANT → IMPLEMENTING
-```
-
-## Common workflows
-
-### Adding a new dependency
-
-1. `ddd-scope` detects the new dependency during Step 2 (dependency enumeration)
-2. Evidence is acquired for the installed version
-3. Cross-document constraints are checked (e.g., does it conflict with your runtime?)
-4. Implementation proceeds with version-matched evidence
-
-### Brownfield adoption
-
-Tell your agent:
-
-> "Run the ddd-audit skill to audit the existing codebase."
-
-This will scan existing code, extract implicit claims, match them to available docs, flag gaps, and produce a draft Book. You then prioritize remediation.
-
-### Detecting drift
-
-After upgrading dependencies or changing frameworks:
-
-> "Run the ddd-drift skill to check for drift."
-
-The methodology defines seven drift dimensions. The current CLI
-`drift-check` command checks evidence freshness only; the `ddd-drift` skill
-coordinates the broader agent-assisted review.
-
-## Need more detail?
-
-- **Full specification**: [SPEC.md](SPEC.md)
-- **Skill inventory**: [SKILLS.md](SKILLS.md)
-- **Agent instructions**: [AGENTS.md](AGENTS.md)
+Proofline supports external documentation grounding and an experimental
+TypeScript/OpenAPI/JSON Schema assurance path. Domain modeling, brownfield
+audit, design tournaments, broad drift, refutation, and control compilation are
+research material under `research/`.

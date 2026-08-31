@@ -1,4 +1,4 @@
-# Doc Acquisition Adapters (SPEC.md §9.7)
+# External source retrieval adapters
 
 ## Adapter table
 

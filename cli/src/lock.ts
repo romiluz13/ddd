@@ -2,7 +2,7 @@
  * lock(evidence[]) -> lock_entry
  *
  * Fetches a URL, computes a sha256 content digest, and appends an immutable
- * entry to .ddd/evidence.lock (schema: SPEC.md §7.3). Entries are append-only.
+ * entry to .ddd/evidence.lock. Entries are append-only.
  */
 import { existsSync } from "node:fs";
 import { join } from "node:path";
@@ -20,7 +20,7 @@ import {
 
 const LOCK_HEADER = `# DDD Evidence Lock
 # Immutable, append-only record of external source provenance.
-# Schema: SPEC.md §7.3
+# Legacy evidence lock schema
 
 schema_version: 0.1.0
 

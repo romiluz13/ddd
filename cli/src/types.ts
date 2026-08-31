@@ -1,8 +1,8 @@
 /**
- * TypeScript types for DDD artifacts (SPEC.md §7).
+ * TypeScript types for legacy DDD compatibility artifacts.
  */
 
-/** Evidence lock entry (SPEC.md §7.3) */
+/** Evidence lock entry */
 export interface EvidenceLockEntry {
   id: string; // EL-NNN
   schema_version: string;
@@ -38,7 +38,7 @@ export interface EvidenceLock {
   entries: EvidenceLockEntry[];
 }
 
-/** Claim ledger entry (SPEC.md §7.4) */
+/** Claim ledger entry */
 export interface ClaimSource {
   ref: string;
   authority_domain: string;
@@ -65,7 +65,7 @@ export interface ClaimLedger {
   entries: Claim[];
 }
 
-/** Trace entry (SPEC.md §7.6.10) */
+/** Trace entry */
 export interface TraceEntry {
   id: string; // TR-NNN
   schema_version: string;

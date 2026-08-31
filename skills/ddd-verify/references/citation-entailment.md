@@ -1,4 +1,4 @@
-# Citation Entailment Verification (SPEC.md §13.4)
+# Citation entailment verification
 
 ## The 5-step procedure
 
