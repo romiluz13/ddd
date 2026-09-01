@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -28,8 +28,12 @@ function baseCase(overrides: Partial<AssuranceCase> = {}): AssuranceCase {
       head_revision: "head",
       changed_files: ["src/widget.ts"],
       changed_symbols: ["src/widget.ts#createWidget"],
+      declared_dependencies: [],
       affected_dependencies: [],
+      affected_services: [],
+      affected_platforms: [],
       affected_contracts: [],
+      frontend_files: [],
       known_consumers: [],
       risk: "medium",
       owner: null,
@@ -282,10 +286,21 @@ describe("assurance policy evaluator", () => {
   });
 
   test("returns satisfied for supported goals inside a complete boundary", () => {
-    const report = evaluateAssuranceCase(baseCase());
+    const assuranceCase = baseCase();
+    assuranceCase.envelope.affected_services = ["api.example.com"];
+    assuranceCase.envelope.affected_platforms = ["cloudflare-workers"];
+    assuranceCase.envelope.frontend_files = ["src/App.tsx"];
+    const report = evaluateAssuranceCase(assuranceCase);
 
     expect(report.verdict).toBe("SATISFIED");
     expect(report.violations).toEqual([]);
+    expect(report.evaluated_boundary).toEqual(
+      expect.arrayContaining([
+        "service:api.example.com",
+        "platform:cloudflare-workers",
+        "frontend:src/App.tsx",
+      ]),
+    );
   });
 
   test("requires passing validation for a T2 goal", () => {
@@ -437,9 +452,313 @@ describe("change scope", () => {
     expect(envelope.known_consumers).toContain("src/consumer.ts");
     expect(envelope.boundary_confidence).toBe("complete");
   });
+
+  test("enumerates frontend, platform, dependency, and external-service layers", () => {
+    const projectRoot = mkdtempSync(join(tmpdir(), "proofline-stack-scope-"));
+    temporaryDirectories.push(projectRoot);
+    const bookDir = join(projectRoot, ".ddd");
+    mkdirSync(join(projectRoot, "src"), { recursive: true });
+    mkdirSync(join(projectRoot, "apps", "web"), { recursive: true });
+    mkdirSync(bookDir, { recursive: true });
+    runGit(projectRoot, "init");
+    writeFileSync(
+      join(projectRoot, "package.json"),
+      '{"dependencies":{"react":"19.0.0","tailwindcss":"4.0.0","shared":"1.0.0"}}\n',
+    );
+    writeFileSync(
+      join(projectRoot, "apps", "web", "package.json"),
+      '{"dependencies":{"zod":"4.0.0","shared":"1.0.0"}}\n',
+    );
+    writeFileSync(join(projectRoot, "src", "base.ts"), "export const base = true;\n");
+    runGit(projectRoot, "add", ".");
+    runGit(
+      projectRoot,
+      "-c",
+      "user.name=Test",
+      "-c",
+      "user.email=test@example.com",
+      "commit",
+      "-m",
+      "base",
+    );
+    const base = runGit(projectRoot, "rev-parse", "HEAD").trim();
+
+    writeFileSync(
+      join(projectRoot, "src", "App.tsx"),
+      'import React from "react";\nexport const App = () => fetch("https://api.example.com/v1");\n',
+    );
+    writeFileSync(join(projectRoot, "src", "styles.css"), '@import "tailwindcss";\n');
+    writeFileSync(
+      join(projectRoot, "apps", "web", "package.json"),
+      '{"dependencies":{"zod":"4.0.0","shared":"2.0.0"}}\n',
+    );
+    writeFileSync(join(projectRoot, "wrangler.jsonc"), '{"name":"example"}\n');
+    runGit(projectRoot, "add", ".");
+    runGit(
+      projectRoot,
+      "-c",
+      "user.name=Test",
+      "-c",
+      "user.email=test@example.com",
+      "commit",
+      "-m",
+      "head",
+    );
+    const head = runGit(projectRoot, "rev-parse", "HEAD").trim();
+
+    const envelope = scopeChange(projectRoot, bookDir, { base, head });
+
+    expect(envelope.declared_dependencies).toEqual(["react", "shared", "tailwindcss", "zod"]);
+    expect(envelope.declared_dependency_versions).toEqual({
+      react: ["19.0.0"],
+      shared: ["1.0.0", "2.0.0"],
+      tailwindcss: ["4.0.0"],
+      zod: ["4.0.0"],
+    });
+    expect(envelope.affected_dependencies).toEqual(
+      expect.arrayContaining(["react", "shared", "tailwindcss"]),
+    );
+    expect(envelope.affected_services).toEqual(["api.example.com"]);
+    expect(envelope.affected_platforms).toEqual(["cloudflare-workers"]);
+    expect(envelope.frontend_files).toEqual(["src/App.tsx", "src/styles.css"]);
+    expect(envelope.boundary_confidence).toBe("complete");
+  });
 });
 
 describe("case construction", () => {
+  test("requires evidence for every stack layer and blocks unresolved gaps", () => {
+    const projectRoot = mkdtempSync(join(tmpdir(), "proofline-stack-case-"));
+    temporaryDirectories.push(projectRoot);
+    const bookDir = join(projectRoot, ".proofline");
+    mkdirSync(join(bookDir, "cases"), { recursive: true });
+    mkdirSync(join(bookDir, "cache"), { recursive: true });
+    const envelope = {
+      ...baseCase().envelope,
+      changed_files: ["src/App.tsx", "src/styles.css", "wrangler.jsonc"],
+      changed_symbols: [],
+      declared_dependency_versions: {
+        react: ["19.0.0"],
+        tailwindcss: ["4.0.0"],
+      },
+      affected_dependencies: ["react", "tailwindcss"],
+      affected_services: ["api.example.com"],
+      affected_platforms: ["cloudflare-workers"],
+      frontend_files: ["src/App.tsx", "src/styles.css"],
+    };
+    writeFileSync(join(bookDir, "cases", "ENV-001.json"), JSON.stringify(envelope));
+    writeFileSync(
+      join(bookDir, "book.yaml"),
+      `references:
+  - id: REF-CF
+    type: external
+    source: https://developers.cloudflare.com/workers/
+  - id: REF-AI
+    type: external
+    source: https://api.example.com/docs
+`,
+    );
+    writeFileSync(
+      join(bookDir, "evidence.lock"),
+      `entries:
+  - id: EL-CF
+    ref: REF-CF
+    subject: cloudflare-workers
+    source_url: https://developers.cloudflare.com/workers/
+`,
+    );
+    writeFileSync(
+      join(bookDir, "stack.yaml"),
+      `schema_version: 0.5.0
+components:
+  - id: STK-001
+    kind: dependency
+    name: react
+    evidence_refs: [EL-CF]
+  - id: STK-002
+    kind: platform
+    name: cloudflare-workers
+    evidence_refs: [EL-CF]
+    constraint_refs: [EL-CF]
+`,
+    );
+    writeFileSync(
+      join(bookDir, "knowledge-map.yaml"),
+      `domains:
+  - id: DM-001
+    name: provider
+    gaps: ["Provider authentication is unverified"]
+overall_gaps: []
+`,
+    );
+
+    const assuranceCase = buildAssuranceCase(bookDir, "ENV-001");
+
+    expect(assuranceCase.capabilities.stack_coverage).toBe("not-evaluated");
+    expect(assuranceCase.capabilities.reference_evidence_completeness).toBe("not-evaluated");
+    expect(assuranceCase.capabilities.gap_resolution).toBe("not-evaluated");
+    expect(assuranceCase.capabilities.platform_constraints).toBe("not-evaluated");
+    expect(assuranceCase.capabilities.frontend_coverage).toBe("not-evaluated");
+    expect(assuranceCase.capabilities.interaction_analysis).toBe("not-evaluated");
+    expect(assuranceCase.defeaters).toContain("stack:dependency:tailwindcss");
+    expect(assuranceCase.defeaters).toContain("stack:service:api.example.com");
+    expect(assuranceCase.defeaters).toContain("gap:DM-001:Provider authentication is unverified");
+    expect(assuranceCase.required_capabilities).toEqual(
+      expect.arrayContaining([
+        "stack_coverage",
+        "reference_evidence_completeness",
+        "gap_resolution",
+        "platform_constraints",
+        "frontend_coverage",
+        "interaction_analysis",
+      ]),
+    );
+
+    writeFileSync(
+      join(bookDir, "evidence.lock"),
+      `entries:
+  - id: EL-CF
+    ref: REF-CF
+    subject: cloudflare-workers
+    source_url: https://developers.cloudflare.com/workers/
+    cache_path: cache/cloudflare.md
+    content_digest: sha256:${sha256Hex("Cloudflare Workers constraints")}
+  - id: EL-AI
+    ref: REF-AI
+    subject: api.example.com
+    source_url: https://api.example.com/docs
+    cache_path: cache/provider.md
+    content_digest: sha256:${sha256Hex("Provider API")}
+  - id: EL-REACT
+    subject: react
+    version: 19.0.0
+    source_url: https://react.dev/
+    cache_path: cache/provider.md
+    content_digest: sha256:${sha256Hex("Provider API")}
+  - id: EL-TAILWIND
+    subject: tailwindcss
+    version: 4.0.0
+    source_url: https://tailwindcss.com/docs/
+    cache_path: cache/provider.md
+    content_digest: sha256:${sha256Hex("Provider API")}
+  - id: EL-FRONTEND
+    subject: frontend
+    source_url: https://example.com/frontend/
+    cache_path: cache/provider.md
+    content_digest: sha256:${sha256Hex("Provider API")}
+`,
+    );
+    writeFileSync(join(bookDir, "cache", "cloudflare.md"), "Cloudflare Workers constraints");
+    writeFileSync(join(bookDir, "cache", "provider.md"), "Provider API");
+    writeFileSync(
+      join(bookDir, "stack.yaml"),
+      `schema_version: 0.5.0
+components:
+  - id: STK-001
+    kind: dependency
+    name: react
+    versions: [19.0.0]
+    evidence_refs: [EL-REACT]
+  - id: STK-002
+    kind: dependency
+    name: tailwindcss
+    versions: [4.0.0]
+    evidence_refs: [EL-TAILWIND]
+  - id: STK-003
+    kind: service
+    name: api.example.com
+    evidence_refs: [EL-AI]
+  - id: STK-004
+    kind: platform
+    name: cloudflare-workers
+    evidence_refs: [EL-CF]
+    required_constraints: [execution-time, concurrency]
+    constraints:
+      - name: execution-time
+        evidence_refs: [EL-CF]
+      - name: concurrency
+        evidence_refs: [EL-CF]
+  - id: STK-005
+    kind: frontend
+    name: frontend
+    evidence_refs: [EL-FRONTEND]
+`,
+    );
+    writeFileSync(
+      join(bookDir, "knowledge-map.yaml"),
+      `domains:
+  - id: DM-001
+    gaps: ["Provider authentication is unverified"]
+  - id: DM-002
+    gaps: ["Provider authentication is unverified"]
+gaps:
+  - domain: DM-001
+    description: "Provider authentication is unverified"
+    status: resolved
+overall_gaps: []
+`,
+    );
+    writeFileSync(
+      join(bookDir, "interactions.yaml"),
+      `interactions:
+  - id: INT-001
+    components: [dependency:react, dependency:tailwindcss, service:api.example.com, platform:cloudflare-workers, frontend:frontend]
+    status: analyzed
+    rationale: "The browser, framework, provider, and Workers runtime paths were reviewed together."
+`,
+    );
+
+    const partiallyResolvedCase = buildAssuranceCase(bookDir, "ENV-001");
+    expect(partiallyResolvedCase.capabilities.gap_resolution).toBe("not-evaluated");
+    expect(partiallyResolvedCase.defeaters).toContain(
+      "gap:DM-002:Provider authentication is unverified",
+    );
+    writeFileSync(
+      join(bookDir, "knowledge-map.yaml"),
+      `domains:
+  - id: DM-001
+    gaps: ["Provider authentication is unverified"]
+  - id: DM-002
+    gaps: ["Provider authentication is unverified"]
+gaps:
+  - domain: DM-001
+    description: "Provider authentication is unverified"
+    status: resolved
+  - domain: DM-002
+    description: "Provider authentication is unverified"
+    status: resolved
+overall_gaps: []
+`,
+    );
+
+    const completeCase = buildAssuranceCase(bookDir, "ENV-001");
+
+    expect(completeCase.capabilities.stack_coverage).toBe("tool-enforced");
+    expect(completeCase.capabilities.reference_evidence_completeness).toBe("tool-enforced");
+    expect(completeCase.capabilities.gap_resolution).toBe("tool-enforced");
+    expect(completeCase.capabilities.platform_constraints).toBe("recorded-attestation");
+    expect(completeCase.capabilities.frontend_coverage).toBe("tool-enforced");
+    expect(completeCase.capabilities.interaction_analysis).toBe("recorded-attestation");
+    expect(completeCase.defeaters).toEqual([]);
+
+    const stackPath = join(bookDir, "stack.yaml");
+    const completeStack = readFileSync(stackPath, "utf8");
+    writeFileSync(stackPath, completeStack.replace("    versions: [4.0.0]\n", ""));
+    const omittedVersionCase = buildAssuranceCase(bookDir, "ENV-001");
+    expect(omittedVersionCase.capabilities.stack_coverage).toBe("not-evaluated");
+    writeFileSync(stackPath, completeStack);
+
+    const evidencePath = join(bookDir, "evidence.lock");
+    const completeEvidence = readFileSync(evidencePath, "utf8");
+    writeFileSync(evidencePath, completeEvidence.replace("version: 4.0.0", "version: 3.0.0"));
+    const wrongVersionCase = buildAssuranceCase(bookDir, "ENV-001");
+    expect(wrongVersionCase.capabilities.stack_coverage).toBe("not-evaluated");
+
+    writeFileSync(evidencePath, completeEvidence);
+    writeFileSync(join(bookDir, "cache", "provider.md"), "corrupted");
+    const corruptCase = buildAssuranceCase(bookDir, "ENV-001");
+    expect(corruptCase.capabilities.stack_coverage).toBe("not-evaluated");
+  });
+
   test("bridges locked evidence, claims, and traces into a typed assurance case", () => {
     const projectRoot = mkdtempSync(join(tmpdir(), "proofline-case-"));
     temporaryDirectories.push(projectRoot);

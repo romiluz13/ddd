@@ -12,6 +12,8 @@ export interface ScopeChangeOptions {
 }
 
 const TYPESCRIPT_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts"]);
+const FRONTEND_EXTENSIONS = new Set([".tsx", ".jsx", ".css", ".scss", ".sass", ".vue", ".svelte"]);
+const FRONTEND_PATHS = /(^|\/)(app|pages|public|styles?|components?)\//i;
 const CONTRACT_PATTERNS = [
   /(^|\/)openapi\.(json|ya?ml)$/i,
   /(^|\/).+\.schema\.json$/i,
@@ -41,6 +43,9 @@ export function scopeChange(
 
   const changedSymbols: string[] = [];
   const affectedDependencies = new Set<string>();
+  const affectedServices = new Set<string>();
+  const affectedPlatforms = new Set<string>();
+  const frontendFiles = new Set<string>();
   const dependenciesBefore = readDeclaredDependencies(projectRoot, options.base);
   const dependenciesAfter = readDeclaredDependencies(projectRoot, options.head);
   const declaredDependencies = new Set([...dependenciesBefore.keys(), ...dependenciesAfter.keys()]);
@@ -55,9 +60,20 @@ export function scopeChange(
 
   for (const path of changedFiles) {
     if (isContract(path)) affectedContracts.push(path);
+    if (isFrontendFile(path)) frontendFiles.add(path);
+    const before = tryReadRevisionFile(projectRoot, options.base, path);
+    const after = tryReadRevisionFile(projectRoot, options.head, path);
+    for (const service of extractExternalServices(`${before}\n${after}`)) {
+      affectedServices.add(service);
+    }
+    for (const platform of detectPlatforms(path, `${before}\n${after}`)) {
+      affectedPlatforms.add(platform);
+    }
+    for (const dependency of extractStyleImports(`${before}\n${after}`)) {
+      if (declaredDependencies.has(dependency)) affectedDependencies.add(dependency);
+      else unresolvedImports++;
+    }
     if (TYPESCRIPT_EXTENSIONS.has(extname(path))) {
-      const before = tryReadRevisionFile(projectRoot, options.base, path);
-      const after = tryReadRevisionFile(projectRoot, options.head, path);
       for (const dependency of extractBareImports(`${before}\n${after}`)) {
         if (declaredDependencies.has(dependency)) affectedDependencies.add(dependency);
         else unresolvedImports++;
@@ -70,21 +86,30 @@ export function scopeChange(
       } else {
         changedSymbols.push(...symbols.map((symbol) => `${path}#${symbol}`));
       }
-    } else if (!isContract(path) && !isSupportedProjectMetadata(path)) {
+    } else if (!isContract(path) && !isSupportedProjectMetadata(path) && !isFrontendFile(path)) {
       unsupportedFiles++;
     }
   }
   const knownConsumers = findKnownConsumers(projectRoot, options.head, changedFiles);
 
   const envelope: ChangeEnvelope = {
-    schema_version: "0.4.0",
+    schema_version: "0.5.0",
     id: nextCaseArtifactId(bookDir, "ENV"),
     base_revision: resolveRevision(projectRoot, options.base),
     head_revision: resolveRevision(projectRoot, options.head),
     changed_files: changedFiles,
     changed_symbols: [...new Set(changedSymbols)].sort(),
+    declared_dependencies: [...dependenciesAfter.keys()].sort(),
+    declared_dependency_versions: Object.fromEntries(
+      [...dependenciesAfter]
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([name, versions]) => [name, versions.split("\0")]),
+    ),
     affected_dependencies: [...affectedDependencies].sort(),
+    affected_services: [...affectedServices].sort(),
+    affected_platforms: [...affectedPlatforms].sort(),
     affected_contracts: affectedContracts.sort(),
+    frontend_files: [...frontendFiles].sort(),
     known_consumers: knownConsumers,
     risk: options.risk ?? "medium",
     owner: options.owner ?? null,
@@ -97,7 +122,7 @@ export function scopeChange(
           : "unknown",
     detector: {
       name: "proofline-typescript-contracts",
-      version: "0.4.0",
+      version: "0.5.0",
     },
     created_at: nowIso(),
   };
@@ -115,7 +140,7 @@ export function loadChangeEnvelope(bookDir: string, idOrPath: string): ChangeEnv
   if (!/^ENV-\d+$/.test(envelope.id)) {
     throw new Error(`Change envelope has invalid id: ${String(envelope.id)}`);
   }
-  if (envelope.schema_version !== "0.4.0") {
+  if (!["0.4.0", "0.5.0"].includes(envelope.schema_version)) {
     throw new Error(`Unsupported change envelope schema: ${String(envelope.schema_version)}`);
   }
   return envelope;
@@ -161,23 +186,73 @@ function extractBareImports(content: string): string[] {
   return [...imports];
 }
 
-function readDeclaredDependencies(projectRoot: string, revision: string): Map<string, string> {
-  const content = tryReadRevisionFile(projectRoot, revision, "package.json");
-  if (!content) return new Map();
-  try {
-    const manifest = JSON.parse(content) as Record<string, unknown>;
-    const dependenciesByName = new Map<string, string>();
-    for (const key of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]) {
-      const dependencies = manifest[key];
-      if (!dependencies || typeof dependencies !== "object" || Array.isArray(dependencies)) continue;
-      for (const [name, version] of Object.entries(dependencies)) {
-        dependenciesByName.set(name, String(version));
-      }
+function extractStyleImports(content: string): string[] {
+  const imports = new Set<string>();
+  for (const match of content.matchAll(/@(?:import|use)\s+["']([^"']+)["']/g)) {
+    const specifier = match[1];
+    if (!specifier || specifier.startsWith(".") || specifier.startsWith("/") || /^https?:/.test(specifier)) {
+      continue;
     }
-    return dependenciesByName;
-  } catch {
-    return new Map();
+    const segments = specifier.split("/");
+    imports.add(specifier.startsWith("@") ? segments.slice(0, 2).join("/") : segments[0]);
   }
+  return [...imports];
+}
+
+function extractExternalServices(content: string): string[] {
+  const services = new Set<string>();
+  for (const match of content.matchAll(/https?:\/\/([A-Za-z0-9.-]+)/g)) {
+    const host = match[1].toLowerCase();
+    if (!["localhost", "127.0.0.1"].includes(host)) services.add(host);
+  }
+  return [...services];
+}
+
+function detectPlatforms(path: string, content: string): string[] {
+  const platforms = new Set<string>();
+  if (
+    /(^|\/)wrangler\.(jsonc?|toml)$/i.test(path) ||
+    /cloudflare-workers|@cloudflare\/workers-types|workers\.dev/i.test(content)
+  ) {
+    platforms.add("cloudflare-workers");
+  }
+  return [...platforms];
+}
+
+function isFrontendFile(path: string): boolean {
+  return FRONTEND_EXTENSIONS.has(extname(path)) || FRONTEND_PATHS.test(path);
+}
+
+function readDeclaredDependencies(projectRoot: string, revision: string): Map<string, string> {
+  const manifests = git(projectRoot, ["ls-tree", "-r", "--name-only", revision])
+    .split("\n")
+    .filter(
+      (path) =>
+        (path === "package.json" || path.endsWith("/package.json")) &&
+        !path.split("/").includes("node_modules"),
+    );
+  const versionsByName = new Map<string, Set<string>>();
+  for (const path of manifests) {
+    const content = tryReadRevisionFile(projectRoot, revision, path);
+    if (!content) continue;
+    try {
+      const manifest = JSON.parse(content) as Record<string, unknown>;
+      for (const key of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]) {
+        const dependencies = manifest[key];
+        if (!dependencies || typeof dependencies !== "object" || Array.isArray(dependencies)) continue;
+        for (const [name, version] of Object.entries(dependencies)) {
+          const versions = versionsByName.get(name) ?? new Set<string>();
+          versions.add(String(version));
+          versionsByName.set(name, versions);
+        }
+      }
+    } catch {
+      continue;
+    }
+  }
+  return new Map(
+    [...versionsByName].map(([name, versions]) => [name, [...versions].sort().join("\0")]),
+  );
 }
 
 function findKnownConsumers(projectRoot: string, revision: string, changedFiles: string[]): string[] {
@@ -213,11 +288,23 @@ function isContract(path: string): boolean {
 }
 
 function isSupportedProjectMetadata(path: string): boolean {
-  return [
+  const name = path.split("/").at(-1);
+  if ([
     "package.json",
     "bun.lock",
     "bun.lockb",
+    "package-lock.json",
+    "pnpm-lock.yaml",
+    "yarn.lock",
     "tsconfig.json",
+    "tsconfig.build.json",
+    "wrangler.json",
+    "wrangler.jsonc",
+    "wrangler.toml",
+  ].includes(name ?? "")) {
+    return true;
+  }
+  return [
     "README.md",
     "SPEC.md",
   ].includes(path);

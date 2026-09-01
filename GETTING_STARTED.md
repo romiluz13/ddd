@@ -22,11 +22,11 @@ bun run cli/bin/ddd.ts scope-change \
   --owner your-name
 ```
 
-This writes `.ddd/cases/ENV-NNN.json`. The TypeScript detector enumerates
-top-level declarations and bare dependency imports. It also finds unchanged
-TypeScript modules that directly import a changed module. OpenAPI and
-`*.schema.json` files become affected contracts. Unsupported changed file
-classes lower `boundary_confidence`.
+This writes `.ddd/cases/ENV-NNN.json`. The detector enumerates TypeScript
+declarations, every manifest dependency, changed bare imports, literal external
+service URLs, Cloudflare Workers configuration, frontend files, direct
+consumers, and explicit OpenAPI or JSON Schema contracts. Unsupported changed
+file classes lower `boundary_confidence`.
 
 Contract detection does not yet prove compatibility. A case with an affected
 contract requires the `contract_compatibility` capability and therefore remains
@@ -35,6 +35,56 @@ contract requires the `contract_compatibility` capability and therefore remains
 Review the envelope before continuing. Add an explicit exclusion and reason
 only when a changed construct is intentionally outside the assurance boundary.
 
+### 1.1 Declare stack components that source cannot reveal
+
+Dynamic endpoints and architecture components require `.ddd/stack.yaml`:
+
+```yaml
+schema_version: 0.5.0
+components:
+  - id: STK-001
+    kind: service
+    name: grove-gateway
+    evidence_refs: [EL-004]
+  - id: STK-002
+    kind: platform
+    name: cloudflare-workers
+    evidence_refs: [EL-001]
+    required_constraints: [execution-time, concurrency]
+    constraints:
+      - name: execution-time
+        evidence_refs: [EL-003]
+      - name: concurrency
+        evidence_refs: [EL-003]
+  - id: STK-003
+    kind: frontend
+    name: frontend
+    evidence_refs: [EL-005]
+```
+
+Every component needs locked evidence with a matching `subject`. Dependency
+components also record all declared versions and use matching evidence
+versions. Platform components need subject-matched constraint evidence covering
+applicable execution, memory, concurrency, network, and rate limits.
+
+Every external reference in `.ddd/book.yaml` must map to a locked evidence
+entry through `ref` and the same source URL or a descendant URL.
+
+### 1.2 Resolve gaps and analyze interactions
+
+Any entry in `.ddd/knowledge-map.yaml` under a domain's `gaps` or
+`overall_gaps` becomes a blocking defeater.
+
+When a change spans component kinds, record their interaction:
+
+```yaml
+interactions:
+  - id: INT-001
+    components: [platform:cloudflare-workers, service:grove-gateway]
+    status: analyzed
+    rationale: "Checked provider latency against Workers execution constraints."
+```
+
 ### 2. Build the assurance case
 
 ```sh
@@ -42,8 +92,17 @@ bun run cli/bin/ddd.ts build-case ENV-001
 ```
 
 This bridges active entries from `.ddd/evidence.lock`, `.ddd/claims.yaml`, and
-`.ddd/trace-matrix.yaml` into `.ddd/cases/CASE-NNN.json`. Changed symbols without
-a matching trace remain coverage gaps.
+`.ddd/trace-matrix.yaml` into `.ddd/cases/CASE-NNN.json`. It also evaluates
+stack coverage, reference completeness, open gaps, platform constraints,
+frontend coverage, and cross-layer interactions. Changed symbols without a
+matching trace remain coverage gaps.
+
+Before relying on an agent skill installed in the repository, check that it
+matches the source:
+
+```sh
+bun run cli/bin/ddd.ts doctor
+```
 
 ### 3. Evaluate the case
 

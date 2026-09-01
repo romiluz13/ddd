@@ -63,6 +63,23 @@ An atomic normative statement with a source citation and declared constructs.
 The compatibility verifier over constructs named in claims and traces. It does
 not discover a repository-wide denominator.
 
+### Stack coverage
+
+The change-bounded inventory of manifest dependencies, external services,
+runtime platforms, and frontend technologies. Every detected or declared stack
+component requires locked evidence.
+
+### Open gap
+
+A named unknown in `.ddd/knowledge-map.yaml`. Open gaps are defeaters and keep a
+case `INDETERMINATE`; visibility alone is not resolution.
+
+### Interaction analysis
+
+A recorded rationale for how components from different stack layers behave
+together. Proofline verifies coverage of the component pair but does not prove
+the rationale semantically.
+
 ## Decisions
 
 - Keep the external-documentation kernel as the supported product.
@@ -71,3 +88,5 @@ not discover a repository-wide denominator.
   TypeScript/OpenAPI/JSON Schema slice.
 - Preserve the superseded broad methodology under `research/`.
 - Use Proofline as the working product name before wider adoption.
+- Treat missing stack evidence, open gaps, and stale installed skills as
+  explicit failures rather than workflow completion.

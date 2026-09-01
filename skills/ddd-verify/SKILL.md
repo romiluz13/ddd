@@ -5,7 +5,7 @@ description: >
   a Proofline assurance case before merge.
 metadata:
   author: ddd-methodology
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # Verify a change
@@ -42,6 +42,11 @@ Read the generated report and inspect:
 6. `approved_exceptions`
 7. `violations`
 
+Also inspect the `stack_coverage`, `reference_evidence_completeness`,
+`gap_resolution`, `platform_constraints`, `frontend_coverage`, and
+`interaction_analysis` capabilities. Platform constraints and interaction
+analysis are recorded attestations, not semantic proofs.
+
 Interpret verdicts exactly:
 
 | Verdict | Action |
@@ -60,6 +65,12 @@ reported limitation remains visible.
 - Descriptive evidence does not terminate a normative support chain.
 - Required capabilities are evaluated.
 - Every changed symbol is covered or explicitly excluded.
+- Every detected or declared stack component has locked evidence.
+- Every external Book reference maps to locked evidence.
+- No knowledge-map gap remains open.
+- Every affected platform has constraint evidence.
+- Frontend files are in the evidence boundary.
+- Cross-layer interactions are recorded with a rationale.
 - A waiver is human-approved, scoped, and reasoned.
 - No exception is described as evidence of correctness.
 

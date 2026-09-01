@@ -5,7 +5,7 @@ description: >
   Book references, or repairing evidence, claims, traces, cases, and reports.
 metadata:
   author: ddd-methodology
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # Manage Proofline storage
@@ -28,7 +28,7 @@ Create:
 └── cache/
 ```
 
-Use `schema_version: 0.1.0` for legacy YAML artifacts and `0.4.0` for change
+Use `schema_version: 0.1.0` for legacy YAML artifacts and `0.5.0` for change
 envelopes, assurance cases, and assurance reports.
 
 ## Validate

@@ -1,49 +1,52 @@
 # Proofline compatibility Book
 schema_version: 0.1.0
-version: 0.4.0
+version: 0.5.0
 released_at: null
-manifest_digest: sha256:b937601b03d8bb039d2f21e61a30b5d91523b62001c6482df321133a31cc249f
+manifest_digest: sha256:042e5439d5f1f64bd2531ad5e4a523c4cb876d3fddaf5c1bc4a7ebf84a3797ce
 
 requirements:
   - path: SPEC.md
     authority: product-approved
     independence: agent-proposed-human-approved
-    digest: sha256:ec12b336c15d74656dffd2147ae5569d0bc085b9b66fd5b9c876d575bc7e275c
-    description: "Proofline change assurance specification, v0.4.0-experimental"
+    digest: sha256:11bb393f150775b8b6905e6585d7ed34a9a90bbba4e9b797fca4332059c28cec
+    description: "Proofline change assurance specification, v0.5.0-experimental"
 
   - path: CONTEXT.md
     authority: product-approved
     independence: agent-proposed-human-approved
-    digest: sha256:864e99c1af23194f86b14de2cf297e05df938bdcaaa00d55840af424b1dd54c9
+    digest: sha256:528027d59af44d17a35bfb7eaeec409581da8f92751111d838d5e044b1ad3a2e
     description: "Current product vocabulary and decisions"
 
 agent_context:
   - path: AGENTS.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:b3c73cb1183a7ed43eac17378bb6cfeadccaea299ab0fa3a0d944cd2a82a2434
+    digest: sha256:b6b9831e9d5b7c6903517034bbe3db0a96bc700d8e8c22dede5003f4e0e3c98d
     description: "Agent runtime instructions"
 
   - path: SKILLS.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:08ca63d976f913d8551b4bc39d0fb40703706171e023a2d80e4982cbf3fb83bf
+    digest: sha256:cf782e6bdf165fd1fb08f13a1205266089f56a6250d11d5d98f73052f36ad060
     description: "Supported and research skill boundaries"
 
   - path: skills/ddd/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:9ce8cc0c9e0800ea6b8e1b9c799ccd20ec8ee3fb15540d9add9663ada1d386b8
+    digest: sha256:87c746fbb8c8310475a2f1d0eaeb6ab7be3e8530a29d136e06b6f84115e5ed71
     description: "Proofline router"
 
 evidence_lock: evidence.lock
 claims: claims.yaml
 trace_matrix: trace-matrix.yaml
+stack_inventory: stack.yaml
+knowledge_map: knowledge-map.yaml
+interactions: interactions.yaml
 cases: cases/
 packets: packets/
 reports: reports/
 
-proofline_spec_version: 0.4.0-experimental
+proofline_spec_version: 0.5.0-experimental
 compatibility_interface: ddd
 supported_boundary: external-api-evidence
 experimental_boundary: typescript-openapi-json-schema

@@ -6,7 +6,7 @@ Proofline is a change-assurance tool with a compatible Docs-Driven Development
 
 ## Status
 
-- Specification: `0.4.0-experimental`
+- Specification: `0.5.0-experimental`
 - Supported product: version-matched external API and protocol evidence
 - Experimental slice: TypeScript symbols plus OpenAPI and JSON Schema contracts
 - CLI: `cli/`
@@ -40,6 +40,10 @@ research/            Superseded broad spec, skills, and detector registry
 8. A waiver records accepted risk; it is not correctness evidence.
 9. Never describe declared-scope verification as repository-wide conformance.
 10. Material under `research/` is not shipped behavior.
+11. Inventory every dependency, service, platform, and frontend layer touched
+    by a change; missing stack evidence is `INDETERMINATE`.
+12. Open knowledge-map gaps block assurance until resolved.
+13. Run `ddd doctor` when repository-local installed skills are present.
 
 ## Validation
 

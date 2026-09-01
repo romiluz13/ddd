@@ -37,6 +37,8 @@ export const EVIDENCE_INDEPENDENCE_LEVELS = [
 export const LOCKABLE_STATUSES = ["normative", "informative"] as const;
 
 export interface LockOptions {
+  ref?: string;
+  subject?: string;
   sourceClass?: string;
   publisher?: string;
   product?: string;
@@ -60,6 +62,8 @@ export interface LockOptions {
 function serializeEntry(e: EvidenceLockEntry): string {
   const lines = [
     `  - id: ${e.id}`,
+    ...(e.ref ? [`    ref: ${yamlScalar(e.ref)}`] : []),
+    ...(e.subject ? [`    subject: ${yamlScalar(e.subject)}`] : []),
     `    schema_version: ${yamlScalar(e.schema_version)}`,
     `    source_class: ${yamlScalar(e.source_class)}`,
     `    source_url: ${yamlScalar(e.source_url)}`,
@@ -154,6 +158,8 @@ export async function lockEvidence(
   const host = safeHost(url);
   const entry: EvidenceLockEntry = {
     id: nextId(entries, "EL"),
+    ref: opts.ref,
+    subject: opts.subject,
     schema_version: "0.1.0",
     source_class: sourceClass,
     source_url: url,

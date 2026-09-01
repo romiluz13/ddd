@@ -1,6 +1,6 @@
 # Proofline change assurance specification
 
-**Version:** 0.4.0-experimental
+**Version:** 0.5.0-experimental
 
 **Status:** Implemented kernel, experimental boundary detection
 **Machine identifier:** `proofline-change-assurance`
@@ -39,6 +39,10 @@ repository-wide, behavioral, architectural, or semantic correctness.
 - Internal contract compatibility evaluation is not implemented.
 - Bare dependency imports are detected; transitive dependency impact analysis
   is not implemented.
+- External services are detected only when changed source contains literal HTTP
+  URLs. Dynamic endpoints MUST be declared in `.ddd/stack.yaml`.
+- Platform constraints and interaction analysis are recorded attestations; the
+  evaluator verifies their presence and coverage, not their semantic truth.
 - Semantic entailment remains a recorded attestation.
 - The legacy reverse sweep covers declared constructs only.
 - Evidence freshness is the only implemented drift dimension.
@@ -65,6 +69,8 @@ supported product contract. The superseded broad specification is preserved at
 | Defeater | A contradiction, unknown, or missing premise that prevents an unqualified result. |
 | Waiver | Accountable acceptance of residual risk. A waiver is not evidence of correctness. |
 | Capability | A check the evaluator can enforce, record by attestation, or leave unevaluated. |
+| Stack component | A dependency, external service, runtime platform, or frontend layer that the change may exercise. |
+| Open gap | A named unknown that blocks assurance until resolved. |
 
 ## 3. Epistemic invariants
 
@@ -88,14 +94,19 @@ supported product contract. The superseded broad specification is preserved at
 
 ```ts
 interface ChangeEnvelope {
-  schema_version: "0.4.0";
+  schema_version: "0.4.0" | "0.5.0";
   id: string;
   base_revision: string;
   head_revision: string;
   changed_files: string[];
   changed_symbols: string[];
+  declared_dependencies: string[];
+  declared_dependency_versions: Record<string, string[]>;
   affected_dependencies: string[];
+  affected_services: string[];
+  affected_platforms: string[];
   affected_contracts: string[];
+  frontend_files: string[];
   known_consumers: string[];
   risk: "low" | "medium" | "high" | "critical";
   owner: string | null;
@@ -109,6 +120,59 @@ interface ChangeEnvelope {
 The detector MUST resolve both revisions before producing an envelope. Every
 changed symbol MUST be covered by an implementation node or named in an
 exclusion. Unsupported changed file classes lower boundary confidence.
+
+### 4.1 Stack coverage
+
+`scope-change` inventories dependencies declared in the head revision and
+detects changed dependency imports, literal external-service URLs, known
+platform configuration, and frontend files. Dynamic services and architecture
+components that cannot be derived from source MUST be declared in
+`.ddd/stack.yaml`.
+
+```yaml
+schema_version: 0.5.0
+components:
+  - id: STK-001
+    kind: dependency # dependency | service | platform | frontend
+    name: ai
+    versions: ["5.0.0"]
+    evidence_refs: [EL-004]
+  - id: STK-002
+    kind: platform
+    name: cloudflare-workers
+    evidence_refs: [EL-001]
+    required_constraints: [execution-time, concurrency]
+    constraints:
+      - name: execution-time
+        evidence_refs: [EL-003]
+      - name: concurrency
+        evidence_refs: [EL-003]
+```
+
+Every declared or detected stack component MUST have locked evidence whose
+`subject` exactly names the component. Dependency components MUST record every
+declared version and cite evidence with a matching `version`. Platform
+components MUST also cite subject-matched evidence for runtime constraints such
+as execution, memory, concurrency, network, or rate limits.
+
+Every external `references` entry in `.ddd/book.yaml` MUST map to locked
+evidence through the evidence entry's `ref` and a matching or descendant source
+URL.
+
+Every gap in `.ddd/knowledge-map.yaml` is an open defeater. A gap MUST be
+resolved before evaluation. Until a machine command for approved gap waivers is
+implemented, a gap cannot be cleared by merely labeling it accepted.
+
+When a change spans stack-component kinds, `.ddd/interactions.yaml` MUST record
+the analyzed interaction with a rationale:
+
+```yaml
+interactions:
+  - id: INT-001
+    components: [platform:cloudflare-workers, service:grove.example]
+    status: analyzed
+    rationale: "Checked provider latency against platform request limits."
+```
 
 ## 5. Assurance case
 
@@ -195,6 +259,12 @@ The evaluator MUST check:
 - unresolved defeaters;
 - required capability coverage;
 - waiver approval, actor, and rationale.
+- stack component evidence coverage;
+- Book reference-to-evidence completeness;
+- open knowledge-map gaps;
+- platform constraint evidence;
+- frontend evidence coverage;
+- cross-layer interaction analysis.
 
 High-risk envelopes require at least T2 validation for every goal. Critical
 envelopes require T3 validation and a reviewer distinct from the implementer,
@@ -293,8 +363,9 @@ described as repository-wide conformance.
 
 ## 11. Versioning
 
-The assurance-case schema starts at `0.4.0`. The legacy Book artifacts retain
-their `0.1.0` schemas during the compatibility period. Additive readers SHOULD
+The assurance-case schema starts at `0.4.0`; `0.5.0` adds stack coverage fields
+and capabilities. Readers accept both versions. The legacy Book artifacts
+retain their `0.1.0` schemas during the compatibility period. Additive readers SHOULD
 ignore unknown fields. Breaking schema changes require a new minor version
 while the specification remains pre-1.0.
 

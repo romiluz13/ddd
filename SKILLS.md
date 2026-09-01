@@ -9,9 +9,9 @@ validated.
 | Skill | Completion criterion | Implemented CLI |
 |---|---|---|
 | `ddd` | Routes to one supported operation and reports unsupported branches honestly. | All routing |
-| `ddd-scope` | Required external sources are versioned, captured, and locked. | `classify`, `lock` |
-| `ddd-ground` | Claims cite locked evidence and declared constructs have traces. | `claim`, `packet`, `trace` |
-| `ddd-verify` | The declared graph is evaluated and its scope is named. | `sweep`, `evaluate-case` |
+| `ddd-scope` | Dependencies, services, platforms, frontend layers, and required evidence are inventoried. | `classify`, `lock`, `scope-change` |
+| `ddd-ground` | Claims and every stack component cite locked evidence; open gaps remain blocking. | `claim`, `packet`, `trace`, `build-case` |
+| `ddd-verify` | The declared graph, stack coverage, constraints, and interactions are evaluated. | `sweep`, `evaluate-case`, `doctor` |
 | `ddd-book` | Compatibility storage exists and referenced artifacts validate. | Infrastructure |
 | `ddd-exception` | A gap or residual risk is explicit and accountable. | No command; `exception` is a stub |
 
@@ -19,9 +19,10 @@ validated.
 
 | Command | Status | Capability |
 |---|---|---|
-| `scope-change` | Experimental | Git base/head boundary, TypeScript declarations, OpenAPI and JSON Schema contracts |
-| `build-case` | Experimental | Typed graph construction from evidence, claims, traces, and changed symbols |
+| `scope-change` | Experimental | Git boundary, declarations, manifest dependencies, services, platforms, frontend files, and explicit contracts |
+| `build-case` | Experimental | Typed graph plus stack, reference, gap, platform-constraint, frontend, and interaction checks |
 | `evaluate-case` | Experimental | Acyclicity, lineage, admissibility, coverage, capability, defeater, and waiver policy |
+| `doctor` | Supported | Repository-local installed-skill drift detection |
 
 The evaluator returns `SATISFIED`, `UNSATISFIED`, `INDETERMINATE`, or `WAIVED`.
 Every verdict includes boundary confidence and capability coverage.

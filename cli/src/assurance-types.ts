@@ -26,6 +26,7 @@ export type AssuranceEdgeType =
   | "waives";
 
 export type AssuranceVerdict = "SATISFIED" | "UNSATISFIED" | "INDETERMINATE" | "WAIVED";
+export type AssuranceSchemaVersion = "0.4.0" | "0.5.0";
 export type CapabilityStatus = "tool-enforced" | "recorded-attestation" | "not-evaluated";
 export type BoundaryConfidence = "complete" | "partial" | "unknown";
 export type CoverageStatus =
@@ -50,14 +51,19 @@ export interface ChangeExclusion {
 }
 
 export interface ChangeEnvelope {
-  schema_version: "0.4.0";
+  schema_version: AssuranceSchemaVersion;
   id: string;
   base_revision: string;
   head_revision: string;
   changed_files: string[];
   changed_symbols: string[];
+  declared_dependencies: string[];
+  declared_dependency_versions?: Record<string, string[]>;
   affected_dependencies: string[];
+  affected_services: string[];
+  affected_platforms: string[];
   affected_contracts: string[];
+  frontend_files: string[];
   known_consumers: string[];
   risk: "low" | "medium" | "high" | "critical";
   owner: string | null;
@@ -95,7 +101,7 @@ export interface AssuranceEdge {
 }
 
 export interface AssuranceCase {
-  schema_version: "0.4.0";
+  schema_version: AssuranceSchemaVersion;
   id: string;
   envelope: ChangeEnvelope;
   goals: string[];
@@ -140,7 +146,7 @@ export interface AssuranceViolation {
 }
 
 export interface AssuranceReport {
-  schema_version: "0.4.0";
+  schema_version: "0.5.0";
   case_id: string;
   evaluated_at: string;
   verdict: AssuranceVerdict;

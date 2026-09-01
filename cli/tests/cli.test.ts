@@ -55,6 +55,10 @@ describe("external API documentation workflow", () => {
       sourcePath,
       "--product",
       "Widget API",
+      "--ref",
+      "REF-001",
+      "--subject",
+      "widget-api",
       "--version",
       "2.0.0",
       "--sections",
@@ -70,6 +74,8 @@ describe("external API documentation workflow", () => {
 
     expect(entry.content_digest).toBe(expectedDigest);
     expect(entry.doc_version).toBe("2.0.0");
+    expect(entry.ref).toBe("REF-001");
+    expect(entry.subject).toBe("widget-api");
     expect(entry.cache_path).toBe(expectedCachePath);
     expect(readFileSync(join(dddDir, expectedCachePath), "utf8")).toBe(content);
 
@@ -578,5 +584,93 @@ traces:
     expect(evaluated.exitCode).toBe(0);
     expect(JSON.parse(evaluated.stdout.toString()).verdict).toBe("SATISFIED");
     expect(existsSync(join(dddDir, "reports", "CASE-001.assurance.json"))).toBe(true);
+  });
+});
+
+describe("installation diagnostics", () => {
+  test("doctor rejects a stale installed skill copy", () => {
+    mkdirSync(join(workDir, "skills", "ddd"), { recursive: true });
+    mkdirSync(join(workDir, ".factory", "skills", "ddd"), { recursive: true });
+    mkdirSync(join(workDir, ".factory", "skills", "ddd-refute"), { recursive: true });
+    writeFileSync(join(workDir, "skills", "ddd", "SKILL.md"), "version: 0.5.0\n");
+    writeFileSync(
+      join(workDir, ".factory", "skills", "ddd", "SKILL.md"),
+      "version: 0.2.6\n",
+    );
+    writeFileSync(
+      join(workDir, ".factory", "skills", "ddd-refute", "SKILL.md"),
+      "version: 0.3.0\n",
+    );
+
+    const stale = runCli("doctor");
+
+    expect(stale.exitCode).toBe(1);
+    expect(JSON.parse(stale.stdout.toString()).checks).toContainEqual(
+      expect.objectContaining({ skill: "ddd", status: "mismatch" }),
+    );
+    expect(JSON.parse(stale.stdout.toString()).checks).toContainEqual(
+      expect.objectContaining({ skill: "ddd-refute", status: "unexpected" }),
+    );
+
+    writeFileSync(
+      join(workDir, ".factory", "skills", "ddd", "SKILL.md"),
+      "version: 0.5.0\n",
+    );
+    rmSync(join(workDir, ".factory", "skills", "ddd-refute"), { recursive: true });
+    mkdirSync(join(workDir, "skills", "ddd", "references"), { recursive: true });
+    mkdirSync(join(workDir, ".factory", "skills", "ddd", "references"), {
+      recursive: true,
+    });
+    writeFileSync(join(workDir, "skills", "ddd", "references", "guide.md"), "current\n");
+    writeFileSync(
+      join(workDir, ".factory", "skills", "ddd", "references", "guide.md"),
+      "stale\n",
+    );
+    const staleReference = runCli("doctor");
+
+    expect(staleReference.exitCode).toBe(1);
+    expect(JSON.parse(staleReference.stdout.toString()).checks).toContainEqual(
+      expect.objectContaining({ skill: "ddd", status: "mismatch" }),
+    );
+
+    writeFileSync(
+      join(workDir, ".factory", "skills", "ddd", "references", "guide.md"),
+      "current\n",
+    );
+    const current = runCli("doctor");
+
+    expect(current.exitCode).toBe(0);
+    expect(JSON.parse(current.stdout.toString()).pass).toBe(true);
+  });
+
+  test("doctor rejects a stale source skill lock hash", () => {
+    mkdirSync(join(workDir, "skills", "ddd"), { recursive: true });
+    const content = "version: 0.5.0\n";
+    writeFileSync(join(workDir, "skills", "ddd", "SKILL.md"), content);
+    writeFileSync(
+      join(workDir, "skills-lock.json"),
+      JSON.stringify({
+        version: 1,
+        skills: { ddd: { computedHash: "deadbeef" } },
+      }),
+    );
+
+    const stale = runCli("doctor");
+
+    expect(stale.exitCode).toBe(1);
+    expect(JSON.parse(stale.stdout.toString()).lock_checks).toContainEqual(
+      expect.objectContaining({ skill: "ddd", status: "mismatch" }),
+    );
+
+    writeFileSync(
+      join(workDir, "skills-lock.json"),
+      JSON.stringify({
+        version: 1,
+        skills: { ddd: { computedHash: sha256Hex(`SKILL.md${content}`) } },
+      }),
+    );
+    const current = runCli("doctor");
+
+    expect(current.exitCode).toBe(0);
   });
 });

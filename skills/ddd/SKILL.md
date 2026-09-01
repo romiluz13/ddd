@@ -6,7 +6,7 @@ description: >
   which Docs-Driven Development step comes next.
 metadata:
   author: ddd-methodology
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # Proofline router
@@ -20,6 +20,8 @@ change-bounded assurance for TypeScript, OpenAPI, and JSON Schema.
 
 1. Read `.ddd/book.yaml`. If it is absent, route to `ddd-book`.
 2. For a new external dependency or API usage, route to `ddd-scope`.
+   Require an inventory of dependencies, services, platforms, and frontend
+   layers before evidence collection is complete.
 3. When evidence is locked and claims or traces are missing, route to
    `ddd-ground`.
 4. When implementation is complete, route to `ddd-verify`.
@@ -35,6 +37,9 @@ change-bounded assurance for TypeScript, OpenAPI, and JSON Schema.
 
 The route is complete only when the next operation and its current boundary are
 explicit.
+
+Run `ddd doctor` when `.factory/skills/` exists. A mismatched or unexpected
+installed skill means the active workflow is not the repository workflow.
 
 ## Interpret results
 

@@ -7,6 +7,7 @@ import type {
   CapabilityStatus,
 } from "./assurance-types";
 import type { Claim, EvidenceLockEntry, TraceEntry } from "./types";
+import { analyzeCoverage } from "./coverage";
 import { loadChangeEnvelope, nextCaseArtifactId } from "./scope-change";
 import { nowIso, parseYaml, readText, sha256Digest } from "./utils";
 
@@ -14,6 +15,8 @@ interface ExtendedEvidence extends EvidenceLockEntry {
   derived_from?: string[];
   actor?: string;
   tool?: string;
+  ref?: string;
+  source?: string;
 }
 
 interface ValidationRecord {
@@ -206,6 +209,8 @@ export function buildAssuranceCase(bookDir: string, envelopeIdOrPath: string): A
     consumer_impact: "not-evaluated",
     semantic_entailment: "recorded-attestation",
   };
+  const coverage = analyzeCoverage(bookDir, envelope, evidence);
+  Object.assign(capabilities, coverage.capabilities);
   const requiredCapabilities = ["boundary_discovery"];
   if (relevantClaims.length > 0) requiredCapabilities.push("external_evidence");
   if (envelope.affected_dependencies.length > 0) requiredCapabilities.push("dependency_detection");
@@ -213,15 +218,16 @@ export function buildAssuranceCase(bookDir: string, envelopeIdOrPath: string): A
     requiredCapabilities.push("contract_detection", "contract_compatibility");
   }
   if (envelope.known_consumers.length > 0) requiredCapabilities.push("consumer_impact");
+  requiredCapabilities.push(...coverage.requiredCapabilities);
 
   const assuranceCase: AssuranceCase = {
-    schema_version: "0.4.0",
+    schema_version: "0.5.0",
     id: nextCaseArtifactId(bookDir, "CASE"),
     envelope,
     goals: relevantClaims.map((claim) => claim.id),
     nodes,
     edges,
-    defeaters: [],
+    defeaters: coverage.defeaters,
     capabilities,
     required_capabilities: requiredCapabilities,
     created_at: nowIso(),
@@ -243,7 +249,7 @@ export function loadAssuranceCase(bookDir: string, idOrPath: string): AssuranceC
   if (!/^CASE-\d+$/.test(assuranceCase.id)) {
     throw new Error(`Assurance case has invalid id: ${String(assuranceCase.id)}`);
   }
-  if (assuranceCase.schema_version !== "0.4.0") {
+  if (!["0.4.0", "0.5.0"].includes(assuranceCase.schema_version)) {
     throw new Error(`Unsupported assurance case schema: ${String(assuranceCase.schema_version)}`);
   }
   return assuranceCase;

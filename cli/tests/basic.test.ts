@@ -131,6 +131,22 @@ describe("utils", () => {
     expect(doc.traces).toEqual([]);
     expect(doc.name).toBe("quoted: value");
   });
+
+  test("parseYaml resumes after folded block scalars", () => {
+    expect(
+      parseYaml(`project:
+  description: >
+    First line.
+    Second line.
+references:
+  - id: REF-001
+    type: external
+`),
+    ).toEqual({
+      project: { description: "First line. Second line." },
+      references: [{ id: "REF-001", type: "external" }],
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------

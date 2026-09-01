@@ -7,7 +7,7 @@ interface.
 The supported external-evidence kernel checks declared API and protocol usage
 against immutable, version-matched documentation. The experimental assurance
 kernel adds a Git-derived change boundary, direct import and consumer analysis,
-typed evidence lineage, and four-valued verdicts.
+stack-layer coverage, typed evidence lineage, and four-valued verdicts.
 
 ## What Proofline can establish
 
@@ -29,7 +29,7 @@ evaluated, and semantic entailment remains a recorded attestation.
 ## Assurance workflow
 
 ```sh
-# Identify changed TypeScript symbols and explicit contracts.
+# Identify changed symbols, dependencies, services, platforms, and frontend files.
 bun run cli/bin/ddd.ts scope-change --base origin/main --head HEAD
 
 # Bridge locked evidence, claims, and traces into a typed case.
@@ -37,6 +37,9 @@ bun run cli/bin/ddd.ts build-case ENV-001
 
 # Evaluate graph integrity, admissibility, coverage, and defeaters.
 bun run cli/bin/ddd.ts evaluate-case CASE-001
+
+# Detect stale repository-local installed skills.
+bun run cli/bin/ddd.ts doctor
 ```
 
 The final command writes `.ddd/reports/CASE-001.assurance.json` and returns one
@@ -97,6 +100,9 @@ Proofline currently uses `.ddd/` for compatibility:
 ├── evidence.lock
 ├── claims.yaml
 ├── trace-matrix.yaml
+├── stack.yaml
+├── knowledge-map.yaml
+├── interactions.yaml
 ├── cases/
 ├── packets/
 ├── reports/

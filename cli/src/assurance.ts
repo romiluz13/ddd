@@ -106,14 +106,17 @@ export function evaluateAssuranceCase(assuranceCase: AssuranceCase): AssuranceRe
         : "SATISFIED";
 
   return {
-    schema_version: "0.4.0",
+    schema_version: "0.5.0",
     case_id: assuranceCase.id,
     evaluated_at: nowIso(),
     verdict,
     evaluated_boundary: [
       ...assuranceCase.envelope.changed_symbols,
       ...assuranceCase.envelope.affected_dependencies.map((name) => `dependency:${name}`),
+      ...(assuranceCase.envelope.affected_services ?? []).map((name) => `service:${name}`),
+      ...(assuranceCase.envelope.affected_platforms ?? []).map((name) => `platform:${name}`),
       ...assuranceCase.envelope.affected_contracts.map((path) => `contract:${path}`),
+      ...(assuranceCase.envelope.frontend_files ?? []).map((path) => `frontend:${path}`),
       ...assuranceCase.envelope.known_consumers.map((path) => `consumer:${path}`),
     ],
     boundary_confidence: assuranceCase.envelope.boundary_confidence,

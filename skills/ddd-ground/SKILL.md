@@ -5,7 +5,7 @@ description: >
   packet, trace changed constructs, or build a Proofline assurance case.
 metadata:
   author: ddd-methodology
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # Ground a change
@@ -63,9 +63,16 @@ The builder maps:
 - declared traces to `implements` edges;
 - source citations to `supports` edges;
 - OpenAPI and JSON Schema files to descriptive contract nodes.
+- `.ddd/stack.yaml` components to required stack-coverage capabilities;
+- Book external references to their exact locked evidence;
+- knowledge-map gaps to defeaters;
+- platform constraint references and cross-layer interactions to explicit
+  capability results.
 
 The step is complete when every goal and changed symbol appears in
-`.ddd/cases/CASE-NNN.json`, and any gap remains explicit.
+`.ddd/cases/CASE-NNN.json`, every declared stack component cites locked
+evidence whose subject and dependency version match, and no unresolved gap is
+hidden.
 
 ## Boundaries
 

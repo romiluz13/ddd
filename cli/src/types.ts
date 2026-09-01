@@ -5,6 +5,8 @@
 /** Evidence lock entry */
 export interface EvidenceLockEntry {
   id: string; // EL-NNN
+  ref?: string; // REF-NNN Book reference
+  subject?: string; // Exact stack component name covered by this evidence
   schema_version: string;
   source_class: string; // standard | vendor-doc | source-code | waiver | ...
   source_url: string;

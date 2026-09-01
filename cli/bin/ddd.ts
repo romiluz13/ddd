@@ -11,6 +11,7 @@ import { buildAssuranceCase, loadAssuranceCase } from "../src/build-case";
 import { classifyReport } from "../src/classify";
 import { addClaim, type ClaimImpact, type ClaimKind } from "../src/claim";
 import { driftCheck } from "../src/drift";
+import { doctor } from "../src/doctor";
 import { LOCKABLE_SOURCE_CLASSES, lockEvidence } from "../src/lock";
 import { assemblePacket } from "../src/packet";
 import { scopeChange } from "../src/scope-change";
@@ -30,6 +31,8 @@ Commands (implemented):
       --source-class <class>          standard | vendor-doc | source-code (default: vendor-doc)
       --publisher <name>              Source publisher (default: URL host)
       --product <name>                Product name (default: URL host)
+      --ref <REF-NNN>                 Book reference satisfied by this evidence
+      --subject <name>                Exact stack component covered by this evidence
       --version <v>                   Source version (required for external documentation)
       --sections <a,b,c>              Sections relied upon
       --status <s>                    normative | informative (default: normative)
@@ -60,8 +63,9 @@ Commands (implemented):
       --notes "<text>"                Free-form notes
   drift-check                       Freshness drift report over .ddd/evidence.lock
                                       (alias: drift_check)
+  doctor                            Check repository-local installed skill copies
   scope-change --base <rev> --head <rev>
-                                    Create a bounded change envelope
+                                    Inventory a bounded change and its stack layers
       --risk <level>                  low | medium | high | critical (default: medium)
       --owner <name>                  Accountable change owner
   build-case <ENV-NNN|path>         Build a typed assurance case from DDD artifacts
@@ -119,6 +123,8 @@ async function main(): Promise<void> {
         sourceClass,
         publisher: str(flags.publisher),
         product: str(flags.product),
+        ref: str(flags.ref),
+        subject: str(flags.subject),
         version,
         sections: csv(flags.sections),
         status: str(flags.status),
@@ -221,6 +227,13 @@ async function main(): Promise<void> {
     case "drift_check":
     case "drift": {
       console.log(JSON.stringify(driftCheck(dddDir), null, 2));
+      return;
+    }
+
+    case "doctor": {
+      const report = doctor(dirname(dddDir));
+      console.log(JSON.stringify(report, null, 2));
+      if (!report.pass) process.exit(1);
       return;
     }
 

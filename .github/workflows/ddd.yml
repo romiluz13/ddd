@@ -19,12 +19,14 @@ jobs:
       - name: Run CLI tests
         working-directory: cli
         run: bun test
+      - name: Check skill source integrity
+        run: bun run cli/bin/ddd.ts doctor
       - name: Check declared DDD scope
         run: bun run cli/bin/ddd.ts sweep --direction both
       - name: Check dogfood assurance boundary
         run: |
-          if bun run cli/bin/ddd.ts evaluate-case CASE-001; then
+          if bun run cli/bin/ddd.ts evaluate-case CASE-002; then
             echo "Expected the historical partial boundary to remain indeterminate"
             exit 1
           fi
-          grep -q '"verdict": "INDETERMINATE"' .ddd/reports/CASE-001.assurance.json
+          grep -q '"verdict": "INDETERMINATE"' .ddd/reports/CASE-002.assurance.json

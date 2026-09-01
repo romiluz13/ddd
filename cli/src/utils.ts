@@ -229,6 +229,13 @@ export function parseYaml(text: string): Yaml {
       const [key, value] = splitKeyValue(content);
       if (value === "") {
         map[key] = pos < lines.length && lines[pos].indent > indent ? parseBlock(lines[pos].indent) : null;
+      } else if (value === ">" || value === "|") {
+        const blockLines: string[] = [];
+        while (pos < lines.length && lines[pos].indent > indent) {
+          blockLines.push(lines[pos].content);
+          pos++;
+        }
+        map[key] = blockLines.join(value === ">" ? " " : "\n");
       } else {
         map[key] = parseScalar(value);
       }
