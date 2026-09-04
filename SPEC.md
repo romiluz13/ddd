@@ -46,7 +46,7 @@ repository-wide, behavioral, architectural, or semantic correctness.
 - Semantic entailment remains a recorded attestation.
 - The legacy reverse sweep covers declared constructs only.
 - Evidence freshness is the only implemented drift dimension.
-- `discover`, `refute`, `exception`, `obligation`, and `compile` remain stubs.
+- `discover`, `refute`, and `compile` remain stubs.
 
 Anything outside these capabilities is `not-evaluated`, never an implicit pass.
 
@@ -67,7 +67,7 @@ supported product contract. The superseded broad specification is preserved at
 | Goal | A requirement the change must satisfy. |
 | Provenance | Origin, actor, tool, revision, and capture time for a graph node. |
 | Defeater | A contradiction, unknown, or missing premise that prevents an unqualified result. |
-| Waiver | Accountable acceptance of residual risk. A waiver is not evidence of correctness. |
+| Waiver | Accountable, time-boxed acceptance of residual risk. A waiver is not evidence of correctness, and an expired waiver is invalid. |
 | Capability | A check the evaluator can enforce, record by attestation, or leave unevaluated. |
 | Stack component | A dependency, external service, runtime platform, or frontend layer that the change may exercise. |
 | Open gap | A named unknown that blocks assurance until resolved. |
@@ -100,6 +100,7 @@ interface ChangeEnvelope {
   head_revision: string;
   changed_files: string[];
   changed_symbols: string[];
+  boundary_files?: string[];
   declared_dependencies: string[];
   declared_dependency_versions: Record<string, string[]>;
   affected_dependencies: string[];
@@ -120,6 +121,18 @@ interface ChangeEnvelope {
 The detector MUST resolve both revisions before producing an envelope. Every
 changed symbol MUST be covered by an implementation node or named in an
 exclusion. Unsupported changed file classes lower boundary confidence.
+
+Scoping is idempotent per resolved (base, head) range: re-running
+`scope-change` with the same revisions returns the existing envelope instead
+of duplicating lineage.
+
+`boundary_files` (0.5.0) lists changed files that exercise the declared
+external stack: they import a declared dependency or embed a literal external
+service URL. Changed symbols in these files are boundary-relevant; changed
+symbols in other files are internal and are partitioned as
+`outside-boundary`, below the supported assurance boundary. 0.4.0 envelopes
+carry no `boundary_files`, so every changed symbol remains
+boundary-relevant.
 
 ### 4.1 Stack coverage
 
@@ -235,7 +248,21 @@ All edge endpoints MUST exist. The graph formed by `supports` and
 ### 5.3 Case fields
 
 An assurance case contains the envelope, goal node IDs, nodes, edges,
-defeaters, capability statuses, required capabilities, and creation time.
+defeaters, capability statuses, required capabilities, obligations, and
+creation time.
+
+Case goals are the change-matched claims plus every claim declared in
+`.ddd/goals.yaml`, so a case always has reachable goals even when the
+changed-symbol matching finds no relevant claims.
+
+Exception nodes carry `expires_at`. Approved waivers for case goals are
+bridged into the case with `waives` edges; an expired or untime-boxed waiver
+is invalid at evaluation time.
+
+Obligations from `.ddd/obligations.yaml` bind this case's open defeaters to
+tracking issues. An obligation records that evidence is coming; it does not
+resolve the defeater, and an obligation-backed defeater still yields
+`INDETERMINATE` until the evidence lands.
 
 Capability status is one of:
 
@@ -258,7 +285,8 @@ The evaluator MUST check:
 - boundary confidence;
 - unresolved defeaters;
 - required capability coverage;
-- waiver approval, actor, and rationale.
+- waiver approval, actor, rationale, and time box (an expired waiver is
+  invalid);
 - stack component evidence coverage;
 - Book reference-to-evidence completeness;
 - open knowledge-map gaps;
@@ -283,7 +311,11 @@ even when a persisted goal declares a lower tier.
 non-zero.
 
 Every report records the evaluated boundary, boundary confidence, supported and
-unevaluated capabilities, open defeaters, approved exceptions, and violations.
+unevaluated capabilities, open defeaters, approved exceptions, open
+obligations, and violations. Violations carry a `resolution` hint naming the
+exact command or action that resolves them. The CLI prints a human summary of
+the verdict and violation counts on stderr; the JSON report remains the only
+stdout output.
 
 ## 7. Legacy external-evidence artifacts
 
@@ -293,6 +325,9 @@ The compatibility kernel stores:
 - `.ddd/cache/`: exact reviewed source content;
 - `.ddd/claims.yaml`: atomic claims and source citations;
 - `.ddd/trace-matrix.yaml`: declared claim-to-construct links;
+- `.ddd/goals.yaml`: claims declared as assurance-case goals;
+- `.ddd/exceptions.yaml`: approved, time-boxed waivers for goals;
+- `.ddd/obligations.yaml`: open work binding unresolved defeaters to issues;
 - `.ddd/packets/`: bounded evidence packets;
 - `.ddd/reports/`: sweep, validation, and assurance reports.
 
@@ -318,17 +353,27 @@ lock(source) → lock_entry
 claim(statement, source) → claim_id
 packet(change, claims) → evidence_packet
 trace(claim_id, construct) → trace_entry
+validation(claim_id, construct, method, target) → validation_record
+goal(claim_id) → goal_entry
+exception(goal, rationale, owner, expires) → exception_entry
+obligation(defeater, issue) → obligation_entry
 sweep(direction) → compliance_report
 drift-check() → evidence_freshness_report
 ```
+
+`validation` records a proof run for one claim construct with a closed method
+set and an auto-computed artifact digest, and links the record back into the
+claim. `trace` and `validation` enforce the exact-match construct contract at
+write time: the construct MUST equal a claim `constructs[]` entry verbatim.
+`goal` declares a claim as an assurance-case goal. `exception` records an
+approved waiver with rationale, owner, and a future expiry date. `obligation`
+binds an unresolved defeater to a tracking issue.
 
 ### 8.3 Unsupported compatibility stubs
 
 ```text
 discover
 refute
-exception
-obligation
 compile
 ```
 
@@ -341,6 +386,10 @@ successful assurance verdict.
 bun run cli/bin/ddd.ts scope-change --base <revision> --head <revision>
 bun run cli/bin/ddd.ts build-case <ENV-NNN|path>
 bun run cli/bin/ddd.ts evaluate-case <CASE-NNN|path>
+bun run cli/bin/ddd.ts validation --claim <C-NNN> --construct <symbol> --method <m> --target <file>
+bun run cli/bin/ddd.ts goal --claim <C-NNN>
+bun run cli/bin/ddd.ts exception --goal <C-NNN> --rationale "<risk>" --owner <name> --expires <date>
+bun run cli/bin/ddd.ts obligation --defeater <id> --issue <url>
 ```
 
 `proofline` and `ddd` are equivalent binary names during the compatibility

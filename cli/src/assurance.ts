@@ -76,10 +76,18 @@ export function evaluateAssuranceCase(assuranceCase: AssuranceCase): AssuranceRe
 
   if (assuranceCase.defeaters.length > 0) {
     for (const defeater of assuranceCase.defeaters) {
+      const tracked = (assuranceCase.obligations ?? []).some(
+        (obligation) => obligation.defeater === defeater && obligation.status === "open",
+      );
       violations.push({
         type: "unresolved-defeater",
         node_id: defeater,
-        message: `Defeater ${defeater} remains unresolved.`,
+        message: tracked
+          ? `Defeater ${defeater} remains unresolved (tracked by an open obligation).`
+          : `Defeater ${defeater} remains unresolved.`,
+        resolution: tracked
+          ? `Land the evidence behind the tracking issue, or close it: see the obligation issue for ${defeater} in .ddd/obligations.yaml`
+          : `Track it against an issue: ddd obligation --defeater ${defeater} --issue <https://...>`,
       });
     }
   }
@@ -126,6 +134,9 @@ export function evaluateAssuranceCase(assuranceCase: AssuranceCase): AssuranceRe
     unevaluated_capabilities: unevaluatedCapabilities,
     open_defeaters: assuranceCase.defeaters,
     approved_exceptions: approvedExceptions,
+    open_obligations: (assuranceCase.obligations ?? [])
+      .filter((obligation) => obligation.status === "open")
+      .map((obligation) => obligation.id),
     violations,
   };
 }
@@ -208,6 +219,7 @@ function validateGoals(
     violations.push({
       type: "missing-goal",
       message: "The assurance case has no declared goals.",
+      resolution: `Declare a claim as a case goal: ddd goal --claim <C-NNN>`,
     });
     return;
   }
@@ -258,6 +270,7 @@ function validateGoals(
         type: "unsupported-goal",
         node_id: goalId,
         message: `Goal ${goalId} has neither admissible support nor an approved waiver.`,
+        resolution: `Record a verified kernel source for claim ${goalId} (ddd claim --source EL-NNN[#section] ...), or accept the residual risk: ddd exception --goal ${goalId} --rationale "<accepted risk>" --owner <name> --expires <future ISO date>`,
       });
     }
     const effectiveTier = maxRiskTier(
@@ -280,6 +293,7 @@ function validateGoals(
           type: "missing-validation",
           node_id: goalId,
           message: `Goal ${goalId} requires a passing validation for tier ${effectiveTier}.`,
+          resolution: `Run the check, then record it: ddd validation --claim ${goalId} --construct <symbol> --method <test|lint|type-check|formal|manual|runtime-assertion> --target <file>`,
         });
       }
     }
@@ -341,7 +355,8 @@ function validateBoundary(
       violations.push({
         type: "uncovered-construct",
         construct,
-        message: `Changed construct ${construct} is not accounted for in the assurance case.`,
+        message: `Changed construct ${construct} is not accounted for in the assurance case. Rule: every boundary-relevant changed construct must trace to a claim (or carry an envelope exclusion); internal constructs are reported as outside-boundary.`,
+        resolution: `Claim it and trace it: ddd claim "<statement>" --source EL-NNN ... --construct ${construct}, then ddd trace <C-NNN> ${construct}`,
       });
     }
   }
@@ -375,6 +390,7 @@ function validateWaivers(
   for (const edge of assuranceCase.edges.filter((candidate) => candidate.edge_type === "waives")) {
     const source = nodes.get(edge.source_node);
     const target = nodes.get(edge.target_node);
+    const expiresAt = source?.expires_at ? Date.parse(source.expires_at) : Number.NaN;
     const valid =
       source?.node_type === "exception" &&
       source.epistemic_role === "waiver" &&
@@ -382,16 +398,25 @@ function validateWaivers(
       source.status === "approved" &&
       source.provenance.origin === "human" &&
       Boolean(source.rationale?.trim()) &&
+      Boolean(source.expires_at) &&
+      !Number.isNaN(expiresAt) &&
+      expiresAt > Date.now() &&
       Boolean(target) &&
       assuranceCase.goals.includes(edge.target_node);
     if (valid) {
       if (!approved.includes(source.id)) approved.push(source.id);
     } else {
+      const expired = !Number.isNaN(expiresAt) && expiresAt <= Date.now();
       violations.push({
         type: "invalid-waiver",
         node_id: source?.id,
         edge_id: edge.id,
-        message: `Waiver edge ${edge.id} does not have an approved human-authored exception with rationale.`,
+        message: expired
+          ? `Waiver ${source?.id} on goal ${edge.target_node} expired on ${source?.expires_at}; the accepted risk has lapsed.`
+          : `Waiver edge ${edge.id} does not have an approved, time-boxed, human-authored exception with rationale.`,
+        resolution: expired
+          ? `Renew or drop the waiver: ddd exception --goal ${edge.target_node} --rationale "<accepted risk>" --owner <name> --expires <future ISO date>`
+          : `Record a proper waiver: ddd exception --goal ${edge.target_node} --rationale "<accepted risk>" --owner <name> --expires <future ISO date>`,
       });
     }
   }

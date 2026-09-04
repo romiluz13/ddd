@@ -6,8 +6,6 @@
 export const STUB_PRIMITIVES = [
   "discover",
   "refute",
-  "exception",
-  "obligation",
   "compile",
 ] as const;
 

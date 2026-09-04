@@ -27,6 +27,13 @@ export function scopeChange(
 ): ChangeEnvelope {
   assertRevision(projectRoot, options.base);
   assertRevision(projectRoot, options.head);
+  const resolvedBase = resolveRevision(projectRoot, options.base);
+  const resolvedHead = resolveRevision(projectRoot, options.head);
+
+  // Idempotent on (base, head): re-running the same range returns the
+  // existing envelope instead of duplicating lineage.
+  const existing = findExistingEnvelope(bookDir, resolvedBase, resolvedHead);
+  if (existing) return existing;
 
   const changedFiles = git(projectRoot, [
     "diff",
@@ -45,6 +52,7 @@ export function scopeChange(
   const affectedDependencies = new Set<string>();
   const affectedServices = new Set<string>();
   const affectedPlatforms = new Set<string>();
+  const boundaryFiles = new Set<string>();
   const frontendFiles = new Set<string>();
   const dependenciesBefore = readDeclaredDependencies(projectRoot, options.base);
   const dependenciesAfter = readDeclaredDependencies(projectRoot, options.head);
@@ -63,7 +71,8 @@ export function scopeChange(
     if (isFrontendFile(path)) frontendFiles.add(path);
     const before = tryReadRevisionFile(projectRoot, options.base, path);
     const after = tryReadRevisionFile(projectRoot, options.head, path);
-    for (const service of extractExternalServices(`${before}\n${after}`)) {
+    const fileServices = extractExternalServices(`${before}\n${after}`);
+    for (const service of fileServices) {
       affectedServices.add(service);
     }
     for (const platform of detectPlatforms(path, `${before}\n${after}`)) {
@@ -74,10 +83,20 @@ export function scopeChange(
       else unresolvedImports++;
     }
     if (TYPESCRIPT_EXTENSIONS.has(extname(path))) {
+      // A changed file exercises the declared external stack when it imports
+      // a declared dependency or embeds a literal external service URL.
+      // Symbols in such files are boundary-relevant; other symbols are
+      // internal and below the supported assurance boundary.
+      let exercisesStack = fileServices.length > 0;
       for (const dependency of extractBareImports(`${before}\n${after}`)) {
-        if (declaredDependencies.has(dependency)) affectedDependencies.add(dependency);
-        else unresolvedImports++;
+        if (declaredDependencies.has(dependency)) {
+          affectedDependencies.add(dependency);
+          exercisesStack = true;
+        } else {
+          unresolvedImports++;
+        }
       }
+      if (exercisesStack) boundaryFiles.add(path);
       const symbols = [
         ...new Set([...extractTypeScriptSymbols(before), ...extractTypeScriptSymbols(after)]),
       ];
@@ -95,10 +114,11 @@ export function scopeChange(
   const envelope: ChangeEnvelope = {
     schema_version: "0.5.0",
     id: nextCaseArtifactId(bookDir, "ENV"),
-    base_revision: resolveRevision(projectRoot, options.base),
-    head_revision: resolveRevision(projectRoot, options.head),
+    base_revision: resolvedBase,
+    head_revision: resolvedHead,
     changed_files: changedFiles,
     changed_symbols: [...new Set(changedSymbols)].sort(),
+    boundary_files: [...boundaryFiles].sort(),
     declared_dependencies: [...dependenciesAfter.keys()].sort(),
     declared_dependency_versions: Object.fromEntries(
       [...dependenciesAfter]
@@ -156,6 +176,24 @@ export function nextCaseArtifactId(bookDir: string, prefix: "ENV" | "CASE"): str
     if (match) maximum = Math.max(maximum, Number(match[1]));
   }
   return `${prefix}-${String(maximum + 1).padStart(3, "0")}`;
+}
+
+/** Return an existing envelope for the same resolved (base, head) range, if any. */
+function findExistingEnvelope(
+  bookDir: string,
+  baseRevision: string,
+  headRevision: string,
+): ChangeEnvelope | null {
+  const casesDir = join(bookDir, "cases");
+  if (!existsSync(casesDir)) return null;
+  for (const name of readdirSync(casesDir)) {
+    if (!/^ENV-\d+\.json$/.test(name)) continue;
+    const envelope = JSON.parse(readFileSync(join(casesDir, name), "utf8")) as ChangeEnvelope;
+    if (envelope.base_revision === baseRevision && envelope.head_revision === headRevision) {
+      return envelope;
+    }
+  }
+  return null;
 }
 
 function extractTypeScriptSymbols(content: string): string[] {

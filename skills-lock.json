@@ -4,7 +4,7 @@
     "ddd": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "229db85a16df84702dbe7d5f52a6b24061f4e3a3d86889c2a181cb6c057b9808"
+      "computedHash": "50f4e21426f9bd2d8d6a379dabf03a27192741548e63fe4d4faec8a7e25d3686"
     },
     "ddd-book": {
       "source": ".",
@@ -14,7 +14,7 @@
     "ddd-exception": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "55065a7e3a36ea250cb32f5aa0c8dc99ed7ba269699849b870e4196cca2ff345"
+      "computedHash": "d1841d5e81c7acb6650a50628246ca47200421bc7f1091059f42034571f1b91a"
     },
     "ddd-ground": {
       "source": ".",
@@ -29,7 +29,7 @@
     "ddd-verify": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "4238b0930529519a0c1463f31b4d4db8257a0a203c07a2a94969f0d04fb034a7"
+      "computedHash": "220e150790fcd89ba78d20780cc79359845167e99012cc18c9ccc0b248eac16e"
     }
   }
 }

@@ -6,8 +6,8 @@
  */
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import type { TraceEntry } from "./types";
-import { nextId, nowIso, parseYaml, readText, writeText, yamlScalar } from "./utils";
+import type { Claim, TraceEntry } from "./types";
+import { nextId, nowIso, parseYaml, readText, writeText, yamlFlowList, yamlScalar } from "./utils";
 
 const TRACE_HEADER = `# DDD Trace Matrix
 # Generated view of the evidence graph: trace entries mapping claims <-> constructs.
@@ -44,7 +44,10 @@ function serializeTrace(t: TraceEntry): string {
 
 /**
  * Create a trace entry linking `claimId` to `construct`. Verifies the claim
- * exists in claims.yaml when that file is present. Returns the entry.
+ * exists in claims.yaml when that file is present, and that `construct`
+ * matches a claim constructs[] entry verbatim (the kernel's exact-match
+ * contract, enforced at write time rather than at sweep time). Returns the
+ * entry.
  */
 export function addTrace(
   dddDir: string,
@@ -54,11 +57,21 @@ export function addTrace(
 ): TraceEntry {
   // Validate the claim exists (when a claim ledger is present).
   const claimsPath = join(dddDir, "claims.yaml");
+  let claim: Claim | undefined;
   if (existsSync(claimsPath)) {
-    const claimsDoc = (parseYaml(readText(claimsPath)) as { entries?: Array<{ id?: string }> }) ?? {};
-    const ids = new Set((claimsDoc.entries ?? []).map((c) => c.id));
-    if (ids.size > 0 && !ids.has(claimId)) {
+    const claimsDoc = (parseYaml(readText(claimsPath)) as { entries?: Claim[] }) ?? {};
+    const claims = Array.isArray(claimsDoc.entries) ? claimsDoc.entries : [];
+    claim = claims.find((candidate) => candidate.id === claimId);
+    if (claims.length > 0 && !claim) {
       throw new Error(`Claim ${claimId} not found in ${claimsPath}`);
+    }
+    if (claim && (claim.constructs ?? []).length > 0 && !(claim.constructs ?? []).includes(construct)) {
+      throw new Error(
+        `Construct "${construct}" is not declared on claim ${claimId}. ` +
+          `Rule: trace construct_id must equal a claim constructs[] entry verbatim. ` +
+          `Claim ${claimId} declares: ${yamlFlowList(claim.constructs ?? [])}. ` +
+          `Re-record the claim with --construct "${construct}" if it should be covered.`,
+      );
     }
   }
 

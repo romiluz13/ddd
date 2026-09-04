@@ -57,6 +57,14 @@ export interface ChangeEnvelope {
   head_revision: string;
   changed_files: string[];
   changed_symbols: string[];
+  /**
+   * Changed files that exercise the declared external stack (bare imports of
+   * declared dependencies or literal external service URLs). Changed symbols
+   * in these files are boundary-relevant; symbols in other files are internal
+   * and below the supported assurance boundary. Absent in 0.4.0 envelopes,
+   * where every changed symbol is treated as boundary-relevant.
+   */
+  boundary_files?: string[];
   declared_dependencies: string[];
   declared_dependency_versions?: Record<string, string[]>;
   affected_dependencies: string[];
@@ -90,6 +98,8 @@ export interface AssuranceNode {
   status?: "open" | "resolved" | "approved";
   rationale?: string;
   validation_result?: "pass" | "fail" | "not-run";
+  /** Waiver nodes only: ISO date after which the accepted risk lapses. */
+  expires_at?: string;
 }
 
 export interface AssuranceEdge {
@@ -98,6 +108,14 @@ export interface AssuranceEdge {
   source_node: string;
   target_node: string;
   rationale?: string;
+}
+
+export interface CaseObligation {
+  id: string;
+  defeater: string;
+  issue: string;
+  due_at?: string;
+  status: "open" | "fulfilled";
 }
 
 export interface AssuranceCase {
@@ -110,6 +128,8 @@ export interface AssuranceCase {
   defeaters: string[];
   capabilities: Record<string, CapabilityStatus>;
   required_capabilities: string[];
+  /** Obligations tracking this case's open defeaters against issue URLs. */
+  obligations?: CaseObligation[];
   implementer_id?: string;
   reviewer_id?: string;
   created_at: string;
@@ -143,6 +163,8 @@ export interface AssuranceViolation {
   node_id?: string;
   edge_id?: string;
   construct?: string;
+  /** Exact command or action that resolves this violation class. */
+  resolution?: string;
 }
 
 export interface AssuranceReport {
@@ -156,5 +178,7 @@ export interface AssuranceReport {
   unevaluated_capabilities: string[];
   open_defeaters: string[];
   approved_exceptions: string[];
+  /** IDs of open obligations tracking this case's defeaters. */
+  open_obligations: string[];
   violations: AssuranceViolation[];
 }

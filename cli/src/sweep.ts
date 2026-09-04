@@ -77,7 +77,8 @@ export function sweep(dddDir: string, direction: SweepDirection = "both"): Sweep
         violations.push({
           type: "claim-without-source",
           claim_id: claim.id,
-          message: `Claim ${claim.id} has no sources; every claim MUST cite at least one evidence source.`,
+          message: `Claim ${claim.id} has no sources. Rule: every claim MUST cite at least one evidence source (field: sources, expected: [{ref: "EL-NNN[#section]", authority_domain: "...", entailment: "explicit|implicit|paraphrase"}]).`,
+          resolution: `Lock the evidence first (ddd lock <url> --version <v> ...), then re-record the claim with --source EL-NNN[#section]`,
         });
       } else {
         for (const sourceRef of claim.sources) {
@@ -87,7 +88,8 @@ export function sweep(dddDir: string, direction: SweepDirection = "both"): Sweep
             violations.push({
               type: "claim-with-missing-evidence",
               claim_id: claim.id,
-              message: `Claim ${claim.id} references missing evidence ${sourceId}.`,
+              message: `Claim ${claim.id} references missing evidence ${sourceId}. Rule: sources[].ref must name an entry that exists in .ddd/evidence.lock.`,
+              resolution: `Lock the source first: ddd lock <url> --version <v> --source-class <class> ...`,
             });
             continue;
           }
@@ -95,7 +97,8 @@ export function sweep(dddDir: string, direction: SweepDirection = "both"): Sweep
             violations.push({
               type: "claim-with-inactive-evidence",
               claim_id: claim.id,
-              message: `Claim ${claim.id} references inactive evidence ${sourceId}.`,
+              message: `Claim ${claim.id} references inactive evidence ${sourceId}${evidence.superseded_by ? ` (superseded by ${evidence.superseded_by})` : " (revoked)"}. Rule: claims must cite active evidence only.`,
+              resolution: `Re-record the claim citing ${evidence.superseded_by ?? "an active entry"} instead of ${sourceId}`,
             });
           }
           if (
@@ -139,7 +142,8 @@ export function sweep(dddDir: string, direction: SweepDirection = "both"): Sweep
             violations.push({
               type: "authority-domain-mismatch",
               claim_id: claim.id,
-              message: `Evidence ${sourceId} is not authoritative for ${sourceRef.authority_domain}.`,
+              message: `Evidence ${sourceId} is not authoritative for "${sourceRef.authority_domain}". Rule: the claim's --authority must appear in the evidence entry's authority_for (has: [${(evidence.authority_for ?? []).join(", ")}]).`,
+              resolution: `Re-record the claim with --authority set to one of: ${(evidence.authority_for ?? []).join(", ")}`,
             });
           }
           if (evidence.independence === "agent-authored-unapproved") {
@@ -160,13 +164,15 @@ export function sweep(dddDir: string, direction: SweepDirection = "both"): Sweep
             violations.push({
               type: "citation-not-verified",
               claim_id: claim.id,
-              message: `Claim ${claim.id} has no recorded entailment result for ${sourceRef.ref}.`,
+              message: `Claim ${claim.id} has no recorded entailment result for ${sourceRef.ref}. Rule: every citation must record a positive entailment (field: sources[].entailment, expected: explicit | implicit | paraphrase).`,
+              resolution: `Verify the section supports the claim, then re-record the claim with --entailment explicit (or implicit + --rationale)`,
             });
           } else if (["not-entailed", "contradicts"].includes(sourceRef.entailment)) {
             violations.push({
               type: "citation-failed",
               claim_id: claim.id,
-              message: `Claim ${claim.id} failed entailment (${sourceRef.entailment}) for ${sourceRef.ref}.`,
+              message: `Claim ${claim.id} failed entailment (${sourceRef.entailment}) for ${sourceRef.ref}. Rule: only positive entailment results can support a claim.`,
+              resolution: `Re-record the claim citing a section that actually supports it, or retract the claim`,
             });
           }
           if (sourceRef.entailment === "implicit" && !claim.rationale?.trim()) {
@@ -216,7 +222,8 @@ export function sweep(dddDir: string, direction: SweepDirection = "both"): Sweep
         violations.push({
           type: "claim-without-construct",
           claim_id: claim.id,
-          message: `Claim ${claim.id} has no declared implementation construct.`,
+          message: `Claim ${claim.id} has no declared implementation construct. Rule: every claim must name the symbols it covers (field: constructs, expected: [<path>#<symbol>, ...]).`,
+          resolution: `Re-record the claim with --construct <path>#<symbol>[,<path>#<symbol>]`,
         });
       }
       for (const construct of claim.constructs ?? []) {
@@ -228,7 +235,8 @@ export function sweep(dddDir: string, direction: SweepDirection = "both"): Sweep
             type: "untraced-construct",
             claim_id: claim.id,
             construct,
-            message: `Construct "${construct}" on claim ${claim.id} has no trace entry.`,
+            message: `Construct "${construct}" on claim ${claim.id} has no trace entry. Rule: every declared construct must have a matching trace (claim_id + construct_id) in .ddd/trace-matrix.yaml.`,
+            resolution: `ddd trace ${claim.id} ${construct}`,
           });
         }
       }
@@ -248,7 +256,8 @@ export function sweep(dddDir: string, direction: SweepDirection = "both"): Sweep
           violations.push({
             type: "claim-without-validation",
             claim_id: claim.id,
-            message: `Claim ${claim.id} is ${effectiveTier} and requires validation.`,
+            message: `Claim ${claim.id} is ${effectiveTier} and requires validation. Rule: T2/T3 claims must link at least one passing validation record (field: validations, expected: [V-NNN, ...]).`,
+            resolution: `Run the check, then: ddd validation --claim ${claim.id} --construct <symbol> --method <test|lint|type-check|formal|manual|runtime-assertion> --target <file>`,
           });
         }
         for (const validationId of claim.validations ?? []) {
@@ -257,7 +266,8 @@ export function sweep(dddDir: string, direction: SweepDirection = "both"): Sweep
             violations.push({
               type: "validation-record-missing",
               claim_id: claim.id,
-              message: `Validation ${validationId} for claim ${claim.id} has no record in reports/validations.yaml.`,
+              message: `Validation ${validationId} for claim ${claim.id} has no record in reports/validations.yaml. Rule: claim validations[] must reference existing records.`,
+              resolution: `Record it: ddd validation --claim ${claim.id} --construct <symbol> --method <m> --target <file>, then re-record the claim with --validation ${validationId.replace(/^V-/, "V-")}`,
             });
           } else if ((validation.claim ?? validation.claim_id) !== claim.id) {
             violations.push({
@@ -285,7 +295,8 @@ export function sweep(dddDir: string, direction: SweepDirection = "both"): Sweep
               type: "trace-without-validation",
               claim_id: claim.id,
               trace_id: trace.id,
-              message: `Trace ${trace.id} implements ${effectiveTier} claim ${claim.id} without validation.`,
+              message: `Trace ${trace.id} implements ${effectiveTier} claim ${claim.id} without validation. Rule: T2/T3 traces must reference a validation id.`,
+              resolution: `Record it (ddd validation --claim ${claim.id} --construct ${trace.construct_id} --method <m> --target <file>), then re-trace with --validation <V-NNN>`,
             });
           } else if (!(claim.validations ?? []).includes(trace.validation_id)) {
             violations.push({

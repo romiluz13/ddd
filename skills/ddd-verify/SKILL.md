@@ -40,7 +40,8 @@ Read the generated report and inspect:
 4. `unevaluated_capabilities`
 5. `open_defeaters`
 6. `approved_exceptions`
-7. `violations`
+7. `open_obligations`
+8. `violations`
 
 Also inspect the `stack_coverage`, `reference_evidence_completeness`,
 `gap_resolution`, `platform_constraints`, `frontend_coverage`, and
@@ -71,7 +72,8 @@ reported limitation remains visible.
 - Every affected platform has constraint evidence.
 - Frontend files are in the evidence boundary.
 - Cross-layer interactions are recorded with a rationale.
-- A waiver is human-approved, scoped, and reasoned.
+- A waiver is human-approved, scoped, reasoned, and unexpired.
+- An open obligation tracks work; it does not resolve its defeater.
 - No exception is described as evidence of correctness.
 
 Adversarial refutation and broad drift remain research capabilities.

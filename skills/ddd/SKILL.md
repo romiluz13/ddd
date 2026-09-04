@@ -57,8 +57,11 @@ control compilation, broad drift, object passports, and federation are
 research. Their archived skills under `research/skills/` are reference material,
 not workflow gates.
 
-The `discover`, `refute`, `exception`, `obligation`, and `compile` machine
+The `discover`, `refute`, and `compile` machine
 commands are stubs. Report that status instead of simulating completion.
+`exception`, `obligation`, `goal`, and `validation` are implemented writers;
+route waiver, defeater-tracking, goal-declaration, and proof-recording work to
+them instead of editing artifacts by hand.
 
 ## Output
 

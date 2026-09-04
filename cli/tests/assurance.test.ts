@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -232,6 +232,7 @@ describe("assurance policy evaluator", () => {
       derived_from: [],
       status: "approved",
       rationale: "Temporary vendor documentation gap accepted by release owner",
+      expires_at: "2999-12-31",
       provenance: {
         origin: "human",
         actor: "release-owner",
@@ -251,6 +252,77 @@ describe("assurance policy evaluator", () => {
 
     expect(report.verdict).toBe("WAIVED");
     expect(report.approved_exceptions).toEqual(["EXC-001"]);
+  });
+
+  test("rejects an expired or untime-boxed waiver", () => {
+    const assuranceCase = baseCase();
+    assuranceCase.edges = assuranceCase.edges.filter((edge) => edge.edge_type !== "supports");
+    assuranceCase.nodes.push(
+      {
+        id: "EXC-001",
+        node_type: "exception",
+        label: "Expired waiver",
+        epistemic_role: "waiver",
+        approval_state: "approved",
+        derived_from: [],
+        status: "approved",
+        rationale: "Accepted risk whose time box has lapsed",
+        expires_at: "2000-01-01",
+        provenance: {
+          origin: "human",
+          actor: "release-owner",
+          tool: "manual-approval",
+          revision: "head",
+          captured_at: "1999-12-31T00:00:00.000Z",
+        },
+      },
+      {
+        id: "EXC-002",
+        node_type: "exception",
+        label: "Waiver without a time box",
+        epistemic_role: "waiver",
+        approval_state: "approved",
+        derived_from: [],
+        status: "approved",
+        rationale: "Accepted risk with no expiry recorded",
+        provenance: {
+          origin: "human",
+          actor: "release-owner",
+          tool: "manual-approval",
+          revision: "head",
+          captured_at: "2026-08-31T00:00:00.000Z",
+        },
+      },
+    );
+    assuranceCase.edges.push(
+      {
+        id: "EDGE-003",
+        edge_type: "waives",
+        source_node: "EXC-001",
+        target_node: "REQ-001",
+      },
+      {
+        id: "EDGE-004",
+        edge_type: "waives",
+        source_node: "EXC-002",
+        target_node: "REQ-001",
+      },
+    );
+
+    const report = evaluateAssuranceCase(assuranceCase);
+
+    expect(report.verdict).toBe("UNSATISFIED");
+    expect(report.approved_exceptions).toEqual([]);
+    expect(report.violations).toContainEqual(
+      expect.objectContaining({
+        type: "invalid-waiver",
+        node_id: "EXC-001",
+        resolution: expect.stringContaining("ddd exception --goal REQ-001"),
+      }),
+    );
+    expect(report.violations).toContainEqual(
+      expect.objectContaining({ type: "invalid-waiver", node_id: "EXC-002" }),
+    );
   });
 
   test("rejects a waiver aimed at a non-goal node", () => {
@@ -522,6 +594,66 @@ describe("change scope", () => {
     expect(envelope.affected_platforms).toEqual(["cloudflare-workers"]);
     expect(envelope.frontend_files).toEqual(["src/App.tsx", "src/styles.css"]);
     expect(envelope.boundary_confidence).toBe("complete");
+  });
+
+  test("marks stack-exercising files as boundary files and is idempotent per range", () => {
+    const projectRoot = mkdtempSync(join(tmpdir(), "proofline-boundary-scope-"));
+    temporaryDirectories.push(projectRoot);
+    const bookDir = join(projectRoot, ".ddd");
+    mkdirSync(join(projectRoot, "src"), { recursive: true });
+    mkdirSync(bookDir, { recursive: true });
+    runGit(projectRoot, "init");
+    writeFileSync(
+      join(projectRoot, "package.json"),
+      '{"dependencies":{"react":"19.0.0"}}\n',
+    );
+    writeFileSync(join(projectRoot, "src", "stale.ts"), "export const old = true;\n");
+    runGit(projectRoot, "add", ".");
+    runGit(
+      projectRoot,
+      "-c",
+      "user.name=Test",
+      "-c",
+      "user.email=test@example.com",
+      "commit",
+      "-m",
+      "base",
+    );
+    const base = runGit(projectRoot, "rev-parse", "HEAD").trim();
+
+    writeFileSync(
+      join(projectRoot, "src", "api.ts"),
+      'import React from "react";\nexport const callApi = () => 1;\n',
+    );
+    writeFileSync(join(projectRoot, "src", "internal.ts"), "export const helper = () => 2;\n");
+    rmSync(join(projectRoot, "src", "stale.ts"));
+    runGit(projectRoot, "add", ".");
+    runGit(
+      projectRoot,
+      "-c",
+      "user.name=Test",
+      "-c",
+      "user.email=test@example.com",
+      "commit",
+      "-m",
+      "head",
+    );
+    const head = runGit(projectRoot, "rev-parse", "HEAD").trim();
+
+    const envelope = scopeChange(projectRoot, bookDir, { base, head });
+    const rerun = scopeChange(projectRoot, bookDir, { base, head });
+
+    // Only the file importing the declared stack lands in boundary_files.
+    expect(envelope.boundary_files).toEqual(["src/api.ts"]);
+    expect(envelope.changed_symbols).toEqual(
+      expect.arrayContaining(["src/api.ts#callApi", "src/internal.ts#helper", "src/stale.ts#old"]),
+    );
+    // Re-scoping the same (base, head) range returns the same envelope.
+    expect(rerun.id).toBe(envelope.id);
+    const caseFiles = readdirSync(join(bookDir, "cases"))
+      .filter((name) => name.startsWith("ENV-"))
+      .sort();
+    expect(caseFiles).toEqual([`${envelope.id}.json`]);
   });
 });
 
@@ -851,6 +983,190 @@ entries:
       ),
     ).toBe(true);
     expect(report.verdict).toBe("SATISFIED");
+  });
+
+  test("wires declared goals, waivers, obligations, and partitions symbols by boundary", () => {
+    const projectRoot = mkdtempSync(join(tmpdir(), "proofline-partition-case-"));
+    temporaryDirectories.push(projectRoot);
+    const bookDir = join(projectRoot, ".proofline");
+    mkdirSync(join(bookDir, "cases"), { recursive: true });
+    mkdirSync(join(bookDir, "cache"), { recursive: true });
+    const evidenceContent = "# Widget API v2\n\ncreateWidget is supported.\n";
+    writeFileSync(join(bookDir, "cache", "widget.md"), evidenceContent);
+    const envelope = {
+      ...baseCase().envelope,
+      schema_version: "0.5.0" as const,
+      changed_files: ["src/api.ts", "src/helpers.ts", "src/internal.ts"],
+      changed_symbols: [
+        "src/api.ts#fetchWidget",
+        "src/helpers.ts#formatName",
+        "src/internal.ts#deepHelper",
+      ],
+      boundary_files: ["src/api.ts"],
+    };
+    writeFileSync(join(bookDir, "cases", "ENV-001.json"), `${JSON.stringify(envelope, null, 2)}\n`);
+    writeFileSync(
+      join(bookDir, "evidence.lock"),
+      `schema_version: 0.1.0
+entries:
+  - id: EL-001
+    source_class: vendor-doc
+    source_url: https://docs.example.com/widget/v2
+    version: 2.0.0
+    doc_version: 2.0.0
+    status: normative
+    independence: external
+    authority_for: [api-semantics]
+    cache_path: cache/widget.md
+    content_digest: sha256:${sha256Hex(evidenceContent)}
+    retrieved_at: 2026-08-31T00:00:00.000Z
+`,
+    );
+    writeFileSync(
+      join(bookDir, "claims.yaml"),
+      `schema_version: 0.1.0
+entries:
+  - id: C-001
+    statement: "Use createWidget from v2"
+    status: known-and-supported
+    tier: T2
+    claim_kind: api
+    impact: high
+    sources:
+      - ref: EL-001#createWidget
+        authority_domain: api-semantics
+        entailment: explicit
+    constructs: [src/api.ts#fetchWidget]
+    validations: [V-001]
+  - id: C-002
+    statement: "Payments retry policy"
+    status: known-and-supported
+    tier: T1
+    claim_kind: behavioral
+    impact: medium
+    sources: []
+    constructs: []
+    validations: []
+`,
+    );
+    writeFileSync(
+      join(bookDir, "trace-matrix.yaml"),
+      `schema_version: 0.1.0
+traces:
+  - id: TR-001
+    claim_id: C-001
+    construct_id: src/api.ts#fetchWidget
+    validation_id: V-001
+    direction: forward
+`,
+    );
+    mkdirSync(join(bookDir, "reports"), { recursive: true });
+    writeFileSync(
+      join(bookDir, "reports", "validations.yaml"),
+      `schema_version: 0.1.0
+entries:
+  - id: V-001
+    claim: C-001
+    construct: src/api.ts#fetchWidget
+    method: test
+    target: test:fetch-widget
+    result: pass
+    run_at: 2026-08-31T00:00:00.000Z
+    evidence_hash: sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+`,
+    );
+    // C-002 is not change-matched; declaring it as a goal keeps it reachable.
+    writeFileSync(
+      join(bookDir, "goals.yaml"),
+      `schema_version: 0.1.0
+goals:
+  - id: GOAL-001
+    schema_version: 0.1.0
+    claim: C-002
+    statement: Payments retry policy
+    created_at: 2026-08-31T00:00:00.000Z
+`,
+    );
+    writeFileSync(
+      join(bookDir, "exceptions.yaml"),
+      `schema_version: 0.1.0
+exceptions:
+  - id: EXC-001
+    schema_version: 0.1.0
+    goal: C-002
+    rationale: "Vendor retry docs pending; risk accepted until they land"
+    owner: release-owner
+    expires_at: 2999-12-31
+    status: approved
+    created_at: 2026-08-31T00:00:00.000Z
+`,
+    );
+    writeFileSync(
+      join(bookDir, "obligations.yaml"),
+      `schema_version: 0.1.0
+obligations:
+  - id: OB-001
+    schema_version: 0.1.0
+    defeater: stack:dependency:react
+    description: Pin and document the react version
+    issue: https://github.com/org/repo/issues/12
+    status: open
+    created_at: 2026-08-31T00:00:00.000Z
+`,
+    );
+    writeFileSync(
+      join(bookDir, "stack.yaml"),
+      `schema_version: 0.5.0
+components:
+  - id: STK-001
+    kind: dependency
+    name: react
+`,
+    );
+
+    const assuranceCase = buildAssuranceCase(bookDir, "ENV-001");
+
+    // Declared goal joins change-matched claims as a case goal.
+    expect(assuranceCase.goals).toEqual(expect.arrayContaining(["C-001", "C-002"]));
+    // Symbol partitioning: traced -> covered, boundary file -> gap, internal
+    // -> outside-boundary (no gap).
+    const coverageByConstruct = new Map(
+      assuranceCase.nodes
+        .filter((node) => node.node_type === "implementation")
+        .map((node) => [node.construct as string, node.coverage_status]),
+    );
+    expect(coverageByConstruct.get("src/api.ts#fetchWidget")).toBe("covered");
+    expect(coverageByConstruct.get("src/helpers.ts#formatName")).toBe("outside-boundary");
+    expect(coverageByConstruct.get("src/internal.ts#deepHelper")).toBe("outside-boundary");
+    // Waiver node and edge for the declared goal.
+    const waiver = assuranceCase.nodes.find((node) => node.id === "EXC-001");
+    expect(waiver?.node_type).toBe("exception");
+    expect(waiver?.expires_at).toBe("2999-12-31");
+    expect(
+      assuranceCase.edges.some(
+        (edge) => edge.edge_type === "waives" && edge.source_node === "EXC-001" && edge.target_node === "C-002",
+      ),
+    ).toBe(true);
+    // Obligation bound to this case's defeater.
+    expect(assuranceCase.defeaters).toContain("stack:dependency:react");
+    expect(assuranceCase.obligations).toEqual([
+      expect.objectContaining({ id: "OB-001", defeater: "stack:dependency:react", status: "open" }),
+    ]);
+
+    const report = evaluateAssuranceCase(assuranceCase);
+
+    // The internal symbols produce no uncovered-construct violations.
+    expect(
+      report.violations.filter(
+        (violation) =>
+          violation.type === "uncovered-construct" &&
+          (violation.construct ?? "").startsWith("src/helpers.ts"),
+      ),
+    ).toEqual([]);
+    expect(report.approved_exceptions).toEqual(["EXC-001"]);
+    expect(report.open_obligations).toEqual(["OB-001"]);
+    // The obligation does not resolve the defeater: still INDETERMINATE.
+    expect(report.verdict).toBe("INDETERMINATE");
   });
 
   test("rejects artifact IDs that could escape the cases or reports directories", () => {

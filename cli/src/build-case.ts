@@ -5,6 +5,8 @@ import type {
   AssuranceEdge,
   AssuranceNode,
   CapabilityStatus,
+  ChangeEnvelope,
+  CoverageStatus,
 } from "./assurance-types";
 import type { Claim, EvidenceLockEntry, TraceEntry } from "./types";
 import { analyzeCoverage } from "./coverage";
@@ -31,6 +33,30 @@ interface ValidationRecord {
   evidence_hash?: string;
 }
 
+interface GoalLedgerEntry {
+  id: string;
+  claim: string;
+  statement?: string;
+}
+
+interface ExceptionLedgerEntry {
+  id: string;
+  goal: string;
+  rationale: string;
+  owner: string;
+  expires_at: string;
+  status?: string;
+}
+
+interface ObligationLedgerEntry {
+  id: string;
+  defeater: string;
+  description?: string;
+  issue: string;
+  due_at?: string;
+  status?: string;
+}
+
 export function buildAssuranceCase(bookDir: string, envelopeIdOrPath: string): AssuranceCase {
   const envelope = loadChangeEnvelope(bookDir, envelopeIdOrPath);
   const evidence = readEntries<ExtendedEvidence>(join(bookDir, "evidence.lock"), "entries");
@@ -42,6 +68,12 @@ export function buildAssuranceCase(bookDir: string, envelopeIdOrPath: string): A
     join(bookDir, "reports", "validations.yaml"),
     "entries",
   );
+  const declaredGoals = readEntries<GoalLedgerEntry>(join(bookDir, "goals.yaml"), "goals");
+  const exceptions = readEntries<ExceptionLedgerEntry>(join(bookDir, "exceptions.yaml"), "exceptions");
+  const obligations = readEntries<ObligationLedgerEntry>(
+    join(bookDir, "obligations.yaml"),
+    "obligations",
+  );
   const nodes: AssuranceNode[] = evidence.map(evidenceNode);
   const edges: AssuranceEdge[] = [];
 
@@ -51,9 +83,17 @@ export function buildAssuranceCase(bookDir: string, envelopeIdOrPath: string): A
       .filter((trace) => changedSymbols.has(trace.construct_id))
       .map((trace) => trace.claim_id),
   );
+  // Declared goals join the change-matched claims so a case always has
+  // reachable goals even when symbol matching finds no relevant claims.
+  const declaredGoalClaimIds = new Set(
+    declaredGoals
+      .map((goal) => goal.claim)
+      .filter((claimId) => claims.some((claim) => claim.id === claimId)),
+  );
   const relevantClaims = claims.filter(
     (claim) =>
       tracedClaimIds.has(claim.id) ||
+      declaredGoalClaimIds.has(claim.id) ||
       (claim.constructs ?? []).some((construct) => changedSymbols.has(construct)),
   );
   for (const claim of relevantClaims) {
@@ -147,7 +187,11 @@ export function buildAssuranceCase(bookDir: string, envelopeIdOrPath: string): A
       approval_state: "not-applicable",
       derived_from: [],
       construct,
-      coverage_status: constructTraces.length > 0 ? "covered" : "gap",
+      // Partition: claim-covered (traced) / boundary-relevant (in a file that
+      // exercises the declared external stack) / internal (below the
+      // supported boundary). 0.4.0 envelopes have no boundary_files, so every
+      // changed symbol stays boundary-relevant.
+      coverage_status: partitionCoverageStatus(envelope, construct, constructTraces.length),
       provenance: {
         origin: "project",
         actor: "change-author",
@@ -176,6 +220,37 @@ export function buildAssuranceCase(bookDir: string, envelopeIdOrPath: string): A
         target_node: sourceId,
       });
     }
+  }
+
+  // Approved waivers for case goals: accepted risk, not correctness evidence.
+  // Expiry is evaluated at evaluation time; an expired waiver is invalid.
+  const caseGoalIds = new Set(relevantClaims.map((claim) => claim.id));
+  for (const exception of exceptions) {
+    if (!caseGoalIds.has(exception.goal)) continue;
+    nodes.push({
+      id: exception.id,
+      node_type: "exception",
+      label: `Waiver: ${exception.goal}`,
+      epistemic_role: "waiver",
+      approval_state: exception.status === "rejected" ? "rejected" : "approved",
+      derived_from: [],
+      status: "approved",
+      rationale: `${exception.rationale} (owner: ${exception.owner}, expires: ${exception.expires_at})`,
+      expires_at: exception.expires_at,
+      provenance: {
+        origin: "human",
+        actor: exception.owner,
+        tool: "exception",
+        revision: envelope.head_revision,
+        captured_at: envelope.created_at,
+      },
+    });
+    edges.push({
+      id: nextEdgeId(edges),
+      edge_type: "waives",
+      source_node: exception.id,
+      target_node: exception.goal,
+    });
   }
 
   for (const [index, contractPath] of envelope.affected_contracts.entries()) {
@@ -211,6 +286,18 @@ export function buildAssuranceCase(bookDir: string, envelopeIdOrPath: string): A
   };
   const coverage = analyzeCoverage(bookDir, envelope, evidence);
   Object.assign(capabilities, coverage.capabilities);
+  // Obligations bind this case's open defeaters to tracking issues. They
+  // record that evidence is coming; they do not resolve the defeater.
+  const caseDefeaters = new Set(coverage.defeaters);
+  const caseObligations = obligations
+    .filter((obligation) => caseDefeaters.has(obligation.defeater))
+    .map((obligation) => ({
+      id: obligation.id,
+      defeater: obligation.defeater,
+      issue: obligation.issue,
+      due_at: obligation.due_at,
+      status: obligation.status === "fulfilled" ? ("fulfilled" as const) : ("open" as const),
+    }));
   const requiredCapabilities = ["boundary_discovery"];
   if (relevantClaims.length > 0) requiredCapabilities.push("external_evidence");
   if (envelope.affected_dependencies.length > 0) requiredCapabilities.push("dependency_detection");
@@ -230,6 +317,7 @@ export function buildAssuranceCase(bookDir: string, envelopeIdOrPath: string): A
     defeaters: coverage.defeaters,
     capabilities,
     required_capabilities: requiredCapabilities,
+    obligations: caseObligations.length > 0 ? caseObligations : undefined,
     created_at: nowIso(),
   };
 
@@ -289,6 +377,23 @@ function readEntries<T>(path: string, key: string): T[] {
   const document = parseYaml(readText(path)) as Record<string, unknown>;
   const entries = document[key];
   return Array.isArray(entries) ? (entries as T[]) : [];
+}
+
+/**
+ * Classify a changed construct: covered when traced to a claim,
+ * boundary-relevant when its defining file exercises the declared external
+ * stack, internal otherwise. 0.4.0 envelopes carry no boundary_files, so
+ * every changed file counts as boundary-relevant (legacy behavior).
+ */
+function partitionCoverageStatus(
+  envelope: ChangeEnvelope,
+  construct: string,
+  traceCount: number,
+): CoverageStatus {
+  if (traceCount > 0) return "covered";
+  const boundaryFiles = new Set(envelope.boundary_files ?? envelope.changed_files);
+  const file = construct.split("#", 1)[0];
+  return boundaryFiles.has(file) ? "gap" : "outside-boundary";
 }
 
 function normalizeTier(value: string | undefined): AssuranceNode["risk_tier"] {

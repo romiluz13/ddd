@@ -12,11 +12,15 @@ import { classifyReport } from "../src/classify";
 import { addClaim, type ClaimImpact, type ClaimKind } from "../src/claim";
 import { driftCheck } from "../src/drift";
 import { doctor } from "../src/doctor";
+import { addException } from "../src/exception";
+import { addGoal } from "../src/goal";
+import { addObligation } from "../src/obligation";
 import { LOCKABLE_SOURCE_CLASSES, lockEvidence } from "../src/lock";
 import { assemblePacket } from "../src/packet";
 import { scopeChange } from "../src/scope-change";
 import { sweep, type SweepDirection } from "../src/sweep";
 import { addTrace } from "../src/trace";
+import { addValidation } from "../src/validation";
 import { isStubPrimitive, runStub } from "../src/stubs";
 import { csv, findDddDir, parseArgs, readText } from "../src/utils";
 
@@ -56,6 +60,26 @@ Commands (implemented):
       --max-chars <n>                  Maximum captured-content characters (default: 100000)
   sweep [--direction <dir>]         Compliance sweep over claims + trace matrix
                                       dir: forward | reverse | both (default: both)
+  validation [options]              Record a validation run for a claim construct
+      --claim <C-NNN>                 Required: claim being validated
+      --construct <symbol>            Required: must equal a claim constructs[] entry
+      --method <m>                    Required: test | lint | type-check | formal | manual | runtime-assertion
+      --target <file>                 Required: artifact the run executed (hash auto-computed)
+      --result <r>                    pass | fail (default: pass)
+      --hash <sha256:...>             Explicit artifact digest for non-file targets
+      --notes "<text>"                Free-form notes
+  goal --claim <C-NNN>               Declare a claim as an assurance-case goal
+      --statement "<text>"            Optional goal statement (defaults to claim statement)
+  exception [options]                Record an approved, time-boxed waiver for a goal
+      --goal <C-NNN>                  Required: goal claim being waived
+      --rationale "<text>"            Required: the accepted residual risk
+      --owner <name>                  Required: accountable human
+      --expires <date>                Required: future ISO date (YYYY-MM-DD[THH:MM:SSZ])
+  obligation [options]               Bind an unresolved defeater to a tracking issue
+      --defeater <id>                 Required: defeater id (e.g. stack:dependency:ai)
+      --issue <url>                   Required: http(s) issue URL
+      --description "<text>"          Optional: what evidence will resolve it
+      --due <YYYY-MM-DD>              Optional: due date
   trace <claim_id> <construct>      Append a trace entry to .ddd/trace-matrix.yaml
       --change <CH-NNN>               Change record id
       --direction <forward|reverse>   Trace direction (default: forward)
@@ -72,7 +96,7 @@ Commands (implemented):
   evaluate-case <CASE-NNN|path>     Evaluate a case and write its assurance report
 
 Commands (stubs — print "not yet implemented"):
-  discover, refute, exception, obligation, compile
+  discover, refute, compile
 
 Other:
   --ddd-dir <path>                  Override the .ddd directory (default: nearest ancestor)
@@ -223,6 +247,77 @@ async function main(): Promise<void> {
       return;
     }
 
+    case "validation": {
+      const claimId = str(flags.claim);
+      const construct = str(flags.construct);
+      const method = str(flags.method);
+      const target = str(flags.target);
+      if (!claimId || !construct || !method || !target) {
+        console.error(
+          "Usage: ddd validation --claim <C-NNN> --construct <symbol> --method <test|lint|type-check|formal|manual|runtime-assertion> --target <file>",
+        );
+        process.exit(2);
+      }
+      const result = str(flags.result) as "pass" | "fail" | undefined;
+      if (result !== undefined && !["pass", "fail"].includes(result)) {
+        throw new Error("--result must be one of: pass, fail");
+      }
+      const record = addValidation(dddDir, {
+        claimId,
+        construct,
+        method,
+        target,
+        result,
+        evidenceHash: str(flags.hash),
+        notes: str(flags.notes),
+      });
+      console.log(JSON.stringify(record, null, 2));
+      return;
+    }
+
+    case "goal": {
+      const claimId = str(flags.claim);
+      if (!claimId) {
+        console.error("Usage: ddd goal --claim <C-NNN> [--statement \"<text>\"]");
+        process.exit(2);
+      }
+      const entry = addGoal(dddDir, claimId, { statement: str(flags.statement) });
+      console.log(JSON.stringify(entry, null, 2));
+      return;
+    }
+
+    case "exception": {
+      const goal = str(flags.goal);
+      const rationale = str(flags.rationale);
+      const owner = str(flags.owner);
+      const expiresAt = str(flags.expires);
+      if (!goal || !rationale || !owner || !expiresAt) {
+        console.error(
+          'Usage: ddd exception --goal <C-NNN> --rationale "<accepted risk>" --owner <name> --expires <future ISO date>',
+        );
+        process.exit(2);
+      }
+      const entry = addException(dddDir, goal, { rationale, owner, expiresAt });
+      console.log(JSON.stringify(entry, null, 2));
+      return;
+    }
+
+    case "obligation": {
+      const defeater = positional[0] ?? str(flags.defeater);
+      const issue = str(flags.issue);
+      if (!defeater || !issue) {
+        console.error('Usage: ddd obligation --defeater <id> --issue <https://...> [--description "<text>"] [--due YYYY-MM-DD]');
+        process.exit(2);
+      }
+      const entry = addObligation(dddDir, defeater, {
+        issue,
+        description: str(flags.description),
+        dueAt: str(flags.due),
+      });
+      console.log(JSON.stringify(entry, null, 2));
+      return;
+    }
+
     case "drift-check":
     case "drift_check":
     case "drift": {
@@ -287,6 +382,30 @@ async function main(): Promise<void> {
         join(reportsDir, `${assuranceCase.id}.assurance.json`),
         `${JSON.stringify(report, null, 2)}\n`,
       );
+      // Human summary on stderr; the JSON report stays the only stdout output.
+      const counts = new Map<string, number>();
+      for (const violation of report.violations) {
+        counts.set(violation.type, (counts.get(violation.type) ?? 0) + 1);
+      }
+      const byType = [...counts.entries()].map(([type, count]) => `${type}: ${count}`).join(", ");
+      console.error(`Case ${assuranceCase.id}: ${report.verdict}`);
+      if (report.violations.length > 0) {
+        console.error(`Violations: ${report.violations.length}${byType ? ` (${byType})` : ""}`);
+        for (const violation of report.violations.slice(0, 5)) {
+          console.error(`  - [${violation.type}] ${violation.message}`);
+          if (violation.resolution) console.error(`    fix: ${violation.resolution}`);
+        }
+        if (report.violations.length > 5) {
+          console.error(`  ... and ${report.violations.length - 5} more (see JSON report)`);
+        }
+      }
+      if (report.open_defeaters.length > 0) {
+        console.error(`Open defeaters: ${report.open_defeaters.join(", ")}`);
+      }
+      if (report.open_obligations.length > 0) {
+        console.error(`Open obligations: ${report.open_obligations.join(", ")}`);
+      }
+      console.error(`Report: ${join(reportsDir, `${assuranceCase.id}.assurance.json`)}`);
       console.log(JSON.stringify(report, null, 2));
       if (!["SATISFIED", "WAIVED"].includes(report.verdict)) process.exit(1);
       return;

@@ -127,6 +127,8 @@ export interface SweepViolation {
   trace_id?: string;
   construct?: string;
   message: string;
+  /** Exact command or action that resolves this violation class. */
+  resolution?: string;
 }
 
 export interface SweepReport {

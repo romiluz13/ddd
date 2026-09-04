@@ -502,11 +502,15 @@ describe("drift_check", () => {
 
 describe("stubs", () => {
   test("recognizes the stub primitives", () => {
-    for (const name of ["discover", "refute", "exception", "obligation", "compile"]) {
+    for (const name of ["discover", "refute", "compile"]) {
       expect(isStubPrimitive(name)).toBe(true);
     }
     expect(isStubPrimitive("packet")).toBe(false);
     expect(isStubPrimitive("claim")).toBe(false);
     expect(isStubPrimitive("sweep")).toBe(false);
+    expect(isStubPrimitive("validation")).toBe(false);
+    expect(isStubPrimitive("goal")).toBe(false);
+    expect(isStubPrimitive("exception")).toBe(false);
+    expect(isStubPrimitive("obligation")).toBe(false);
   });
 });
