@@ -270,6 +270,48 @@ export function yamlFlowList(items: string[]): string {
 }
 
 // ---------------------------------------------------------------------------
+// Ledger loading with round-trip integrity guard
+// ---------------------------------------------------------------------------
+
+export interface LoadedLedger<T> {
+  text: string;
+  entries: T[];
+}
+
+/**
+ * Load an append-style ledger (trace-matrix, validations, goals, exceptions,
+ * obligations) for writing.
+ *
+ * Round-trip guard: the minimal YAML parser reads only the CLI's dialect
+ * (sequence items indented deeper than their parent key, unfolded strings).
+ * An external tool (e.g. pyyaml) that rewrites a ledger emits a dialect the
+ * parser silently reads as a null list, which would make the next append
+ * restart IDs and interleave formats. To make that failure loud, a raw line
+ * scan of `- id:` items must agree with the parsed entry count; a null or
+ * truncated list under a non-empty ledger is corruption, not emptiness.
+ */
+export function loadLedger<T extends { id?: string }>(
+  path: string,
+  header: string,
+  key: string,
+): LoadedLedger<T> {
+  const text = existsSync(path) ? readText(path) : header;
+  const doc = (parseYaml(text) as Record<string, unknown>) ?? {};
+  const entries = Array.isArray(doc[key]) ? (doc[key] as T[]) : [];
+  const rawItemCount = (text.match(/^[ \t]*-[ \t]+id:/gm) ?? []).length;
+  if (rawItemCount !== entries.length) {
+    throw new Error(
+      `Ledger ${path} is corrupted: a raw scan finds ${rawItemCount} entries but the parser reads ${entries.length}. ` +
+        `Likely cause: an external tool rewrote the file in a YAML dialect the CLI parser cannot read ` +
+        `(sequence items at their parent key's indent, or folded strings), so the list reads as null. ` +
+        `Rule: ledgers must stay in the CLI's YAML dialect; edit them only through ddd writer commands. ` +
+        `Fix: restore the file from git history, or re-serialize it in the CLI dialect before appending.`,
+    );
+  }
+  return { text, entries };
+}
+
+// ---------------------------------------------------------------------------
 // CLI argument parsing
 // ---------------------------------------------------------------------------
 

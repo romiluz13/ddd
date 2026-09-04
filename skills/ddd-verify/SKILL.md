@@ -54,8 +54,8 @@ Interpret verdicts exactly:
 |---|---|
 | `SATISFIED` | Accept only within the reported complete boundary. |
 | `UNSATISFIED` | Correct the hard invariant or contradicted goal, then rebuild and evaluate. |
-| `INDETERMINATE` | Complete the missing boundary, premise, goal, or capability. |
-| `WAIVED` | Confirm the named human approval and residual-risk rationale. |
+| `INDETERMINATE` | Complete the missing boundary, premise, goal, or capability. Each violation names its resolution: evaluate it, track it (`ddd obligation --defeater capability:<name>`), or accept the residual risk (`ddd exception --capability <name>`). |
+| `WAIVED` | Confirm the named human approval and residual-risk rationale. A capability waiver is recorded risk, never correctness. |
 
 The step is complete when the verdict is acceptable to release policy and every
 reported limitation remains visible.
@@ -64,7 +64,7 @@ reported limitation remains visible.
 
 - Generated evidence does not support the implementation from which it derives.
 - Descriptive evidence does not terminate a normative support chain.
-- Required capabilities are evaluated.
+- Required capabilities are evaluated, waived, or tracked by an open obligation.
 - Every changed symbol is covered or explicitly excluded.
 - Every detected or declared stack component has locked evidence.
 - Every external Book reference maps to locked evidence.

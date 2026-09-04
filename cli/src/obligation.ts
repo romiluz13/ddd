@@ -6,9 +6,8 @@
  * resolve the defeater, and an obligation-backed defeater still yields
  * INDETERMINATE until the evidence lands.
  */
-import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { nextId, nowIso, parseYaml, readText, writeText, yamlScalar } from "./utils";
+import { loadLedger, nextId, nowIso, writeText, yamlScalar } from "./utils";
 
 const OBLIGATIONS_HEADER = `# DDD Obligations
 # Open work items binding unresolved defeaters to tracking issues. An
@@ -53,9 +52,12 @@ export function addObligation(
   }
 
   const obligationsPath = join(dddDir, "obligations.yaml");
-  let text = existsSync(obligationsPath) ? readText(obligationsPath) : OBLIGATIONS_HEADER;
-  const doc = (parseYaml(text) as { obligations?: ObligationEntry[] }) ?? {};
-  const obligations = Array.isArray(doc.obligations) ? doc.obligations : [];
+  const { text: baseText, entries: obligations } = loadLedger<ObligationEntry>(
+    obligationsPath,
+    OBLIGATIONS_HEADER,
+    "obligations",
+  );
+  let text = baseText;
   const existing = obligations.find(
     (obligation) => obligation.defeater === defeater && obligation.issue === opts.issue,
   );

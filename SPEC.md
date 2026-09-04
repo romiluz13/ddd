@@ -122,9 +122,15 @@ The detector MUST resolve both revisions before producing an envelope. Every
 changed symbol MUST be covered by an implementation node or named in an
 exclusion. Unsupported changed file classes lower boundary confidence.
 
-Scoping is idempotent per resolved (base, head) range: re-running
-`scope-change` with the same revisions returns the existing envelope instead
-of duplicating lineage.
+Scoping is idempotent per resolved (base, head) range and detector version:
+re-running `scope-change` with the same revisions and the current detector
+returns the existing envelope instead of duplicating lineage. An envelope
+cached by an older detector version is regenerated in place (same `ENV` id),
+and the CLI prints a regeneration notice on stderr; dependent cases must be
+rebuilt. Book ledgers (`.ddd/`), root-level project docs, and repository
+hygiene files are inert: they are not scanned for stack signals and carry no
+boundary-confidence penalty. Runtime builtin specifiers (`node:`, `bun:`,
+`deno:`, and Node builtins) are not external dependencies.
 
 `boundary_files` (0.5.0) lists changed files that exercise the declared
 external stack: they import a declared dependency or embed a literal external
@@ -248,8 +254,8 @@ All edge endpoints MUST exist. The graph formed by `supports` and
 ### 5.3 Case fields
 
 An assurance case contains the envelope, goal node IDs, nodes, edges,
-defeaters, capability statuses, required capabilities, obligations, and
-creation time.
+defeaters, capability statuses, required capabilities, obligations, capability
+waivers, and creation time.
 
 Case goals are the change-matched claims plus every claim declared in
 `.ddd/goals.yaml`, so a case always has reachable goals even when the
@@ -258,6 +264,15 @@ changed-symbol matching finds no relevant claims.
 Exception nodes carry `expires_at`. Approved waivers for case goals are
 bridged into the case with `waives` edges; an expired or untime-boxed waiver
 is invalid at evaluation time.
+
+Capability waivers (0.6.0) target required capabilities that no tool
+evaluates (`consumer_impact`, `contract_compatibility`). A case carries them
+as `capability_waivers` (capability, exception, owner, expiry). At evaluation
+time an unexpired capability waiver moves the case to `WAIVED` — recorded
+risk, never correctness; an expired one is invalid and the violation names
+the renewal path. The alternative resolution is an obligation on the
+`capability:<name>` defeater, which keeps the case honestly `INDETERMINATE`
+while the work is tracked.
 
 Obligations from `.ddd/obligations.yaml` bind this case's open defeaters to
 tracking issues. An obligation records that evidence is coming; it does not
@@ -326,7 +341,7 @@ The compatibility kernel stores:
 - `.ddd/claims.yaml`: atomic claims and source citations;
 - `.ddd/trace-matrix.yaml`: declared claim-to-construct links;
 - `.ddd/goals.yaml`: claims declared as assurance-case goals;
-- `.ddd/exceptions.yaml`: approved, time-boxed waivers for goals;
+- `.ddd/exceptions.yaml`: approved, time-boxed waivers for goals or required capabilities;
 - `.ddd/obligations.yaml`: open work binding unresolved defeaters to issues;
 - `.ddd/packets/`: bounded evidence packets;
 - `.ddd/reports/`: sweep, validation, and assurance reports.
@@ -366,8 +381,11 @@ set and an auto-computed artifact digest, and links the record back into the
 claim. `trace` and `validation` enforce the exact-match construct contract at
 write time: the construct MUST equal a claim `constructs[]` entry verbatim.
 `goal` declares a claim as an assurance-case goal. `exception` records an
-approved waiver with rationale, owner, and a future expiry date. `obligation`
-binds an unresolved defeater to a tracking issue.
+approved waiver with rationale, owner, and a future expiry date; its target is
+either a goal claim (`--goal C-NNN`) or a waivable required capability
+(`--capability consumer_impact | contract_compatibility`) that no tool
+evaluates. `obligation` binds an unresolved defeater (including
+`capability:<name>` defeaters) to a tracking issue.
 
 ### 8.3 Unsupported compatibility stubs
 
@@ -388,7 +406,7 @@ bun run cli/bin/ddd.ts build-case <ENV-NNN|path>
 bun run cli/bin/ddd.ts evaluate-case <CASE-NNN|path>
 bun run cli/bin/ddd.ts validation --claim <C-NNN> --construct <symbol> --method <m> --target <file>
 bun run cli/bin/ddd.ts goal --claim <C-NNN>
-bun run cli/bin/ddd.ts exception --goal <C-NNN> --rationale "<risk>" --owner <name> --expires <date>
+bun run cli/bin/ddd.ts exception (--goal <C-NNN> | --capability <name>) --rationale "<risk>" --owner <name> --expires <date>
 bun run cli/bin/ddd.ts obligation --defeater <id> --issue <url>
 ```
 

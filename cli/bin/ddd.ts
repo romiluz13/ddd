@@ -70,13 +70,15 @@ Commands (implemented):
       --notes "<text>"                Free-form notes
   goal --claim <C-NNN>               Declare a claim as an assurance-case goal
       --statement "<text>"            Optional goal statement (defaults to claim statement)
-  exception [options]                Record an approved, time-boxed waiver for a goal
-      --goal <C-NNN>                  Required: goal claim being waived
+  exception [options]                Record an approved, time-boxed waiver
+      --goal <C-NNN>                  Target: goal claim being waived
+      --capability <name>             Target: consumer_impact | contract_compatibility
+                                      (required capabilities no tool evaluates)
       --rationale "<text>"            Required: the accepted residual risk
       --owner <name>                  Required: accountable human
       --expires <date>                Required: future ISO date (YYYY-MM-DD[THH:MM:SSZ])
   obligation [options]               Bind an unresolved defeater to a tracking issue
-      --defeater <id>                 Required: defeater id (e.g. stack:dependency:ai)
+      --defeater <id>                 Required: defeater id (stack:... or capability:...)
       --issue <url>                   Required: http(s) issue URL
       --description "<text>"          Optional: what evidence will resolve it
       --due <YYYY-MM-DD>              Optional: due date
@@ -90,6 +92,8 @@ Commands (implemented):
   doctor                            Check repository-local installed skill copies
   scope-change --base <rev> --head <rev>
                                     Inventory a bounded change and its stack layers
+                                    (idempotent per range + detector version; an
+                                    envelope from an older detector is regenerated)
       --risk <level>                  low | medium | high | critical (default: medium)
       --owner <name>                  Accountable change owner
   build-case <ENV-NNN|path>         Build a typed assurance case from DDD artifacts
@@ -288,16 +292,23 @@ async function main(): Promise<void> {
 
     case "exception": {
       const goal = str(flags.goal);
+      const capability = str(flags.capability);
       const rationale = str(flags.rationale);
       const owner = str(flags.owner);
       const expiresAt = str(flags.expires);
-      if (!goal || !rationale || !owner || !expiresAt) {
+      if ((!goal && !capability) || (goal && capability) || !rationale || !owner || !expiresAt) {
         console.error(
-          'Usage: ddd exception --goal <C-NNN> --rationale "<accepted risk>" --owner <name> --expires <future ISO date>',
+          'Usage: ddd exception (--goal <C-NNN> | --capability <consumer_impact|contract_compatibility>) ' +
+            '--rationale "<accepted risk>" --owner <name> --expires <future ISO date>',
         );
         process.exit(2);
       }
-      const entry = addException(dddDir, goal, { rationale, owner, expiresAt });
+      const entry = addException(dddDir, goal || null, {
+        rationale,
+        owner,
+        expiresAt,
+        capability: capability || undefined,
+      });
       console.log(JSON.stringify(entry, null, 2));
       return;
     }
@@ -350,6 +361,12 @@ async function main(): Promise<void> {
             head,
             risk,
             owner: str(flags.owner),
+            onRegenerate: (info) => {
+              console.error(
+                `${info.id}: regenerated in place (detector ${info.from ?? "unknown"} -> ${info.to}); ` +
+                  "the cached envelope for this range predates the current detector. Rebuild dependent cases.",
+              );
+            },
           }),
           null,
           2,

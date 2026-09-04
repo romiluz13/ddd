@@ -36,7 +36,9 @@ research/            Superseded broad spec, skills, and detector registry
    distinct.
 5. A generated artifact cannot prove the revision that generated it.
 6. Descriptive evidence cannot establish a normative goal.
-7. An unevaluated required capability produces `INDETERMINATE`.
+7. An unevaluated required capability produces `INDETERMINATE` until it is
+   evaluated, waived by an unexpired capability waiver (`WAIVED`, recorded
+   risk), or tracked by an open obligation (still `INDETERMINATE`).
 8. A waiver records accepted risk; it is not correctness evidence.
 9. Never describe declared-scope verification as repository-wide conformance.
 10. Material under `research/` is not shipped behavior.

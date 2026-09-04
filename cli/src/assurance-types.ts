@@ -118,6 +118,19 @@ export interface CaseObligation {
   status: "open" | "fulfilled";
 }
 
+/**
+ * A waiver for a required capability that no tool evaluates (e.g.
+ * consumer_impact). Recorded risk, not correctness evidence: expiry is
+ * checked at evaluation time, and an expired capability waiver is invalid.
+ */
+export interface CapabilityWaiver {
+  capability: string;
+  /** The EXC-NNN exception entry that recorded the accepted risk. */
+  exception: string;
+  owner: string;
+  expires_at: string;
+}
+
 export interface AssuranceCase {
   schema_version: AssuranceSchemaVersion;
   id: string;
@@ -130,6 +143,8 @@ export interface AssuranceCase {
   required_capabilities: string[];
   /** Obligations tracking this case's open defeaters against issue URLs. */
   obligations?: CaseObligation[];
+  /** Approved, unexpired-at-build-time waivers for required capabilities. */
+  capability_waivers?: CapabilityWaiver[];
   implementer_id?: string;
   reviewer_id?: string;
   created_at: string;

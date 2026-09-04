@@ -13,7 +13,17 @@
 import { existsSync } from "node:fs";
 import { dirname, isAbsolute, join } from "node:path";
 import type { Claim } from "./types";
-import { nextId, nowIso, parseYaml, readText, sha256Digest, writeText, yamlFlowList, yamlScalar } from "./utils";
+import {
+  loadLedger,
+  nextId,
+  nowIso,
+  parseYaml,
+  readText,
+  sha256Digest,
+  writeText,
+  yamlFlowList,
+  yamlScalar,
+} from "./utils";
 
 const VALIDATIONS_HEADER = `# DDD Validation Records
 # Proof records for claims: one validation links to exactly one claim and
@@ -95,9 +105,12 @@ export function addValidation(dddDir: string, opts: AddValidationOptions): Valid
   const evidenceHash = resolveEvidenceHash(dddDir, opts);
 
   const validationsPath = join(dddDir, "reports", "validations.yaml");
-  let text = existsSync(validationsPath) ? readText(validationsPath) : VALIDATIONS_HEADER;
-  const doc = (parseYaml(text) as { entries?: Array<{ id?: string }> }) ?? {};
-  const entries = Array.isArray(doc.entries) ? doc.entries : [];
+  const { text: baseText, entries } = loadLedger<{ id?: string }>(
+    validationsPath,
+    VALIDATIONS_HEADER,
+    "entries",
+  );
+  let text = baseText;
 
   const record: ValidationRecord = {
     id: nextId(entries, "V"),

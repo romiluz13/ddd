@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { builtinModules } from "node:module";
-import { dirname, extname, join, normalize } from "node:path";
+import { basename, dirname, extname, join, normalize } from "node:path";
 import type { ChangeEnvelope } from "./assurance-types";
 import { nowIso } from "./utils";
 
@@ -9,7 +9,17 @@ export interface ScopeChangeOptions {
   head: string;
   risk?: ChangeEnvelope["risk"];
   owner?: string;
+  /** Notified when an existing envelope for the same range is regenerated because the detector version advanced. */
+  onRegenerate?: (info: { id: string; from: string | null; to: string }) => void;
 }
+
+/**
+ * Detector version: also the envelope-cache key. Idempotency holds per
+ * (base, head, detector version); when the detector advances, the cached
+ * envelope for a range is regenerated in place (same ENV id) so schema
+ * upgrades never require hand-deleting artifacts.
+ */
+const DETECTOR_VERSION = "0.6.0";
 
 const TYPESCRIPT_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts"]);
 const FRONTEND_EXTENSIONS = new Set([".tsx", ".jsx", ".css", ".scss", ".sass", ".vue", ".svelte"]);
@@ -30,10 +40,21 @@ export function scopeChange(
   const resolvedBase = resolveRevision(projectRoot, options.base);
   const resolvedHead = resolveRevision(projectRoot, options.head);
 
-  // Idempotent on (base, head): re-running the same range returns the
-  // existing envelope instead of duplicating lineage.
+  // Idempotent on (base, head, detector version): re-running the same range
+  // with the same detector returns the existing envelope instead of
+  // duplicating lineage. A range cached by an older detector is regenerated
+  // in place (same ENV id) so a tool upgrade never ships with an undocumented
+  // "delete the envelope by hand" migration step.
   const existing = findExistingEnvelope(bookDir, resolvedBase, resolvedHead);
-  if (existing) return existing;
+  if (existing) {
+    if ((existing.detector?.version ?? "") === DETECTOR_VERSION) return existing;
+    options.onRegenerate?.({
+      id: existing.id,
+      from: existing.detector?.version ?? null,
+      to: DETECTOR_VERSION,
+    });
+  }
+  const envelopeId = existing?.id ?? nextCaseArtifactId(bookDir, "ENV");
 
   const changedFiles = git(projectRoot, [
     "diff",
@@ -69,6 +90,11 @@ export function scopeChange(
   for (const path of changedFiles) {
     if (isContract(path)) affectedContracts.push(path);
     if (isFrontendFile(path)) frontendFiles.add(path);
+    // Book ledgers, project docs, and hygiene files carry no stack signals
+    // and no boundary-confidence penalty. Without this, every commit that
+    // advances the assurance cycle (ledger updates, docs, .gitignore) could
+    // never reach "complete" confidence.
+    if (isInertProjectFile(path, bookDir)) continue;
     const before = tryReadRevisionFile(projectRoot, options.base, path);
     const after = tryReadRevisionFile(projectRoot, options.head, path);
     const fileServices = extractExternalServices(`${before}\n${after}`);
@@ -105,7 +131,7 @@ export function scopeChange(
       } else {
         changedSymbols.push(...symbols.map((symbol) => `${path}#${symbol}`));
       }
-    } else if (!isContract(path) && !isSupportedProjectMetadata(path) && !isFrontendFile(path)) {
+    } else if (!isContract(path) && !isFrontendFile(path) && !isManifestFile(path)) {
       unsupportedFiles++;
     }
   }
@@ -113,7 +139,7 @@ export function scopeChange(
 
   const envelope: ChangeEnvelope = {
     schema_version: "0.5.0",
-    id: nextCaseArtifactId(bookDir, "ENV"),
+    id: envelopeId,
     base_revision: resolvedBase,
     head_revision: resolvedHead,
     changed_files: changedFiles,
@@ -142,7 +168,7 @@ export function scopeChange(
           : "unknown",
     detector: {
       name: "proofline-typescript-contracts",
-      version: "0.5.0",
+      version: DETECTOR_VERSION,
     },
     created_at: nowIso(),
   };
@@ -214,6 +240,9 @@ function extractBareImports(content: string): string[] {
       !specifier ||
       specifier.startsWith(".") ||
       specifier.startsWith("node:") ||
+      // Runtime-provided builtins are not external dependencies.
+      specifier.startsWith("bun:") ||
+      specifier.startsWith("deno:") ||
       builtinModules.includes(specifier)
     ) {
       continue;
@@ -325,9 +354,35 @@ function isContract(path: string): boolean {
   return CONTRACT_PATTERNS.some((pattern) => pattern.test(path));
 }
 
-function isSupportedProjectMetadata(path: string): boolean {
+/**
+ * Files that carry no external-stack signal and no boundary-confidence
+ * penalty: the book directory (the tool's own ledgers), root-level project
+ * docs, and repository hygiene files. Their content is not scanned either,
+ * so ledger issue URLs never surface as external services.
+ */
+function isInertProjectFile(path: string, bookDir: string): boolean {
+  const bookName = basename(bookDir);
+  const firstSegment = path.split("/")[0];
+  if (firstSegment === bookName) return true;
+  const name = path.split("/").at(-1) ?? "";
+  if (!path.includes("/") && /\.md$/i.test(path)) return true;
+  if (name === ".env.example" || /^\.env\.[\w.-]*example$/.test(name)) return true;
+  return [
+    ".gitignore",
+    ".gitattributes",
+    ".gitmodules",
+    ".editorconfig",
+    ".nvmrc",
+    ".npmrc",
+    "LICENSE",
+    "NOTICE",
+  ].includes(name);
+}
+
+/** Manifest and tool-configuration files: scanned for stack signals, but not counted as unsupported. */
+function isManifestFile(path: string): boolean {
   const name = path.split("/").at(-1);
-  if ([
+  return [
     "package.json",
     "bun.lock",
     "bun.lockb",
@@ -339,13 +394,7 @@ function isSupportedProjectMetadata(path: string): boolean {
     "wrangler.json",
     "wrangler.jsonc",
     "wrangler.toml",
-  ].includes(name ?? "")) {
-    return true;
-  }
-  return [
-    "README.md",
-    "SPEC.md",
-  ].includes(path);
+  ].includes(name ?? "");
 }
 
 function readRevisionFile(projectRoot: string, revision: string, path: string): string {

@@ -7,7 +7,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import type { Claim, TraceEntry } from "./types";
-import { nextId, nowIso, parseYaml, readText, writeText, yamlFlowList, yamlScalar } from "./utils";
+import { loadLedger, nextId, nowIso, parseYaml, readText, writeText, yamlFlowList, yamlScalar } from "./utils";
 
 const TRACE_HEADER = `# DDD Trace Matrix
 # Generated view of the evidence graph: trace entries mapping claims <-> constructs.
@@ -76,9 +76,12 @@ export function addTrace(
   }
 
   const tracePath = join(dddDir, "trace-matrix.yaml");
-  let text = existsSync(tracePath) ? readText(tracePath) : TRACE_HEADER;
-  const doc = (parseYaml(text) as { traces?: TraceEntry[] }) ?? {};
-  const traces = Array.isArray(doc.traces) ? doc.traces : [];
+  const { text: baseText, entries: traces } = loadLedger<TraceEntry>(
+    tracePath,
+    TRACE_HEADER,
+    "traces",
+  );
+  let text = baseText;
 
   const entry: TraceEntry = {
     id: nextId(traces, "TR"),

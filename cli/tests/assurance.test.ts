@@ -254,6 +254,128 @@ describe("assurance policy evaluator", () => {
     expect(report.approved_exceptions).toEqual(["EXC-001"]);
   });
 
+  test("waives an unevaluated required capability via an unexpired capability waiver", () => {
+    const assuranceCase = baseCase({
+      required_capabilities: ["boundary_discovery", "external_evidence", "consumer_impact"],
+      capabilities: {
+        boundary_discovery: "tool-enforced",
+        external_evidence: "tool-enforced",
+        consumer_impact: "not-evaluated",
+        internal_contracts: "not-evaluated",
+        semantic_entailment: "recorded-attestation",
+      },
+      capability_waivers: [
+        {
+          capability: "consumer_impact",
+          exception: "EXC-009",
+          owner: "release-owner",
+          expires_at: "2999-12-31",
+        },
+      ],
+    });
+
+    const report = evaluateAssuranceCase(assuranceCase);
+
+    // Recorded risk, never correctness: the verdict is WAIVED, not SATISFIED.
+    expect(report.verdict).toBe("WAIVED");
+    expect(report.approved_exceptions).toEqual(["EXC-009"]);
+    expect(report.violations).toEqual([]);
+  });
+
+  test("rejects an expired capability waiver with the renewal path named", () => {
+    const assuranceCase = baseCase({
+      required_capabilities: ["boundary_discovery", "external_evidence", "consumer_impact"],
+      capabilities: {
+        boundary_discovery: "tool-enforced",
+        external_evidence: "tool-enforced",
+        consumer_impact: "not-evaluated",
+        internal_contracts: "not-evaluated",
+        semantic_entailment: "recorded-attestation",
+      },
+      capability_waivers: [
+        {
+          capability: "consumer_impact",
+          exception: "EXC-009",
+          owner: "release-owner",
+          expires_at: "2000-01-01",
+        },
+      ],
+    });
+
+    const report = evaluateAssuranceCase(assuranceCase);
+
+    expect(report.verdict).toBe("INDETERMINATE");
+    expect(report.approved_exceptions).toEqual([]);
+    expect(report.violations).toContainEqual(
+      expect.objectContaining({
+        type: "unresolved-defeater",
+        message: expect.stringContaining("consumer_impact was not evaluated and its waiver expired"),
+        resolution: expect.stringContaining("ddd exception --capability consumer_impact"),
+      }),
+    );
+  });
+
+  test("keeps an obligation-tracked capability indeterminate with an honest message", () => {
+    const assuranceCase = baseCase({
+      required_capabilities: ["boundary_discovery", "external_evidence", "consumer_impact"],
+      capabilities: {
+        boundary_discovery: "tool-enforced",
+        external_evidence: "tool-enforced",
+        consumer_impact: "not-evaluated",
+        internal_contracts: "not-evaluated",
+        semantic_entailment: "recorded-attestation",
+      },
+      obligations: [
+        {
+          id: "OB-001",
+          defeater: "capability:consumer_impact",
+          issue: "https://github.com/org/repo/issues/20",
+          status: "open",
+        },
+      ],
+    });
+
+    const report = evaluateAssuranceCase(assuranceCase);
+
+    expect(report.verdict).toBe("INDETERMINATE");
+    expect(report.open_obligations).toEqual(["OB-001"]);
+    expect(report.violations).toContainEqual(
+      expect.objectContaining({
+        type: "unresolved-defeater",
+        message: expect.stringContaining("tracked by an open obligation"),
+      }),
+    );
+  });
+
+  test("names every resolution path for an untracked unevaluated capability", () => {
+    const assuranceCase = baseCase({
+      required_capabilities: ["boundary_discovery", "external_evidence", "consumer_impact"],
+      capabilities: {
+        boundary_discovery: "tool-enforced",
+        external_evidence: "tool-enforced",
+        consumer_impact: "not-evaluated",
+        internal_contracts: "not-evaluated",
+        semantic_entailment: "recorded-attestation",
+      },
+    });
+
+    const report = evaluateAssuranceCase(assuranceCase);
+
+    expect(report.verdict).toBe("INDETERMINATE");
+    expect(report.violations).toContainEqual(
+      expect.objectContaining({
+        type: "unresolved-defeater",
+        resolution: expect.stringContaining("ddd obligation --defeater capability:consumer_impact"),
+      }),
+    );
+    expect(report.violations).toContainEqual(
+      expect.objectContaining({
+        type: "unresolved-defeater",
+        resolution: expect.stringContaining("ddd exception --capability consumer_impact"),
+      }),
+    );
+  });
+
   test("rejects an expired or untime-boxed waiver", () => {
     const assuranceCase = baseCase();
     assuranceCase.edges = assuranceCase.edges.filter((edge) => edge.edge_type !== "supports");
@@ -654,6 +776,151 @@ describe("change scope", () => {
       .filter((name) => name.startsWith("ENV-"))
       .sort();
     expect(caseFiles).toEqual([`${envelope.id}.json`]);
+  });
+
+  test("regenerates a stale-detector envelope in place instead of failing idempotency", () => {
+    const projectRoot = mkdtempSync(join(tmpdir(), "proofline-detector-scope-"));
+    temporaryDirectories.push(projectRoot);
+    const bookDir = join(projectRoot, ".ddd");
+    mkdirSync(join(projectRoot, "src"), { recursive: true });
+    mkdirSync(bookDir, { recursive: true });
+    runGit(projectRoot, "init");
+    writeFileSync(join(projectRoot, "package.json"), "{}\n");
+    writeFileSync(join(projectRoot, "src", "widget.ts"), "export const widget = 1;\n");
+    runGit(projectRoot, "add", ".");
+    runGit(
+      projectRoot,
+      "-c",
+      "user.name=Test",
+      "-c",
+      "user.email=test@example.com",
+      "commit",
+      "-m",
+      "base",
+    );
+    const base = runGit(projectRoot, "rev-parse", "HEAD").trim();
+
+    writeFileSync(join(projectRoot, "src", "widget.ts"), "export const widget = 2;\n");
+    runGit(projectRoot, "add", ".");
+    runGit(
+      projectRoot,
+      "-c",
+      "user.name=Test",
+      "-c",
+      "user.email=test@example.com",
+      "commit",
+      "-m",
+      "head",
+    );
+    const head = runGit(projectRoot, "rev-parse", "HEAD").trim();
+
+    const envelope = scopeChange(projectRoot, bookDir, { base, head });
+    // Simulate an envelope cached by an older detector: same range, old version.
+    const envelopePath = join(bookDir, "cases", `${envelope.id}.json`);
+    const stale = {
+      ...JSON.parse(readFileSync(envelopePath, "utf8")),
+      detector: { name: "proofline-typescript-contracts", version: "0.5.0" },
+    };
+    writeFileSync(envelopePath, `${JSON.stringify(stale, null, 2)}\n`);
+
+    let regenerated: { id: string; from: string | null; to: string } | null = null;
+    const rerun = scopeChange(projectRoot, bookDir, {
+      base,
+      head,
+      onRegenerate: (info) => {
+        regenerated = info;
+      },
+    });
+
+    // Same ENV id (regenerated in place), detector version advanced.
+    expect(rerun.id).toBe(envelope.id);
+    expect(rerun.detector.version).toBe("0.6.0");
+    expect(regenerated).toEqual({ id: envelope.id, from: "0.5.0", to: "0.6.0" });
+    const caseFiles = readdirSync(join(bookDir, "cases"))
+      .filter((name) => name.startsWith("ENV-"))
+      .sort();
+    expect(caseFiles).toEqual([`${envelope.id}.json`]);
+
+    // Once current, re-running the same range is a pure idempotent hit.
+    let calledAgain = false;
+    const third = scopeChange(projectRoot, bookDir, {
+      base,
+      head,
+      onRegenerate: () => {
+        calledAgain = true;
+      },
+    });
+    expect(third.id).toBe(envelope.id);
+    expect(calledAgain).toBe(false);
+  });
+
+  test("treats book ledgers, project docs, hygiene files, and runtime builtins as inert", () => {
+    const projectRoot = mkdtempSync(join(tmpdir(), "proofline-inert-scope-"));
+    temporaryDirectories.push(projectRoot);
+    const bookDir = join(projectRoot, ".ddd");
+    mkdirSync(join(projectRoot, "src"), { recursive: true });
+    mkdirSync(bookDir, { recursive: true });
+    runGit(projectRoot, "init");
+    writeFileSync(join(projectRoot, "package.json"), "{}\n");
+    writeFileSync(join(projectRoot, "src", "base.ts"), "export const base = true;\n");
+    runGit(projectRoot, "add", ".");
+    runGit(
+      projectRoot,
+      "-c",
+      "user.name=Test",
+      "-c",
+      "user.email=test@example.com",
+      "commit",
+      "-m",
+      "base",
+    );
+    const base = runGit(projectRoot, "rev-parse", "HEAD").trim();
+
+    // An assurance-cycle commit: book ledger (with issue URLs), root docs,
+    // hygiene files, and a Bun builtin import.
+    writeFileSync(
+      join(bookDir, "obligations.yaml"),
+      `schema_version: 0.1.0
+obligations:
+  - id: OB-001
+    schema_version: 0.1.0
+    defeater: stack:dependency:react
+    issue: https://github.com/org/repo/issues/12
+    status: open
+    created_at: 2026-08-31T00:00:00.000Z
+`,
+    );
+    writeFileSync(
+      join(projectRoot, "README.md"),
+      "See https://api.example.com/docs for the provider API.\n",
+    );
+    writeFileSync(join(projectRoot, ".gitignore"), "node_modules\n");
+    writeFileSync(
+      join(projectRoot, "src", "db.ts"),
+      'import { Database } from "bun:sqlite";\nexport const db = new Database(":memory:");\n',
+    );
+    runGit(projectRoot, "add", ".");
+    runGit(
+      projectRoot,
+      "-c",
+      "user.name=Test",
+      "-c",
+      "user.email=test@example.com",
+      "commit",
+      "-m",
+      "head",
+    );
+    const head = runGit(projectRoot, "rev-parse", "HEAD").trim();
+
+    const envelope = scopeChange(projectRoot, bookDir, { base, head });
+
+    // Inert files carry no stack signals and no confidence penalty, so an
+    // assurance-cycle commit can still reach a complete boundary.
+    expect(envelope.boundary_confidence).toBe("complete");
+    expect(envelope.affected_services).toEqual([]);
+    // bun: is a runtime-provided builtin, not an external dependency.
+    expect(envelope.affected_dependencies).toEqual([]);
+    expect(envelope.changed_symbols).toContain("src/db.ts#db");
   });
 });
 
@@ -1167,6 +1434,137 @@ components:
     expect(report.open_obligations).toEqual(["OB-001"]);
     // The obligation does not resolve the defeater: still INDETERMINATE.
     expect(report.verdict).toBe("INDETERMINATE");
+  });
+
+  test("wires capability waivers and capability obligations into the case", () => {
+    const projectRoot = mkdtempSync(join(tmpdir(), "proofline-capability-case-"));
+    temporaryDirectories.push(projectRoot);
+    const bookDir = join(projectRoot, ".proofline");
+    mkdirSync(join(bookDir, "cases"), { recursive: true });
+    mkdirSync(join(bookDir, "cache"), { recursive: true });
+    const evidenceContent = "# Widget API v2\n\ncreateWidget is supported.\n";
+    writeFileSync(join(bookDir, "cache", "widget.md"), evidenceContent);
+    // A known consumer makes consumer_impact a required capability.
+    const envelope = {
+      ...baseCase().envelope,
+      changed_files: [],
+      known_consumers: ["src/consumer.ts"],
+    };
+    writeFileSync(join(bookDir, "cases", "ENV-001.json"), `${JSON.stringify(envelope, null, 2)}\n`);
+    writeFileSync(
+      join(bookDir, "evidence.lock"),
+      `schema_version: 0.1.0
+entries:
+  - id: EL-001
+    source_class: vendor-doc
+    source_url: https://docs.example.com/widget/v2
+    version: 2.0.0
+    doc_version: 2.0.0
+    status: normative
+    independence: external
+    authority_for: [api-semantics]
+    cache_path: cache/widget.md
+    content_digest: sha256:${sha256Hex(evidenceContent)}
+    retrieved_at: 2026-08-31T00:00:00.000Z
+`,
+    );
+    writeFileSync(
+      join(bookDir, "claims.yaml"),
+      `schema_version: 0.1.0
+entries:
+  - id: C-001
+    statement: "Use createWidget from v2"
+    status: known-and-supported
+    tier: T2
+    sources:
+      - ref: EL-001#createWidget
+        authority_domain: api-semantics
+        entailment: explicit
+    constructs: []
+    validations: [V-001]
+`,
+    );
+    writeFileSync(
+      join(bookDir, "trace-matrix.yaml"),
+      `schema_version: 0.1.0
+traces:
+  - id: TR-001
+    claim_id: C-001
+    construct_id: src/widget.ts#createWidget
+    validation_id: V-001
+    direction: forward
+`,
+    );
+    mkdirSync(join(bookDir, "reports"), { recursive: true });
+    writeFileSync(
+      join(bookDir, "reports", "validations.yaml"),
+      `schema_version: 0.1.0
+entries:
+  - id: V-001
+    claim: C-001
+    construct: src/widget.ts#createWidget
+    method: test
+    target: test:create-widget
+    result: pass
+    run_at: 2026-08-31T00:00:00.000Z
+    evidence_hash: sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+`,
+    );
+    writeFileSync(
+      join(bookDir, "exceptions.yaml"),
+      `schema_version: 0.1.0
+exceptions:
+  - id: EXC-001
+    schema_version: 0.1.0
+    goal: null
+    capability: consumer_impact
+    rationale: "Consumer impact review deferred to the quarterly audit"
+    owner: release-owner
+    expires_at: 2999-12-31
+    status: approved
+    created_at: 2026-08-31T00:00:00.000Z
+`,
+    );
+    writeFileSync(
+      join(bookDir, "obligations.yaml"),
+      `schema_version: 0.1.0
+obligations:
+  - id: OB-001
+    schema_version: 0.1.0
+    defeater: capability:consumer_impact
+    description: Review consumer call sites for the next release
+    issue: https://github.com/org/repo/issues/20
+    status: open
+    created_at: 2026-08-31T00:00:00.000Z
+`,
+    );
+
+    const assuranceCase = buildAssuranceCase(bookDir, "ENV-001");
+
+    expect(assuranceCase.required_capabilities).toContain("consumer_impact");
+    expect(assuranceCase.capability_waivers).toEqual([
+      expect.objectContaining({
+        capability: "consumer_impact",
+        exception: "EXC-001",
+        owner: "release-owner",
+        expires_at: "2999-12-31",
+      }),
+    ]);
+    expect(assuranceCase.obligations).toEqual([
+      expect.objectContaining({
+        id: "OB-001",
+        defeater: "capability:consumer_impact",
+        status: "open",
+      }),
+    ]);
+
+    const report = evaluateAssuranceCase(assuranceCase);
+
+    // The unexpired waiver records the accepted risk (WAIVED, not SATISFIED);
+    // the obligation stays visible as open work.
+    expect(report.verdict).toBe("WAIVED");
+    expect(report.approved_exceptions).toEqual(["EXC-001"]);
+    expect(report.open_obligations).toEqual(["OB-001"]);
   });
 
   test("rejects artifact IDs that could escape the cases or reports directories", () => {

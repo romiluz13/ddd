@@ -23,24 +23,36 @@ metadata:
 
 ## Record a waiver
 
-A waiver is time-boxed. Record it with the `exception` command:
+A waiver is time-boxed. Its target is either a goal claim or a required
+capability that no tool evaluates. Record it with the `exception` command:
 
 ```sh
+# Goal waiver
 bun run cli/bin/ddd.ts exception --goal <C-NNN> \
   --rationale "<the accepted residual risk>" \
   --owner <accountable human> \
   --expires <future ISO date, e.g. 2027-03-31>
+
+# Capability waiver (consumer_impact | contract_compatibility)
+bun run cli/bin/ddd.ts exception --capability consumer_impact \
+  --rationale "<the accepted residual risk>" \
+  --owner <accountable human> \
+  --expires <future ISO date, e.g. 2027-09-30>
 ```
 
 The command requires a rationale, an accountable owner, and a future expiry
-date, and writes an approved exception entry to `.ddd/exceptions.yaml`. The
-goal claim must already exist (`ddd claim ...`). Waivers scope to one goal and
-must not be reused as support for another goal.
+date, and writes an approved exception entry to `.ddd/exceptions.yaml`. A
+goal waiver requires the claim to already exist (`ddd claim ...`); waivers
+scope to one goal and must not be reused as support for another goal. A
+capability waiver is idempotent per capability (one live waiver each) and is
+the only resolution path for required capabilities with no evaluation path;
+when its capability is later evaluated, drop the waiver in favor of evidence.
 
 The evaluator rejects missing approval, non-human provenance, absent
 rationale, a missing time box, or an expired waiver. Hard graph, lineage, or
 contradiction failures remain `UNSATISFIED`; a waiver cannot override them.
-Renew or drop an expired waiver; the accepted risk has lapsed.
+An unexpired goal or capability waiver yields `WAIVED` — recorded risk, never
+correctness. Renew or drop an expired waiver; the accepted risk has lapsed.
 
 ## Track an unresolved defeater
 
@@ -53,7 +65,11 @@ bun run cli/bin/ddd.ts obligation --defeater <id> \
 ```
 
 An obligation records that evidence is coming; it does not resolve the
-defeater, and the case stays `INDETERMINATE` until the evidence lands.
+defeater, and the case stays `INDETERMINATE` until the evidence lands. A
+required capability can be tracked this way with the `capability:<name>`
+defeater convention (e.g. `capability:consumer_impact`); the evaluation
+report names this path whenever an unevaluated required capability blocks a
+case.
 
 ## Declare a case goal
 

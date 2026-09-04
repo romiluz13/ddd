@@ -25,10 +25,10 @@ working directory (override with `--ddd-dir <path>`). Reports are JSON on stdout
 | `trace <claim_id> <construct>` | Appends a trace entry to `.ddd/trace-matrix.yaml` linking a claim to a construct. Validates the claim exists and that the construct matches a claim `constructs[]` entry verbatim. Supports `--change`, `--direction`, `--validation`, `--notes`. |
 | `validation --claim <C-NNN> --construct <symbol> --method <m> --target <file>` | Records a proof run in `.ddd/reports/validations.yaml` with a closed method set (`test`, `lint`, `type-check`, `formal`, `manual`, `runtime-assertion`) and an auto-computed artifact digest, then links the record back into the claim. `--hash sha256:<64 hex>` covers non-file targets; `--result pass\|fail` and `--notes` are optional. |
 | `goal --claim <C-NNN>` | Declares a claim as an assurance-case goal in `.ddd/goals.yaml`. Every built case includes declared goals in addition to change-matched claims. Idempotent per claim. |
-| `exception --goal <C-NNN> --rationale "<risk>" --owner <name> --expires <date>` | Records an approved, time-boxed waiver in `.ddd/exceptions.yaml`. The expiry must be a future ISO date; an expired waiver is invalid at evaluation time. |
-| `obligation --defeater <id> --issue <url>` | Binds an unresolved defeater to a tracking issue in `.ddd/obligations.yaml`. Tracks work; does not resolve the defeater. Idempotent per (defeater, issue). |
+| `exception (--goal <C-NNN> \| --capability <name>) --rationale "<risk>" --owner <name> --expires <date>` | Records an approved, time-boxed waiver in `.ddd/exceptions.yaml`. The target is a goal claim or a waivable required capability no tool evaluates (`consumer_impact`, `contract_compatibility`). The expiry must be a future ISO date; an expired waiver is invalid at evaluation time. Idempotent per capability. |
+| `obligation --defeater <id> --issue <url>` | Binds an unresolved defeater (`stack:...` or `capability:<name>`) to a tracking issue in `.ddd/obligations.yaml`. Tracks work; does not resolve the defeater. Idempotent per (defeater, issue). |
 | `drift-check` (alias `drift_check`, `drift`) | Freshness report over `.ddd/evidence.lock`: each active entry is `fresh` or `stale` based on `retrieved_at + freshness` vs. now. |
-| `scope-change --base <rev> --head <rev>` | Creates a Git change envelope. Detects TypeScript declarations, manifest dependencies, literal services, platform configuration, frontend files, and explicit contracts. Marks stack-exercising files as `boundary_files` and partitions changed symbols into covered, boundary-relevant, and internal. Idempotent per resolved (base, head) range. |
+| `scope-change --base <rev> --head <rev>` | Creates a Git change envelope. Detects TypeScript declarations, manifest dependencies, literal services, platform configuration, frontend files, and explicit contracts. Marks stack-exercising files as `boundary_files` and partitions changed symbols into covered, boundary-relevant, and internal. Idempotent per resolved (base, head) range and detector version; an envelope cached by an older detector is regenerated in place (same `ENV` id) with a stderr notice. Book ledgers, root project docs, and hygiene files are inert (not scanned, no confidence penalty); `node:`/`bun:`/`deno:` builtins are not external dependencies. |
 | `build-case <ENV-NNN\|path>` | Builds a typed assurance graph and checks stack evidence, open gaps, external Book references, platform constraints, frontend coverage, and interactions. Bridges declared goals, approved waivers, and open obligations into the case. |
 | `evaluate-case <CASE-NNN\|path>` | Evaluates lineage, admissibility, boundary coverage, capabilities, defeaters, and waivers (including expiry). Prints a human summary with per-violation fix hints on stderr; the JSON report stays on stdout. |
 | `doctor` | Detects missing, mismatched, or unexpected repository-local installed skills. |
@@ -85,6 +85,10 @@ bun run cli/bin/ddd.ts goal --claim C-001
 # Accept residual risk for a goal (time-boxed waiver)
 bun run cli/bin/ddd.ts exception --goal C-002 \
   --rationale "Vendor retry docs pending" --owner rom --expires 2027-03-31
+
+# Accept residual risk for a capability nothing can evaluate (time-boxed)
+bun run cli/bin/ddd.ts exception --capability consumer_impact \
+  --rationale "Consumer audit deferred to Q3" --owner rom --expires 2027-09-30
 
 # Track an unresolved defeater against an issue
 bun run cli/bin/ddd.ts obligation --defeater stack:dependency:ai \

@@ -52,6 +52,17 @@ Cloudflare Workers configuration, frontend files, and explicit OpenAPI or JSON
 Schema contracts. Unsupported changed file classes lower boundary confidence.
 Dynamic services require explicit `.ddd/stack.yaml` entries.
 
+Book ledgers under `.ddd/`, root-level project docs, and repository hygiene
+files are inert: they are not scanned for stack signals and carry no
+boundary-confidence penalty, so assurance-cycle commits can still reach
+complete confidence. Runtime builtins (`node:`, `bun:`, `deno:`, Node
+builtins) are not external dependencies.
+
+Scoping is idempotent per resolved (base, head) range and detector version.
+If the envelope for a range was cached by an older detector version, it is
+regenerated in place with the same `ENV` id and a stderr notice; rebuild any
+cases built from it.
+
 The step is complete when every discovered changed symbol is present, every
 exclusion has a reason, every detected stack layer is inventoried, and the
 boundary confidence is accepted as reported.

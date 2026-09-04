@@ -95,11 +95,34 @@ export function evaluateAssuranceCase(assuranceCase: AssuranceCase): AssuranceRe
   const unevaluatedCapabilities = Object.entries(assuranceCase.capabilities)
     .filter(([, status]) => status === "not-evaluated")
     .map(([name]) => name);
+  // A required capability nothing can evaluate is resolvable, not a ceiling:
+  // an unexpired capability waiver records the accepted risk (verdict WAIVED,
+  // never correctness), and an obligation tracks the work while the case
+  // stays honest (INDETERMINATE).
+  const capabilityWaivers = new Map(
+    (assuranceCase.capability_waivers ?? []).map((waiver) => [waiver.capability, waiver]),
+  );
   for (const capability of assuranceCase.required_capabilities) {
     if (assuranceCase.capabilities[capability] === "not-evaluated" || !assuranceCase.capabilities[capability]) {
+      const waiver = capabilityWaivers.get(capability);
+      const expiresAt = waiver ? Date.parse(waiver.expires_at) : Number.NaN;
+      if (waiver && !Number.isNaN(expiresAt) && expiresAt > Date.now()) {
+        approvedExceptions.push(waiver.exception);
+        continue;
+      }
+      const expired = Boolean(waiver) && (!Number.isNaN(expiresAt) ? expiresAt <= Date.now() : true);
+      const tracked = (assuranceCase.obligations ?? []).some(
+        (obligation) =>
+          obligation.defeater === `capability:${capability}` && obligation.status === "open",
+      );
       violations.push({
         type: "unresolved-defeater",
-        message: `Required capability ${capability} was not evaluated.`,
+        message: expired
+          ? `Required capability ${capability} was not evaluated and its waiver expired.`
+          : tracked
+            ? `Required capability ${capability} was not evaluated (tracked by an open obligation).`
+            : `Required capability ${capability} was not evaluated.`,
+        resolution: `Evaluate it, track the work: ddd obligation --defeater capability:${capability} --issue <https://...>, or accept the residual risk: ddd exception --capability ${capability} --rationale "<accepted risk>" --owner <name> --expires <future ISO date>`,
       });
     }
   }

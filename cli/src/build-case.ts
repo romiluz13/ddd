@@ -41,7 +41,8 @@ interface GoalLedgerEntry {
 
 interface ExceptionLedgerEntry {
   id: string;
-  goal: string;
+  goal: string | null;
+  capability?: string;
   rationale: string;
   owner: string;
   expires_at: string;
@@ -226,7 +227,7 @@ export function buildAssuranceCase(bookDir: string, envelopeIdOrPath: string): A
   // Expiry is evaluated at evaluation time; an expired waiver is invalid.
   const caseGoalIds = new Set(relevantClaims.map((claim) => claim.id));
   for (const exception of exceptions) {
-    if (!caseGoalIds.has(exception.goal)) continue;
+    if (!exception.goal || !caseGoalIds.has(exception.goal)) continue;
     nodes.push({
       id: exception.id,
       node_type: "exception",
@@ -286,18 +287,6 @@ export function buildAssuranceCase(bookDir: string, envelopeIdOrPath: string): A
   };
   const coverage = analyzeCoverage(bookDir, envelope, evidence);
   Object.assign(capabilities, coverage.capabilities);
-  // Obligations bind this case's open defeaters to tracking issues. They
-  // record that evidence is coming; they do not resolve the defeater.
-  const caseDefeaters = new Set(coverage.defeaters);
-  const caseObligations = obligations
-    .filter((obligation) => caseDefeaters.has(obligation.defeater))
-    .map((obligation) => ({
-      id: obligation.id,
-      defeater: obligation.defeater,
-      issue: obligation.issue,
-      due_at: obligation.due_at,
-      status: obligation.status === "fulfilled" ? ("fulfilled" as const) : ("open" as const),
-    }));
   const requiredCapabilities = ["boundary_discovery"];
   if (relevantClaims.length > 0) requiredCapabilities.push("external_evidence");
   if (envelope.affected_dependencies.length > 0) requiredCapabilities.push("dependency_detection");
@@ -306,6 +295,36 @@ export function buildAssuranceCase(bookDir: string, envelopeIdOrPath: string): A
   }
   if (envelope.known_consumers.length > 0) requiredCapabilities.push("consumer_impact");
   requiredCapabilities.push(...coverage.requiredCapabilities);
+  // Obligations bind this case's open defeaters to tracking issues. They
+  // record that evidence is coming; they do not resolve the defeater.
+  // Capability defeaters use the `capability:<name>` id convention.
+  const caseDefeaters = new Set(coverage.defeaters);
+  const requiredCapabilityDefeaters = new Set(
+    requiredCapabilities.map((capability) => `capability:${capability}`),
+  );
+  const caseObligations = obligations
+    .filter(
+      (obligation) =>
+        caseDefeaters.has(obligation.defeater) || requiredCapabilityDefeaters.has(obligation.defeater),
+    )
+    .map((obligation) => ({
+      id: obligation.id,
+      defeater: obligation.defeater,
+      issue: obligation.issue,
+      due_at: obligation.due_at,
+      status: obligation.status === "fulfilled" ? ("fulfilled" as const) : ("open" as const),
+    }));
+  // Waivers for required capabilities no tool evaluates: same recorded-risk
+  // semantics as goal waivers; expiry is checked at evaluation time.
+  const requiredCapabilitySet = new Set(requiredCapabilities);
+  const capabilityWaivers = exceptions
+    .filter((exception) => exception.capability && requiredCapabilitySet.has(exception.capability))
+    .map((exception) => ({
+      capability: exception.capability as string,
+      exception: exception.id,
+      owner: exception.owner,
+      expires_at: exception.expires_at,
+    }));
 
   const assuranceCase: AssuranceCase = {
     schema_version: "0.5.0",
@@ -318,6 +337,7 @@ export function buildAssuranceCase(bookDir: string, envelopeIdOrPath: string): A
     capabilities,
     required_capabilities: requiredCapabilities,
     obligations: caseObligations.length > 0 ? caseObligations : undefined,
+    capability_waivers: capabilityWaivers.length > 0 ? capabilityWaivers : undefined,
     created_at: nowIso(),
   };
 

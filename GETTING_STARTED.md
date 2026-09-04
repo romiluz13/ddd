@@ -29,8 +29,18 @@ consumers, and explicit OpenAPI or JSON Schema contracts. Unsupported changed
 file classes lower `boundary_confidence`.
 
 Contract detection does not yet prove compatibility. A case with an affected
-contract requires the `contract_compatibility` capability and therefore remains
-`INDETERMINATE` until an adapter or reviewed attestation supplies that check.
+contract requires the `contract_compatibility` capability. Resolve it with
+evidence, an open obligation on the `capability:contract_compatibility`
+defeater, or — when a human accepts the residual risk — a time-boxed
+capability waiver:
+
+```sh
+bun run cli/bin/ddd.ts exception --capability contract_compatibility \
+  --rationale "<accepted risk>" --owner your-name --expires 2027-03-31
+```
+
+An unexpired waiver yields `WAIVED` (recorded risk, never correctness); the
+case stays `INDETERMINATE` while tracked by an obligation.
 
 Review the envelope before continuing. Add an explicit exclusion and reason
 only when a changed construct is intentionally outside the assurance boundary.

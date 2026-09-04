@@ -9,7 +9,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import type { Claim } from "./types";
-import { nextId, nowIso, parseYaml, readText, writeText, yamlScalar } from "./utils";
+import { loadLedger, nextId, nowIso, parseYaml, readText, writeText, yamlScalar } from "./utils";
 
 const GOALS_HEADER = `# DDD Case Goals
 # Claims declared as assurance-case goals. Every built case includes these
@@ -51,9 +51,8 @@ export function addGoal(dddDir: string, claimId: string, opts: AddGoalOptions = 
   }
 
   const goalsPath = join(dddDir, "goals.yaml");
-  let text = existsSync(goalsPath) ? readText(goalsPath) : GOALS_HEADER;
-  const doc = (parseYaml(text) as { goals?: GoalEntry[] }) ?? {};
-  const goals = Array.isArray(doc.goals) ? doc.goals : [];
+  const { text: baseText, entries: goals } = loadLedger<GoalEntry>(goalsPath, GOALS_HEADER, "goals");
+  let text = baseText;
   const existing = goals.find((goal) => goal.claim === claimId);
   if (existing) return existing; // idempotent: one goal per claim
 

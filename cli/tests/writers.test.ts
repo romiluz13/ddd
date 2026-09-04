@@ -276,6 +276,103 @@ describe("exception", () => {
       }),
     ).toThrow(/owner/);
   });
+
+  test("records a capability waiver and is idempotent per capability", () => {
+    const entry = addException(dddDir, null, {
+      rationale: "Consumer impact review deferred to the quarterly audit",
+      owner: "release-owner",
+      expiresAt: "2999-12-31",
+      capability: "consumer_impact",
+    });
+    const again = addException(dddDir, null, {
+      rationale: "Second attempt",
+      owner: "someone-else",
+      expiresAt: "2999-12-31",
+      capability: "consumer_impact",
+    });
+
+    expect(entry.id).toBe("EXC-001");
+    expect(again.id).toBe("EXC-001");
+    expect(entry.goal).toBeNull();
+    expect(entry.capability).toBe("consumer_impact");
+
+    const persisted = readText(join(dddDir, "exceptions.yaml"));
+    expect(persisted).toContain("goal: null");
+    expect(persisted).toContain("capability: consumer_impact");
+
+    const parsed = parseYaml(persisted) as any;
+    expect(parsed.exceptions).toHaveLength(1);
+
+    // A different capability gets its own waiver.
+    const other = addException(dddDir, null, {
+      rationale: "Contract compatibility tracked manually this cycle",
+      owner: "release-owner",
+      expiresAt: "2999-12-31",
+      capability: "contract_compatibility",
+    });
+    expect(other.id).toBe("EXC-002");
+  });
+
+  test("rejects a capability waiver with an invalid target", () => {
+    expect(() =>
+      addException(dddDir, null, {
+        rationale: "r",
+        owner: "o",
+        expiresAt: "2999-12-31",
+        capability: "stack_coverage",
+      }),
+    ).toThrow(/not in \[consumer_impact, contract_compatibility\]/);
+    expect(() =>
+      addException(dddDir, null, {
+        rationale: "r",
+        owner: "o",
+        expiresAt: "2999-12-31",
+      }),
+    ).toThrow(/requires --goal .* or --capability/);
+    writeClaims();
+    expect(() =>
+      addException(dddDir, "C-001", {
+        rationale: "r",
+        owner: "o",
+        expiresAt: "2999-12-31",
+        capability: "consumer_impact",
+      }),
+    ).toThrow(/one of --goal or --capability, not both/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ledger round-trip integrity guard
+// ---------------------------------------------------------------------------
+
+describe("ledger round-trip guard", () => {
+  test("refuses to append to a ledger an external tool rewrote into another dialect", () => {
+    // pyyaml-style output: sequence items at their parent key's indent level.
+    // The CLI's minimal parser reads `traces` as null, so appending would
+    // silently restart IDs and interleave formats.
+    const rewritten = `schema_version: 0.1.0
+traces:
+- id: TR-001
+  claim_id: C-001
+  construct_id: OrderList.component
+  direction: forward
+`;
+    writeFileSync(join(dddDir, "trace-matrix.yaml"), rewritten);
+    writeClaims();
+
+    expect(() => addTrace(dddDir, "C-001", "OrderList.component")).toThrow(/corrupted/);
+    expect(() => addTrace(dddDir, "C-001", "OrderList.component")).toThrow(/raw scan finds 1/);
+  });
+
+  test("keeps the CLI dialect readable end to end", () => {
+    writeClaims();
+    addTrace(dddDir, "C-001", "OrderList.component");
+    addTrace(dddDir, "C-001", "ProductCard.component");
+
+    const traces = parseYaml(readText(join(dddDir, "trace-matrix.yaml"))) as any;
+    expect(traces.traces).toHaveLength(2);
+    expect(traces.traces.map((trace: any) => trace.id)).toEqual(["TR-001", "TR-002"]);
+  });
 });
 
 // ---------------------------------------------------------------------------
