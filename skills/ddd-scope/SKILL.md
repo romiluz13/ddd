@@ -6,7 +6,7 @@ description: >
   envelope.
 metadata:
   author: ddd-methodology
-  version: "0.5.0"
+  version: "0.6.0"
 ---
 
 # Scope external evidence and change boundaries

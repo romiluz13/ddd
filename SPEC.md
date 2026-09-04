@@ -1,6 +1,6 @@
 # Proofline change assurance specification
 
-**Version:** 0.5.0-experimental
+**Version:** 0.6.0-experimental
 
 **Status:** Implemented kernel, experimental boundary detection
 **Machine identifier:** `proofline-change-assurance`

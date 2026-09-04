@@ -6,7 +6,7 @@ description: >
   which Docs-Driven Development step comes next.
 metadata:
   author: ddd-methodology
-  version: "0.5.0"
+  version: "0.6.0"
 ---
 
 # Proofline router

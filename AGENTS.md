@@ -6,7 +6,7 @@ Proofline is a change-assurance tool with a compatible Docs-Driven Development
 
 ## Status
 
-- Specification: `0.5.0-experimental`
+- Specification: `0.6.0-experimental`
 - Supported product: version-matched external API and protocol evidence
 - Experimental slice: TypeScript symbols plus OpenAPI and JSON Schema contracts
 - CLI: `cli/`

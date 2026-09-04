@@ -5,7 +5,7 @@ description: >
   packet, trace changed constructs, or build a Proofline assurance case.
 metadata:
   author: ddd-methodology
-  version: "0.5.0"
+  version: "0.6.0"
 ---
 
 # Ground a change

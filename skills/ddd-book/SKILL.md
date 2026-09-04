@@ -5,7 +5,7 @@ description: >
   Book references, or repairing evidence, claims, traces, cases, and reports.
 metadata:
   author: ddd-methodology
-  version: "0.5.0"
+  version: "0.6.0"
 ---
 
 # Manage Proofline storage

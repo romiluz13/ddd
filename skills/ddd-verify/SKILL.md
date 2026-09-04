@@ -5,7 +5,7 @@ description: >
   a Proofline assurance case before merge.
 metadata:
   author: ddd-methodology
-  version: "0.5.0"
+  version: "0.6.0"
 ---
 
 # Verify a change
