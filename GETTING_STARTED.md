@@ -1,180 +1,83 @@
-# Get started with Proofline
+# Get started with DDD
 
-Proofline stores compatibility artifacts in `.ddd/` and exposes both
-`proofline` and `ddd` binary names.
-
-## Prerequisites
-
-- Bun 1.3 or later.
-- A Git repository.
-- A `.ddd/` Book initialized by `ddd-book`.
-- Locked evidence, claims, and traces for goals you expect to satisfy.
-
-## Evaluate a change
-
-### 1. Scope the Git range
+Install the methodology skills once in your project, then choose your coding
+agent when prompted:
 
 ```sh
-bun run cli/bin/ddd.ts scope-change \
-  --base origin/main \
-  --head HEAD \
-  --risk medium \
-  --owner your-name
+npx skills add romiluz13/ddd --skill ddd ddd-scope ddd-ground ddd-verify
 ```
 
-This writes `.ddd/cases/ENV-NNN.json`. The detector enumerates TypeScript
-declarations, every manifest dependency, changed bare imports, literal external
-service URLs, Cloudflare Workers configuration, frontend files, direct
-consumers, and explicit OpenAPI or JSON Schema contracts. Unsupported changed
-file classes lower `boundary_confidence`.
+This uses the [Skills installer](https://github.com/vercel-labs/skills#install-a-skill).
+Alternatively, make [skills/ddd/SKILL.md](skills/ddd/SKILL.md) and its sibling
+directories available through your agent's installation mechanism, or read that
+file directly in this checkout. The agent uses its usual file, search, browsing,
+and execution tools; DDD requires no Proofline CLI or Bun runtime.
 
-Contract detection does not yet prove compatibility. A case with an affected
-contract requires the `contract_compatibility` capability. Resolve it with
-evidence, an open obligation on the `capability:contract_compatibility`
-defeater, or — when a human accepts the residual risk — a time-boxed
-capability waiver:
+## Give it a task
 
-```sh
-bun run cli/bin/ddd.ts exception --capability contract_compatibility \
-  --rationale "<accepted risk>" --owner your-name --expires 2027-03-31
-```
+> Use DDD for this task. Implement `load_settings(path)` to load a TOML settings
+> file into a dictionary using this project's Python version. Let parse and file
+> errors reach the caller.
 
-An unexpired waiver yields `WAIVED` (recorded risk, never correctness); the
-case stays `INDETERMINATE` while tracked by an obligation.
+The agent inspects the code and installed runtime, finds the applicable official
+documentation, and reads the relevant sections itself. It plans with cited
+API choices and a concrete snippet, implements the task, then reopens the docs
+to compare the finished code and runs the project's checks.
 
-Review the envelope before continuing. Add an explicit exclusion and reason
-only when a changed construct is intentionally outside the assurance boundary.
+You can supply links or constraints alongside the task. The agent checks their
+applicability to the installed version; it does not upgrade dependencies to make
+newer documentation examples work.
 
-### 1.1 Declare stack components that source cannot reveal
+## Plan or review without implementation
 
-Dynamic endpoints and architecture components require `.ddd/stack.yaml`:
+> Use DDD for this task. Plan only: add settings-file loading. Include documented
+> API choices, a useful snippet, and checks to run. Do not implement yet.
 
-```yaml
-schema_version: 0.5.0
-components:
-  - id: STK-001
-    kind: service
-    name: grove-gateway
-    evidence_refs: [EL-004]
-  - id: STK-002
-    kind: platform
-    name: cloudflare-workers
-    evidence_refs: [EL-001]
-    required_constraints: [execution-time, concurrency]
-    constraints:
-      - name: execution-time
-        evidence_refs: [EL-003]
-      - name: concurrency
-        evidence_refs: [EL-003]
-  - id: STK-003
-    kind: frontend
-    name: frontend
-    evidence_refs: [EL-005]
-```
+This ends with a plan. Snippets are labeled by origin and execution status, and
+checks remain pending until actually run.
 
-Every component needs locked evidence with a matching `subject`. Dependency
-components also record all declared versions and use matching evidence
-versions. Platform components need subject-matched constraint evidence covering
-applicable execution, memory, concurrency, network, and rate limits.
+> Use DDD to review the finished settings loader against its official docs.
+> Report discrepancies without changing code.
 
-Every external reference in `.ddd/book.yaml` must map to a locked evidence
-entry through `ref` and the same source URL or a descendant URL.
+This ends with findings and proposed corrections. An authorized implementation
+or fix instead continues through corrections and verification without another
+routine approval stage. To invoke one phase explicitly, use `ddd-scope`,
+`ddd-ground`, or `ddd-verify`; each follows the same main skill.
 
-### 1.2 Resolve gaps and analyze interactions
+## Apply DDD routinely
 
-Any entry in `.ddd/knowledge-map.yaml` under a domain's `gaps` or
-`overall_gaps` becomes a blocking defeater.
+Add this instruction once to your project's agent instructions:
 
-When a change spans component kinds, record their interaction:
+> Use DDD for coding tasks. Read the DDD skill and follow its documentation
+> discovery, grounded planning, implementation, and final comparison process.
+> Respect plan-only and review-only requests.
 
-```yaml
-interactions:
-  - id: INT-001
-    components: [platform:cloudflare-workers, service:grove-gateway]
-    status: analyzed
-    rationale: "Checked provider latency against Workers execution constraints."
-```
+Install the skill directories together through your agent's existing mechanism.
+DDD requires no global agent configuration changes.
 
-### 2. Build the assurance case
+## Resume a task
 
-```sh
-bun run cli/bin/ddd.ts build-case ENV-001
-```
+The agent maintains a short **Documentation basis** in the existing plan:
+versions, source sections, needed rules/snippets, questions, and actual comparison
+and check results. If a handoff needs a file and there is no persistent plan,
+it creates one note in `.ddd/notes/`. That note needs no Book or other setup.
 
-This bridges active entries from `.ddd/evidence.lock`, `.ddd/claims.yaml`, and
-`.ddd/trace-matrix.yaml` into `.ddd/cases/CASE-NNN.json`. It also evaluates
-stack coverage, reference completeness, open gaps, platform constraints,
-frontend coverage, and cross-layer interactions. Changed symbols without a
-matching trace remain coverage gaps.
+Point the next session at the existing plan or note and say:
 
-Before relying on an agent skill installed in the repository, check that it
-matches the source:
+> Resume this task using DDD and the existing Documentation basis.
 
-```sh
-bun run cli/bin/ddd.ts doctor
-```
+The agent checks whether code or versions changed and refreshes affected sources.
+You do not need to repeat the documentation research.
 
-### 3. Evaluate the case
+## Understand the result
 
-```sh
-bun run cli/bin/ddd.ts evaluate-case CASE-001
-```
+The final response identifies compared APIs and docs, corrections, actual check
+results, and remaining limitations. If docs are unavailable, the agent tries
+other official and shipped sources, names the specific unsupported behavior,
+and continues independent work. A relevant unresolved mismatch or failing check
+prevents a clean completion claim.
 
-The evaluator writes `.ddd/reports/CASE-001.assurance.json`.
-
-| Verdict | Meaning | Exit |
-|---|---|---|
-| `SATISFIED` | Goals are supported inside a complete evaluated boundary. | 0 |
-| `WAIVED` | An accountable human accepted named residual risk. | 0 |
-| `UNSATISFIED` | A hard invariant failed or a goal was contradicted. | 1 |
-| `INDETERMINATE` | Coverage, a premise, or a required capability is incomplete. | 1 |
-
-## Ground external API usage
-
-Use the compatibility workflow before building a case:
-
-```sh
-bun run cli/bin/ddd.ts lock "https://vendor.example/api/v2" \
-  --version "2.0.0" \
-  --sections "createWidget" \
-  --authority "api-semantics"
-
-bun run cli/bin/ddd.ts claim "createWidget() returns a Widget" \
-  --source "EL-001#createWidget" \
-  --authority "api-semantics" \
-  --kind api \
-  --impact medium \
-  --entailment explicit \
-  --construct "src/widget.ts#createWidget"
-
-bun run cli/bin/ddd.ts trace C-001 "src/widget.ts#createWidget"
-bun run cli/bin/ddd.ts sweep --direction both
-```
-
-`lock` requires an explicit version and stores the exact reviewed content.
-`--entailment` records a verifier attestation; Proofline does not infer semantic
-entailment from prose.
-
-The legacy sweep covers declared constructs only. A successful result is
-`CONFORMANT_DECLARED_SCOPE`, not whole-repository conformance.
-
-## Handle incomplete results
-
-- For `uncovered-construct`, add a real claim and trace, or record a justified
-  exclusion in the envelope.
-- For `unsupported-goal`, lock authoritative evidence and cite it from the
-  claim.
-- For `self-derived-support` or `retrospective-baseline`, replace generated
-  evidence with an independent normative source or adopt it prospectively for a
-  later revision.
-- For `INDETERMINATE`, complete the named boundary or capability. Do not treat
-  the result as a pass.
-- Use a waiver only when a human approver is accountable, the rationale is
-  recorded, and no hard invariant failed.
-
-## Current boundary
-
-Proofline supports external documentation grounding and an experimental
-TypeScript/OpenAPI/JSON Schema assurance path. Domain modeling, brownfield
-audit, design tournaments, broad drift, refutation, and control compilation are
-research material under `research/`.
+See the [recorded walkthroughs](.ddd/notes/methodology-walkthroughs.md) for
+TypeScript and Python examples. The [Proofline CLI](cli/README.md), Book and
+exception skills, and historical evidence remain optional experimental tooling.
+They are unnecessary for every example above.

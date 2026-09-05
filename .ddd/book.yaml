@@ -2,39 +2,45 @@
 schema_version: 0.1.0
 version: 0.5.0
 released_at: null
-manifest_digest: sha256:042e5439d5f1f64bd2531ad5e4a523c4cb876d3fddaf5c1bc4a7ebf84a3797ce
+manifest_digest: sha256:e7a7361c9a73731da96cefb67c0da639a214bdc647c88581927e0853e234b005
 
 requirements:
+  - path: cli/SPEC.md
+    authority: product-approved
+    independence: agent-proposed-human-approved
+    digest: sha256:f2dc94f98a10009a8d6923dba4fbf583b28658306d7f623d9d2bec5f935f3193
+    description: "Preserved optional Proofline assurance contract, v0.6.0-experimental"
+
   - path: SPEC.md
     authority: product-approved
     independence: agent-proposed-human-approved
-    digest: sha256:11bb393f150775b8b6905e6585d7ed34a9a90bbba4e9b797fca4332059c28cec
-    description: "Proofline change assurance specification, v0.5.0-experimental"
+    digest: sha256:d7543459639710f368b43d563538ee8a7eb4e96a27f5df518115aefeeb42041c
+    description: "DDD methodology contract, v0.7.0; not evidence of its own correctness"
 
   - path: CONTEXT.md
     authority: product-approved
     independence: agent-proposed-human-approved
-    digest: sha256:528027d59af44d17a35bfb7eaeec409581da8f92751111d838d5e044b1ad3a2e
+    digest: sha256:f76cf18884518a490fe8bbd54f130593675e691c24d62ab7f41c2cc9822875f5
     description: "Current product vocabulary and decisions"
 
 agent_context:
   - path: AGENTS.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:b6b9831e9d5b7c6903517034bbe3db0a96bc700d8e8c22dede5003f4e0e3c98d
+    digest: sha256:6eeb223080e584b96d19d09323141e23235d7880598d983e7bdba4058d478847
     description: "Agent runtime instructions"
 
   - path: SKILLS.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:cf782e6bdf165fd1fb08f13a1205266089f56a6250d11d5d98f73052f36ad060
-    description: "Supported and research skill boundaries"
+    digest: sha256:b84216af962f05630eec17e38006d308c55f1ca7e22268dbf2a6bba731e36d4e
+    description: "Default, optional, and research skill boundaries"
 
   - path: skills/ddd/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:87c746fbb8c8310475a2f1d0eaeb6ab7be3e8530a29d136e06b6f84115e5ed71
-    description: "Proofline router"
+    digest: sha256:30e28292ad0d6668ed9d40bb9a1c6f7560a1c182650cb8614806b2662eb4a401
+    description: "Complete DDD documentation workflow"
 
 evidence_lock: evidence.lock
 claims: claims.yaml
@@ -46,7 +52,7 @@ cases: cases/
 packets: packets/
 reports: reports/
 
-proofline_spec_version: 0.5.0-experimental
+proofline_spec_version: 0.6.0-experimental
 compatibility_interface: ddd
 supported_boundary: external-api-evidence
 experimental_boundary: typescript-openapi-json-schema

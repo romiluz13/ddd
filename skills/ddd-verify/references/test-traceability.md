@@ -1,30 +1,20 @@
-# Test-code traceability
+# Select execution checks
 
-Tests are L3 validations but are also code. They must be classified and traced.
+Use the project's native checks to exercise the behavior changed by the task.
+Inspect existing scripts, tests, and conventions before choosing commands.
 
-## Classification
+- Type checks or compilation can catch invalid imports, arguments, and returns.
+- Focused tests should exercise relevant behavior, including asynchronous
+  completion, errors, configuration, and lifecycle boundaries where applicable.
+- Integration checks should exercise interactions between the technologies
+  actually combined by the change.
 
-| Test type | Traces to | Tier | Requirement |
-|---|---|---|---|
-| Unit test for a traced claim | The claim it validates | T0 | Covered by the claim |
-| Integration test for behavioral claim | The behavioral claim | T2 | MUST trace to the behavioral claim |
-| Contract test for API claim | The API claim | T1 | MUST trace to the API claim |
-| Security test for operational claim | The operational claim | T3 | MUST trace to the operational claim |
-| Test that validates no claim | — | — | **Reverse-sweep violation** |
+Prefer existing checks. Add focused tests when needed to expose a meaningful
+behavioral failure; avoid tests that merely repeat the implementation or assert
+that documentation contains a phrase. Inspect changed test code against the
+same applicable API documentation.
 
-## Good vs bad test tracing
-
-**Good**:
-```
-Claim CL-002: "cache: 'no-store' disables caching for fetch calls"
-Test: "should not cache when cache: 'no-store' is set"
-Trace: TR-015 links CL-002 to test file
-```
-
-**Bad**:
-```
-Claim CL-002: "cache: 'no-store' disables caching for fetch calls"
-Test: "should fetch data correctly" (no assertion about caching)
-No trace entry
-→ Reverse-sweep violation: test validates no claim
-```
+After correcting a discrepancy, rerun affected checks and record the command,
+actual result, and execution limitations in the Documentation basis. A passing
+test does not establish a vendor guarantee; a citation does not establish that
+code ran. No claim IDs, validation tiers, or trace ledger are required.

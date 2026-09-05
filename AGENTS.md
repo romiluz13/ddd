@@ -1,61 +1,50 @@
 <coding_guidelines>
-# Proofline
+# Docs-Driven Development (DDD)
 
-Proofline is a change-assurance tool with a compatible Docs-Driven Development
-(`ddd`) interface.
-
-## Status
-
-- Specification: `0.6.0-experimental`
-- Supported product: version-matched external API and protocol evidence
-- Experimental slice: TypeScript symbols plus OpenAPI and JSON Schema contracts
-- CLI: `cli/`
-- Compatibility storage: `.ddd/`
-- Research archive: `research/`
+DDD is a documentation-driven coding methodology. Proofline is its preserved,
+optional experimental assurance CLI.
 
 ## Repository map
 
 ```text
-SPEC.md              Compact current specification
-README.md            Product boundary and workflows
-GETTING_STARTED.md   Executable walkthrough
-SKILLS.md            Supported and research skill status
-cli/                 Bun CLI and tests
-skills/              Supported agent skills
-research/            Superseded broad spec, skills, and detector registry
-.ddd/                Dogfood evidence, claims, traces, cases, and reports
+SPEC.md              Current methodology contract (0.7.0)
+skills/ddd/SKILL.md  Complete agent procedure; phase skills point here
+README.md            Usage and product boundary
+GETTING_STARTED.md   Ordinary-task walkthrough
+SKILLS.md            Default, optional, and research skill status
+cli/                 Preserved Bun CLI and tests
+cli/SPEC.md          Assurance schemas and verdict contract (0.6.0-experimental)
+.ddd/                Optional compatibility evidence and historical reports
+.ddd/notes/          Task context and recorded methodology walkthroughs
+research/            Superseded proposals, skills, and detector registry
 ```
 
 ## Working rules
 
-1. Read `SPEC.md` before changing schemas or verdict semantics.
-2. Preserve the legacy external-evidence kernel and `.ddd/` compatibility.
-3. Treat `scope-change → build-case → evaluate-case` as the normal assurance
-   workflow.
-4. Keep origin, epistemic role, approval, derivation, and temporal baseline
-   distinct.
-5. A generated artifact cannot prove the revision that generated it.
-6. Descriptive evidence cannot establish a normative goal.
-7. An unevaluated required capability produces `INDETERMINATE` until it is
-   evaluated, waived by an unexpired capability waiver (`WAIVED`, recorded
-   risk), or tracked by an open obligation (still `INDETERMINATE`).
-8. A waiver records accepted risk; it is not correctness evidence.
-9. Never describe declared-scope verification as repository-wide conformance.
-10. Material under `research/` is not shipped behavior.
-11. Inventory every dependency, service, platform, and frontend layer touched
-    by a change; missing stack evidence is `INDETERMINATE`.
-12. Open knowledge-map gaps block assurance until resolved.
-13. Run `ddd doctor` when repository-local installed skills are present.
+1. Use DDD for coding tasks. Follow `skills/ddd/SKILL.md`; respect plan-only and
+   review-only requests. Keep research in the existing task's Documentation basis.
+2. Read root `SPEC.md` for methodology changes and `cli/SPEC.md` before changing
+   CLI schemas or verdict semantics. Preserve CLI behavior and `.ddd/` compatibility
+   when editing the methodology.
+3. Keep Book, locked evidence, trace ledgers, and assurance cases outside the
+   default route. Existing CLI workflows are optional experiments.
+4. Preserve historical evidence and reports. Generated artifacts cannot prove
+   their generating revision; descriptive evidence cannot establish a normative goal.
+5. Keep origin, epistemic role, approval, derivation, and temporal baseline
+   distinct in optional assurance work. A waiver records risk, not correctness.
+6. Never describe declared-scope verification as repository-wide conformance.
+   Unevaluated required CLI capabilities and open gaps remain INDETERMINATE;
+   an unexpired capability waiver yields WAIVED, an open obligation does not.
+7. Material under `research/` is not shipped behavior.
+8. When changing installed skills, refresh repository-local copies and hashes,
+   then run `bun run cli/bin/ddd.ts doctor`. Leave global configurations alone.
 
 ## Validation
 
-Run:
-
-```sh
-cd cli
-bun test
-```
-
-For CLI behavior, verify `bun run bin/ddd.ts --help`. For Book changes, run the
-legacy sweep and report its declared-scope limitation.
+From the repository root, run `(cd cli && bun test)` and
+`bun run cli/bin/ddd.ts --help`. When Book document references change, refresh
+their digests and run `bun run cli/bin/ddd.ts sweep --direction both`; report its declared-scope
+limitation. Evaluate historical `CASE-002` in a disposable copy of `.ddd/` and
+confirm its expected INDETERMINATE partial boundary without rewriting history.
+Use recorded fresh-context walkthroughs for methodology changes.
 </coding_guidelines>

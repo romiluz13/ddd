@@ -3,14 +3,20 @@
   "notGrouped": "bottom",
   "groupings": [
     {
-      "title": "Supported workflow",
-      "description": "External-evidence scoping, grounding, declared-scope verification, compatibility storage, and explicit gap handling.",
+      "title": "Documentation-driven development",
+      "description": "One complete workflow with optional entry points for discovery, grounded planning, and final code-to-docs comparison.",
       "skills": [
         "ddd",
         "ddd-scope",
-        "ddd-book",
         "ddd-ground",
-        "ddd-verify",
+        "ddd-verify"
+      ]
+    },
+    {
+      "title": "Optional experimental tooling",
+      "description": "Explicit Book and exception management for the preserved Proofline CLI.",
+      "skills": [
+        "ddd-book",
         "ddd-exception"
       ]
     }

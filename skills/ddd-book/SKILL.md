@@ -1,16 +1,23 @@
 ---
 name: ddd-book
 description: >
-  Use when initializing or validating Proofline compatibility storage, updating
-  Book references, or repairing evidence, claims, traces, cases, and reports.
+  Use only when explicitly asked to initialize or maintain the optional
+  experimental Proofline CLI Book, references, or compatibility artifacts.
 metadata:
   author: ddd-methodology
-  version: "0.6.0"
+  version: "0.7.0"
 ---
 
 # Manage Proofline storage
 
-Proofline retains `.ddd/` as its compatibility store.
+This is optional experimental tooling, outside the default DDD route. For an
+ordinary coding task or missing documentation, follow [DDD](../ddd/SKILL.md).
+A `.ddd/notes/` handoff does not require Book initialization.
+
+Proofline retains `.ddd/` as its compatibility store. In the tooling repository,
+read `cli/README.md` and `cli/SPEC.md` for commands, known defects, and schemas;
+the root specification describes the methodology. Locate those files in the
+tooling checkout when this skill is installed in another project.
 
 ## Initialize
 

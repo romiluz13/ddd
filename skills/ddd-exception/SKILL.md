@@ -1,15 +1,22 @@
 ---
 name: ddd-exception
 description: >
-  Use when authoritative evidence is missing or conflicting, a changed
-  construct cannot be covered, or an accountable human must accept residual
-  risk.
+  Use only when explicitly asked to manage a waiver, goal, or open obligation
+  in the optional experimental Proofline CLI. Missing documentation in an
+  ordinary coding task is handled by DDD discovery.
 metadata:
   author: ddd-methodology
-  version: "0.6.0"
+  version: "0.7.0"
 ---
 
 # Record a gap or waiver
+
+This is optional experimental tooling, outside the default DDD route. Follow
+[DDD](../ddd/SKILL.md) for ordinary documentation gaps. Read `cli/README.md`
+and `cli/SPEC.md` in the tooling checkout before using these commands; the
+documented waiver and validation defects remain unresolved. The root
+specification describes the methodology. Do not infer human risk acceptance
+from authorization to implement a coding task.
 
 **A gap stays visible. A waiver accepts risk; it does not create evidence.**
 
@@ -44,15 +51,16 @@ The command requires a rationale, an accountable owner, and a future expiry
 date, and writes an approved exception entry to `.ddd/exceptions.yaml`. A
 goal waiver requires the claim to already exist (`ddd claim ...`); waivers
 scope to one goal and must not be reused as support for another goal. A
-capability waiver is idempotent per capability (one live waiver each) and is
-the only resolution path for required capabilities with no evaluation path;
-when its capability is later evaluated, drop the waiver in favor of evidence.
+capability waiver is idempotent per capability. The existing implementation can
+return an expired record on a renewal request; inspect the persisted record and
+report that tooling defect instead of claiming renewal succeeded. An obligation
+can track the unresolved capability while the case remains INDETERMINATE.
 
-The evaluator rejects missing approval, non-human provenance, absent
-rationale, a missing time box, or an expired waiver. Hard graph, lineage, or
-contradiction failures remain `UNSATISFIED`; a waiver cannot override them.
-An unexpired goal or capability waiver yields `WAIVED` — recorded risk, never
-correctness. Renew or drop an expired waiver; the accepted risk has lapsed.
+The intended assurance contract requires human approval, rationale, scope, and
+a valid time box. Inspect those fields yourself: known builder/evaluator defects
+mean a CLI verdict alone does not establish them. A waiver cannot justify a hard
+graph, lineage, or contradiction failure. `WAIVED` records accepted risk, never
+correctness; an expired waiver means that acceptance has lapsed.
 
 ## Track an unresolved defeater
 

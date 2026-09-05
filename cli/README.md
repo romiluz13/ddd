@@ -1,8 +1,33 @@
-# Proofline CLI
+# Proofline CLI (optional experimental tooling)
 
-A zero-dependency Bun CLI for external-evidence grounding and experimental
-change-bounded assurance. `ddd` remains the compatibility command name;
-`proofline` is an equivalent package binary.
+A preserved zero-dependency Bun CLI for external-evidence grounding and
+change-bounded assurance experiments. `ddd` remains the compatibility command
+name; `proofline` is an equivalent package binary. The default
+[DDD methodology](../README.md) uses the agent's tools and requires none of this
+setup. The CLI's preserved contract is [SPEC.md](SPEC.md); the root
+[methodology specification](../SPEC.md) governs the skills-first workflow.
+
+## Known experimental limitations
+
+Existing commands and schemas are preserved, including unresolved defects from
+the earlier assessment. These reports describe tooling behavior, not a guarantee
+that its advertised assurance invariants hold:
+
+- A recorded passing validation need not have been executed; an old validation
+  for a different construct can satisfy a goal.
+- Implementation-derived evidence can escape the self-support check through an
+  intermediate support node.
+- A rejected capability waiver can become accepted during case construction.
+- A historical failed validation can block a later passing result; expired
+  capability-waiver renewal can return the expired record unchanged.
+- A cached envelope can ignore a changed risk level or owner.
+- Code inspection also found incomplete directory-index consumer detection and
+  no normal builder/CLI path to populate critical-case reviewer identities.
+
+These findings were recorded in the prior assessment, not rerun as part of the
+methodology refocus. Keep these limits visible when using the command reference
+below. Passing repository tests does not resolve them. Book and exception
+management are optional; a waiver records accepted risk, never correctness.
 
 ## Usage
 
