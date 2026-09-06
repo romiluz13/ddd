@@ -5,7 +5,7 @@ description: >
   task. Use when only documentation discovery or scope is requested.
 metadata:
   author: ddd-methodology
-  version: "0.7.0"
+  version: "0.7.1"
 ---
 
 # Discover the documentation

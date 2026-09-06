@@ -1,6 +1,6 @@
 # Documentation-driven development specification
 
-**Methodology version:** 0.7.0
+**Methodology version:** 0.7.1
 
 DDD is a cooperative workflow performed by a coding agent using its existing
 file, search, browsing, and execution tools. It applies across languages.
@@ -29,6 +29,16 @@ The complete operating procedure is [skills/ddd/SKILL.md](skills/ddd/SKILL.md).
    code again. Report what was checked, corrections, actual results, and unresolved
    limitations. Relevant mismatches, failing checks, and blocked work prevent a
    clean completion claim.
+7. When an affected check cannot run or fails because the execution environment
+   itself fails (a service, container, or runtime being unreachable, wedged, or
+   exhausted — not the code under change), classify the failure from the
+   substrate's own evidence (logs, stats, health, documented diagnostics), never
+   by assumption. Remediate the substrate or switch the target environment, then
+   re-run the check: an environment-failed check is unverified, not failed code,
+   and only a green re-run after remediation is execution evidence.
+   Environment-caused and code-caused failures are reported separately. Repeated
+   substrate failures under normal use are a target-environment decision raised
+   with the user, not absorbed.
 
 ## Context and unavailable documentation
 

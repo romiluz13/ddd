@@ -6,7 +6,7 @@ description: >
   ordinary coding task is handled by DDD discovery.
 metadata:
   author: ddd-methodology
-  version: "0.7.0"
+  version: "0.7.1"
 ---
 
 # Record a gap or waiver

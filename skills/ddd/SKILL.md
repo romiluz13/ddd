@@ -7,7 +7,7 @@ description: >
   planning, verification, or resuming from a documentation basis.
 metadata:
   author: ddd-methodology
-  version: "0.7.0"
+  version: "0.7.1"
 ---
 
 # Documentation-driven development
@@ -97,6 +97,19 @@ On resumption, read the existing plan or handoff note first. Compare current
 code, dependency versions, and remaining work with that context. Refresh affected
 sources and snippets where these changed; resume without asking the user to
 reconstruct the research.
+
+**Execution environment failures.** When an affected check cannot run or fails
+because the execution environment itself fails (a service, container, or
+runtime being unreachable, wedged, or exhausted — not the code under change),
+classify the failure from the substrate's own evidence (its logs, stats,
+health, and documented diagnostics), never by assumption. Remediate the
+substrate (restart, reprovision) or switch the target environment, then re-run
+the check: a check that failed for environmental reasons is unverified, not a
+code failure, and only a green re-run after remediation is execution evidence.
+Keep environment-caused and code-caused failures reported separately in the
+Documentation basis. If the substrate fails repeatedly under normal use,
+treat that as a target-environment decision and raise it with the user rather
+than absorbing it.
 
 Implementation is ready for comparison when the actual changes are available
 for inspection and intended behavior has been exercised, with failures or

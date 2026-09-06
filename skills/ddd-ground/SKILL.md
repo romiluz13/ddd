@@ -6,7 +6,7 @@ description: >
   against that plan.
 metadata:
   author: ddd-methodology
-  version: "0.7.0"
+  version: "0.7.1"
 ---
 
 # Ground the plan and implementation

@@ -6,7 +6,7 @@ description: >
   documentation comparison or review of an existing implementation.
 metadata:
   author: ddd-methodology
-  version: "0.7.0"
+  version: "0.7.1"
 ---
 
 # Compare code with documentation
