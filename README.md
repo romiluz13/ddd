@@ -1,10 +1,10 @@
 # Docs-Driven Development (DDD)
 
-**Methodology and skills: v0.7.1**
+**Methodology and skills: v0.7.2**
 
 Give your coding agent an ordinary task and say: **“Use DDD for this task.”**
 
-DDD makes the agent find and read the right documentation, produce a grounded
+DDD guides the agent to find and read the right documentation, produce a grounded
 plan with useful code snippets, implement with those docs, and compare the
 finished code against them. It uses the agent's existing tools and works across
 languages. The agent maintains the research context and corrects discrepancies.
@@ -32,33 +32,42 @@ Documentation links are welcome but optional. The agent discovers missing
 official sources and checks the actual dependency versions. For routine use,
 add this one-time instruction to your project's agent instructions:
 
-> Use DDD for coding tasks. Read the DDD skill and follow its documentation
-> discovery, grounded planning, implementation, and final comparison process.
+> Use DDD as the workflow for coding tasks. Load the installed `ddd` skill before
+> planning or editing. Other skills may supply technical guidance; they must not
+> add routine approval stages to work the user already authorized.
 > Respect plan-only and review-only requests.
 
 ## What to expect
 
-1. **Discovery:** task-relevant APIs and official documentation matching the
-   installed versions, with applicable constraints and open questions.
-2. **Grounded plan:** cited decisions and task-specific integration snippets,
-   labeled as official examples, adaptations, or untested proposed code.
-3. **Implementation:** code built against that plan, with further documentation
-   consulted before introducing another API or changing approach.
-4. **Final comparison:** the actual diff checked against reopened documentation,
-   discrepancies corrected, affected checks rerun, and limitations reported.
+1. **Inspect:** follow the requested behavior through the code and identify what
+   must be true, including relevant language rules and technology interactions.
+2. **Research:** find and read official documentation for those questions and the
+   actual versions; resolve conflicts and name unanswered questions.
+3. **Save and plan:** keep one persistent task note linking sources to decisions,
+   with cited integration snippets and checks to run.
+4. **Implement and revisit:** research new APIs and unexplained failed assumptions
+   before workarounds, updating the same note.
+5. **Compare:** inspect the actual code against reopened sources and requirements,
+   correct discrepancies, run affected checks, and report limitations.
 
 A plan-only request stops with the plan. Implementation requests continue through
 verification under your existing authorization. Missing documentation triggers
 investigation; the agent asks only when access or a decision needs you.
 
-The agent keeps a short **Documentation basis** in the task plan. For a handoff
-without an existing persistent plan, it writes one note under `.ddd/notes/`.
+The agent keeps a short **Documentation basis** in the existing persistent plan
+or one `.ddd/notes/<task>.md` note, even when no handoff was requested. It saves
+questions, sources, applicable rules, decisions, and actual results; it finds and
+updates the same note on continuation.
 You do not copy documentation repeatedly or run bookkeeping commands. Citations
 support API decisions; native project checks show what actually ran.
 
 See [Getting started](GETTING_STARTED.md), the [methodology contract](SPEC.md),
-and the [skill guide](SKILLS.md). Recorded [fresh-context walkthroughs](.ddd/notes/methodology-walkthroughs.md)
-show the checked scenarios and their limits.
+and the [skill guide](SKILLS.md). The [installed-host walkthrough](.ddd/notes/host-workflow-walkthrough.md)
+records actual tool actions, including failed attempts; the earlier
+[fresh-context suite](.ddd/notes/methodology-walkthroughs.md) retains its original scope.
+A `.ddd/` directory alone does not activate DDD: the agent must load the installed
+skill. Following these instructions depends on the host and model; a completed
+note alone does not establish that research or verification happened.
 
 ## Optional experimental CLI
 

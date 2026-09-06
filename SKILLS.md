@@ -16,7 +16,9 @@ tools and the project's language; none requires the optional CLI.
 
 Install the skill directories together so phase skills and supporting references
 can resolve the main procedure. The agent maintains the Documentation basis in
-the existing plan or, when a handoff needs it, one `.ddd/notes/` file.
+the existing persistent plan or one `.ddd/notes/<task>.md` file on every task.
+The note connects questions, sources, rules, decisions, and checks; the agent
+finds it on resumption and updates it when assumptions fail.
 
 ## Optional experimental tooling skills
 

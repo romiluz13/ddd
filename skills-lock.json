@@ -4,32 +4,32 @@
     "ddd": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "fb2b01b6eadc60e7cf755d1d2cb355d4db183d72bf7709e0d1ac9be90fb721dc"
+      "computedHash": "524d02003cb01b72c6bde38a45ab4429ff7ec881d1208b74869ded531c57f52b"
     },
     "ddd-book": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "be4edaa7be598717863183fe68cdc718959ac6b5c184e8768ec922d1b71f780c"
+      "computedHash": "de2a70806efc53a170d7f9b8bd65def125110276f2b088b9cb371cdc0e167e93"
     },
     "ddd-exception": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "2e4f0c6aea4b8f6cc4685a89180870e3d3c977c0c4f854a6d7a4a003b547cad3"
+      "computedHash": "5648f82e6efd9f132e60f75db5656817f577c43971206c85739b3bee50e63550"
     },
     "ddd-ground": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "b1c7d4c8bf4a4bbe088a943d48c99da30482d58485d50258d0a53b8b9ea9aea4"
+      "computedHash": "289fe69da1a848d5eb0f435eee8ccb3a4b7ec995f137865668636d887f88e935"
     },
     "ddd-scope": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "9e3555f762efc5b6640d9a8869a2361683a5554eeb6f33fdf6d3b9be24139ec8"
+      "computedHash": "7fbbd8892296dcf42dde63281767a9a0458c606668106e02d54ed74d2bc04d0d"
     },
     "ddd-verify": {
       "source": ".",
       "sourceType": "local",
-      "computedHash": "2eadc86e9508fcadf6db73295db0adf5be030fda31a84ab8ac2548996433f822"
+      "computedHash": "eb96085d3f7bc947fe0e6320ae2ddfb2391c1b7152cd0b4a5a54a6524de3151d"
     }
   }
 }

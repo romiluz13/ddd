@@ -5,14 +5,14 @@ description: >
   experimental Proofline CLI Book, references, or compatibility artifacts.
 metadata:
   author: ddd-methodology
-  version: "0.7.1"
+  version: "0.7.2"
 ---
 
 # Manage Proofline storage
 
 This is optional experimental tooling, outside the default DDD route. For an
 ordinary coding task or missing documentation, follow [DDD](../ddd/SKILL.md).
-A `.ddd/notes/` handoff does not require Book initialization.
+A `.ddd/notes/` task note does not require Book initialization.
 
 Proofline retains `.ddd/` as its compatibility store. In the tooling repository,
 read `cli/README.md` and `cli/SPEC.md` for commands, known defects, and schemas;

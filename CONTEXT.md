@@ -9,8 +9,9 @@ the docs and correct discrepancies. It works across languages using the agent's
 existing tools. [SPEC.md](SPEC.md) defines the current methodology contract.
 
 The user supplies the task and desired behavior. The agent handles documentation
-research and maintains a short **Documentation basis** in the task plan. A
-handoff without a persistent plan uses one note under `.ddd/notes/`.
+research and maintains a short **Documentation basis** in one persistent task
+plan, or one `.ddd/notes/<task>.md` note when no persistent plan exists. The agent
+finds and updates it on continuation without a user-prepared handoff.
 
 **Proofline** names the preserved optional experimental CLI. `ddd` and `proofline`
 remain equivalent binary names; `.ddd/` remains its compatibility store. CLI
@@ -20,8 +21,9 @@ scope, not proof of the current methodology.
 
 ## Methodology terms
 
-- **Documentation basis:** applicable versions, official sections, needed rules
-  and snippets, open questions, and final comparison with actual check results.
+- **Documentation basis:** task questions linked to sources and applicable
+  versions, rules and implementation decisions, snippets, and actual checks or
+  open questions. Persistence is automatic; unsupported assumptions stay visible.
 - **Grounded plan:** implementation decisions and concrete integration snippets
   supported by applicable official documentation; proposed code remains untested
   until execution is recorded.

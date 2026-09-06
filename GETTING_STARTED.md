@@ -19,10 +19,11 @@ and execution tools; DDD requires no Proofline CLI or Bun runtime.
 > file into a dictionary using this project's Python version. Let parse and file
 > errors reach the caller.
 
-The agent inspects the code and installed runtime, finds the applicable official
-documentation, and reads the relevant sections itself. It plans with cited
-API choices and a concrete snippet, implements the task, then reopens the docs
-to compare the finished code and runs the project's checks.
+The agent follows the task through the code and identifies the questions it
+needs to answer. It reads the applicable official sections for the installed
+versions, saves the resulting rules and decisions, and plans with cited snippets.
+It implements, returns to research when assumptions fail, then compares the actual
+code against reopened sources and runs the project's checks.
 
 You can supply links or constraints alongside the task. The agent checks their
 applicability to the installed version; it does not upgrade dependencies to make
@@ -33,8 +34,8 @@ newer documentation examples work.
 > Use DDD for this task. Plan only: add settings-file loading. Include documented
 > API choices, a useful snippet, and checks to run. Do not implement yet.
 
-This ends with a plan. Snippets are labeled by origin and execution status, and
-checks remain pending until actually run.
+This ends with a saved plan. Snippets are labeled by origin and execution status;
+implementation and final checks remain pending until actually performed.
 
 > Use DDD to review the finished settings loader against its official docs.
 > Report discrepancies without changing code.
@@ -48,8 +49,9 @@ routine approval stage. To invoke one phase explicitly, use `ddd-scope`,
 
 Add this instruction once to your project's agent instructions:
 
-> Use DDD for coding tasks. Read the DDD skill and follow its documentation
-> discovery, grounded planning, implementation, and final comparison process.
+> Use DDD as the workflow for coding tasks. Load the installed `ddd` skill before
+> planning or editing. Other skills may supply technical guidance; they must not
+> add routine approval stages to work the user already authorized.
 > Respect plan-only and review-only requests.
 
 Install the skill directories together through your agent's existing mechanism.
@@ -57,17 +59,20 @@ DDD requires no global agent configuration changes.
 
 ## Resume a task
 
-The agent maintains a short **Documentation basis** in the existing plan:
-versions, source sections, needed rules/snippets, questions, and actual comparison
-and check results. If a handoff needs a file and there is no persistent plan,
-it creates one note in `.ddd/notes/`. That note needs no Book or other setup.
+The agent maintains one persistent task plan or `.ddd/notes/<task>.md` note
+automatically. Its **Documentation basis** connects each important question to
+a source/version, the applicable rule and decision, and a check or open question.
+It saves before implementation and before ending a planning or review turn.
+No Book, document registry, or manual handoff preparation is needed.
 
-Point the next session at the existing plan or note and say:
+In the next session, say:
 
-> Resume this task using DDD and the existing Documentation basis.
+> Continue the settings-loader task.
 
-The agent checks whether code or versions changed and refreshes affected sources.
-You do not need to repeat the documentation research.
+With DDD enabled by the project instruction above, the agent finds and reads
+the existing note, checks code and versions, and refreshes affected sources.
+It names the note path in its response; you do not reconstruct the research.
+A `.ddd/` folder alone does not activate a skill.
 
 ## Understand the result
 
@@ -77,7 +82,9 @@ other official and shipped sources, names the specific unsupported behavior,
 and continues independent work. A relevant unresolved mismatch or failing check
 prevents a clean completion claim.
 
-See the [recorded walkthroughs](.ddd/notes/methodology-walkthroughs.md) for
-TypeScript and Python examples. The [Proofline CLI](cli/README.md), Book and
+See the [installed-host walkthrough](.ddd/notes/host-workflow-walkthrough.md) for
+observed activation, persistence, and follow-through, and the earlier
+[recorded suite](.ddd/notes/methodology-walkthroughs.md) for its TypeScript and
+Python examples. The [Proofline CLI](cli/README.md), Book and
 exception skills, and historical evidence remain optional experimental tooling.
 They are unnecessary for every example above.

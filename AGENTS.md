@@ -7,7 +7,7 @@ optional experimental assurance CLI.
 ## Repository map
 
 ```text
-SPEC.md              Current methodology contract (0.7.1)
+SPEC.md              Current methodology contract (0.7.2)
 skills/ddd/SKILL.md  Complete agent procedure; phase skills point here
 README.md            Usage and product boundary
 GETTING_STARTED.md   Ordinary-task walkthrough
@@ -22,7 +22,10 @@ research/            Superseded proposals, skills, and detector registry
 ## Working rules
 
 1. Use DDD for coding tasks. Follow `skills/ddd/SKILL.md`; respect plan-only and
-   review-only requests. Keep research in the existing task's Documentation basis.
+   review-only requests. Save research in the existing persistent task plan or
+   one `.ddd/notes/<task>.md` note; find and update it on continuation.
+   DDD owns the workflow; other skills supply technical guidance within the user's
+   existing authorization, without extra routine approval stages.
 2. Read root `SPEC.md` for methodology changes and `cli/SPEC.md` before changing
    CLI schemas or verdict semantics. Preserve CLI behavior and `.ddd/` compatibility
    when editing the methodology.
