@@ -1,6 +1,6 @@
 # Documentation-driven development specification
 
-**Methodology version:** 0.7.2
+**Methodology version:** 0.7.3
 
 DDD is a cooperative workflow performed by a coding agent using its existing
 file, search, browsing, and execution tools. It applies across languages.
@@ -57,6 +57,15 @@ access, product choices, or consequential contradictions requiring user judgment
 Other skills provide technical guidance within this workflow and authorization;
 they do not introduce competing procedures or extra routine approval stages.
 
+Load DDD before planning or editing, including when coordinating workers; reload
+it on continuation if its instructions are absent. After research and material
+changes, the main chat identifies sources actually read, supported decisions and
+gaps. Distinguish fetched content, reused research and unsuccessful attempts.
+For delegated work, the coordinator inspects returned source excerpts or tool
+results for consequential claims, reopening sources when evidence is missing.
+Worker assertions alone do not verify research. Consolidate findings in the
+existing task plan, including orchestration plans; link worker detail as needed.
+
 ## Persistence and failures
 
 The task note contains the requested outcome, current status/next step, and a
@@ -70,6 +79,8 @@ and refresh affected answers. Name the note's path when pausing or finishing.
 Save needed rules and decisions, not entire manuals or disconnected link lists.
 Keep implementation, comparison, and checks pending until performed. Record
 observations after tool results return; never prefill successful outcomes.
+Replace stale pending results and superseded decisions. The final response connects
+important source rules, resulting behavior, actual checks and gaps to that note.
 
 For execution-environment failures, classify the cause from logs, health, stats,
 and documented diagnostics rather than assumption. Consult relevant diagnostic

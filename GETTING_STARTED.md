@@ -50,9 +50,10 @@ routine approval stage. To invoke one phase explicitly, use `ddd-scope`,
 Add this instruction once to your project's agent instructions:
 
 > Use DDD as the workflow for coding tasks. Load the installed `ddd` skill before
-> planning or editing. Other skills may supply technical guidance; they must not
-> add routine approval stages to work the user already authorized.
-> Respect plan-only and review-only requests.
+> planning or editing, including when coordinating workers. Respect plan-only and
+> review-only requests. Other skills supply technical guidance within existing
+> authorization. Keep one task plan and report sources actually read, the decisions
+> they support, and gaps in the main chat.
 
 Install the skill directories together through your agent's existing mechanism.
 DDD requires no global agent configuration changes.
@@ -75,6 +76,11 @@ It names the note path in its response; you do not reconstruct the research.
 A `.ddd/` folder alone does not activate a skill.
 
 ## Understand the result
+
+After research, expect a brief main-chat update with source links, their effect
+on the plan, and any gaps. Reused local research is identified as such; failed
+fetches are not reported as successful reads. This also applies when workers do
+the research. Their checked findings join the existing task plan.
 
 The final response identifies compared APIs and docs, corrections, actual check
 results, and remaining limitations. If docs are unavailable, the agent tries

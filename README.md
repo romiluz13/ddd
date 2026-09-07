@@ -1,6 +1,6 @@
 # Docs-Driven Development (DDD)
 
-**Methodology and skills: v0.7.2**
+**Methodology and skills: v0.7.3**
 
 Give your coding agent an ordinary task and say: **“Use DDD for this task.”**
 
@@ -33,9 +33,10 @@ official sources and checks the actual dependency versions. For routine use,
 add this one-time instruction to your project's agent instructions:
 
 > Use DDD as the workflow for coding tasks. Load the installed `ddd` skill before
-> planning or editing. Other skills may supply technical guidance; they must not
-> add routine approval stages to work the user already authorized.
-> Respect plan-only and review-only requests.
+> planning or editing, including when coordinating workers. Respect plan-only and
+> review-only requests. Other skills supply technical guidance within existing
+> authorization. Keep one task plan and report sources actually read, the decisions
+> they support, and gaps in the main chat.
 
 ## What to expect
 
@@ -61,9 +62,16 @@ updates the same note on continuation.
 You do not copy documentation repeatedly or run bookkeeping commands. Citations
 support API decisions; native project checks show what actually ran.
 
+Research is visible in the main chat: a brief update names the sources read,
+the decisions they support, and gaps. When workers research separately, the
+coordinator checks their source evidence and brings it into the same task plan.
+The final response connects those decisions to the actual code and check results.
+
 See [Getting started](GETTING_STARTED.md), the [methodology contract](SPEC.md),
-and the [skill guide](SKILLS.md). The [installed-host walkthrough](.ddd/notes/host-workflow-walkthrough.md)
-records actual tool actions, including failed attempts; the earlier
+and the [skill guide](SKILLS.md). The [0.7.3 walkthrough](.ddd/notes/visible-research-0.7.3.md)
+checks activation, visible research and continuation. The earlier
+[installed-host walkthrough](.ddd/notes/host-workflow-walkthrough.md) retains its
+actual tool actions, including failed attempts; the
 [fresh-context suite](.ddd/notes/methodology-walkthroughs.md) retains its original scope.
 A `.ddd/` directory alone does not activate DDD: the agent must load the installed
 skill. Following these instructions depends on the host and model; a completed

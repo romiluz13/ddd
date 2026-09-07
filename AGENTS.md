@@ -7,7 +7,7 @@ optional experimental assurance CLI.
 ## Repository map
 
 ```text
-SPEC.md              Current methodology contract (0.7.2)
+SPEC.md              Current methodology contract (0.7.3)
 skills/ddd/SKILL.md  Complete agent procedure; phase skills point here
 README.md            Usage and product boundary
 GETTING_STARTED.md   Ordinary-task walkthrough
@@ -26,6 +26,7 @@ research/            Superseded proposals, skills, and detector registry
    one `.ddd/notes/<task>.md` note; find and update it on continuation.
    DDD owns the workflow; other skills supply technical guidance within the user's
    existing authorization, without extra routine approval stages.
+   Report sources, decisions and gaps in the main chat, including delegated work.
 2. Read root `SPEC.md` for methodology changes and `cli/SPEC.md` before changing
    CLI schemas or verdict semantics. Preserve CLI behavior and `.ddd/` compatibility
    when editing the methodology.

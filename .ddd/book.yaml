@@ -2,7 +2,7 @@
 schema_version: 0.1.0
 version: 0.5.0
 released_at: null
-manifest_digest: sha256:942acac643ae915b12e4c9f799e28e2b5aaee11614ba83c5a3ec6bcd0c6dde12
+manifest_digest: sha256:85370155772da8b1ee5724bdb5b326f06b2095fe137931763ef6881cb81c055f
 
 requirements:
   - path: cli/SPEC.md
@@ -14,8 +14,8 @@ requirements:
   - path: SPEC.md
     authority: product-approved
     independence: agent-proposed-human-approved
-    digest: sha256:c4bb02cea00f7d9a1289a692e0eaae74d0d030f081758f02fdfa9fc5dc6a289d
-    description: "DDD methodology contract, v0.7.2; not evidence of its own correctness"
+    digest: sha256:8044f498e79a88d8ab356d0e69bac2e284510a7d56771c8d574177385333de6d
+    description: "DDD methodology contract, v0.7.3; not evidence of its own correctness"
 
   - path: CONTEXT.md
     authority: product-approved
@@ -27,7 +27,7 @@ agent_context:
   - path: AGENTS.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:9e48ba43a28cc03aef1fcea0f3245d225220ef5a78e0a95c27ba021e1eab4190
+    digest: sha256:d8b66e80c444fac4299acbf43534f23b4919d385c051ee66ad3d8a05f4cc803d
     description: "Agent runtime instructions"
 
   - path: SKILLS.md
@@ -39,7 +39,7 @@ agent_context:
   - path: skills/ddd/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:d65d08d30f17307c2ff06de5e4a0ccd71f7ec7f920a50d67f38bd4d7aac21cac
+    digest: sha256:aa42c5a19ae531ac09f3fb2f8c6e2f448a7ff939f195bbf6c848659940008c3f
     description: "Complete DDD documentation workflow"
 
 evidence_lock: evidence.lock
