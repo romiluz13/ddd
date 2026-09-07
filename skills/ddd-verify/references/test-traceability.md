@@ -14,6 +14,12 @@ behavioral failure; avoid tests that merely repeat the implementation or assert
 that documentation contains a phrase. Inspect changed test code against the
 same applicable API documentation.
 
+A new test that has never failed has not been shown to detect anything. Run it
+against the unfixed code (the previous revision, or the implementation with the
+specific behavior removed) and require the exact failure it claims to catch. A
+test written from the same assumption as the implementation passes for the same
+wrong reason, so a first run that is already green distinguishes nothing.
+
 After correcting a discrepancy, rerun affected checks and record the command,
 actual result, and execution limitations in the Documentation basis. A passing
 test does not establish a vendor guarantee; a citation does not establish that
