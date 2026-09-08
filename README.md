@@ -1,6 +1,6 @@
 # Docs-Driven Development (DDD)
 
-**Methodology and skills: v0.7.3**
+**Methodology and skills: v0.7.4**
 
 Give your coding agent an ordinary task and say: **“Use DDD for this task.”**
 
