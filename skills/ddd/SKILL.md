@@ -7,7 +7,7 @@ description: >
   or debugging unexpected behavior that challenges an implementation assumption.
 metadata:
   author: ddd-methodology
-  version: "0.7.4"
+  version: "0.7.5"
 ---
 
 # Documentation-driven development

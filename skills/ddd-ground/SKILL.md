@@ -5,7 +5,7 @@ description: >
   snippets, save its research, or continue an authorized implementation.
 metadata:
   author: ddd-methodology
-  version: "0.7.4"
+  version: "0.7.5"
 ---
 
 # Ground the plan and implementation

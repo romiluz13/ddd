@@ -5,7 +5,7 @@ description: >
   experimental Proofline CLI Book, references, or compatibility artifacts.
 metadata:
   author: ddd-methodology
-  version: "0.7.4"
+  version: "0.7.5"
 ---
 
 # Manage Proofline storage

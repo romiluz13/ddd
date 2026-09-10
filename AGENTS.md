@@ -7,7 +7,7 @@ optional experimental assurance CLI.
 ## Repository map
 
 ```text
-SPEC.md              Current methodology contract (0.7.4)
+SPEC.md              Current methodology contract (0.7.5)
 skills/ddd/SKILL.md  Complete agent procedure; phase skills point here
 README.md            Usage and product boundary
 GETTING_STARTED.md   Ordinary-task walkthrough
