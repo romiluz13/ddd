@@ -6,7 +6,7 @@ description: >
   affected checks. Use for verification or review of an implementation.
 metadata:
   author: ddd-methodology
-  version: "0.7.5"
+  version: "0.7.6"
 ---
 
 # Compare code with documentation

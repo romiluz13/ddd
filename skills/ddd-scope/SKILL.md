@@ -6,7 +6,7 @@ description: >
   interactions between technologies.
 metadata:
   author: ddd-methodology
-  version: "0.7.5"
+  version: "0.7.6"
 ---
 
 # Discover the documentation
