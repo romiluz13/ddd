@@ -148,7 +148,10 @@ Implement the grounded plan and run affected native checks. Before a new API,
 option, dependency, or materially different approach, consult its documentation
 and update the note. If unexpected behavior or a failing check challenges an
 assumption, identify the contradicted rule and reread its source; research the
-unanswered question before a workaround. When a failing check or unexpected
+unanswered question before a workaround. When rival explanations would lead to
+different fixes, name what would distinguish them and obtain it before choosing;
+if it is unavailable, record the open question, leave the dependent work visibly
+blocked, and continue independent work. When a failing check or unexpected
 behavior will be fixed, save the failing output to the note before the fix;
 the corrected state alone proves less. Fix ordinary typos directly when the
 existing source already explains the correction. Record what changed and why.
