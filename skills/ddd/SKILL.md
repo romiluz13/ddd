@@ -202,10 +202,10 @@ are not execution results. Before citing an evidence artifact in that report,
 re-open it and confirm it shows the claimed result; a pointer is not a check.
 In the final response, connect the important source rules to the resulting
 behavior and actual checks, with corrections and gaps; include the task note
-path. Write
-it for the reader: plain words over fancy synonyms, active voice with the actor
-named, filler cut, at most one hedge, the mechanism or the number rather than
-the feeling, and nothing that could appear unchanged in any project's report.
+path. Write it for the reader: plain words over fancy synonyms, active voice
+with the actor named, filler cut, at most one hedge, the mechanism or the
+number rather than the feeling, and nothing that could appear unchanged in any
+project's report.
 Apply the same standard to delegated work.
 See [citation comparison](../ddd-verify/references/citation-entailment.md)
 and [execution checks](../ddd-verify/references/test-traceability.md) when needed.
