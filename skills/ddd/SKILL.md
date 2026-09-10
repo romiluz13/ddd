@@ -57,6 +57,13 @@ selectively; do not inventory unrelated dependencies or manufacture missing diag
 
 ## 2. Research the questions that matter
 
+Preflight the research surfaces before grounding the plan: with one cheap check
+each, confirm the available tools can reach what this task needs, official
+indexes, web search, or shipped local material. An unreachable surface moves
+the task to the reduced protocol immediately: official mirrors, then tagged
+source, then shipped material, then a named gap recorded in the note. Plan with
+that question open instead of spending the research budget on retries.
+
 Open supplied links. Find missing official sources through web search or official
 indexes and read the applicable sections before finalizing a technology-dependent
 plan. Search-result snippets and remembered URLs are not source reads. Prefer the
@@ -164,14 +171,29 @@ After implementation and checks, perform these actions in order:
    not reading it back, and a pre-edit fetch is not a post-edit comparison.
 
 Correct authorized discrepancies, rerun affected checks, and compare corrected
-code again. Reenter research if the source cannot explain the result. Record
-compared files/APIs and sources, corrections or findings, actual commands/results,
-and unresolved limitations in the note. An unsupported consequential assumption,
+code again. Reenter research if the source cannot explain the result.
+
+For consequential work, an external review is a gate, not a verdict: a clean
+completion claim requires independent review with an iteration cap named in
+advance. Resolve each finding by fixing it or by rebutting it with stated
+grounds; a recorded rebuttal is a valid resolution, and authority settles the
+subject, since user requirements and accepted project decisions outrank a
+reviewer's preference. Never accept a wrong finding to reach a clean score.
+When the cap is reached with findings unresolved, stop and report the state.
+
+Record compared files/APIs and sources, corrections or findings, actual
+commands/results, and unresolved limitations in the note. An unsupported consequential assumption,
 relevant mismatch, failing check, or blocked part prevents a clean completion claim.
 Report checked behavior separately from what remains unverified; citations alone
-are not execution results. In the final response, connect the important source
-rules to the resulting behavior and actual checks, with corrections and gaps;
-include the task note path. Apply the same standard to delegated work.
+are not execution results. Before citing an evidence artifact in that report,
+re-open it and confirm it shows the claimed result; a pointer is not a check,
+and a timestamp records when a claim was made, not that it was true. In the
+final response, connect the important source rules to the resulting behavior
+and actual checks, with corrections and gaps; include the task note path. Write
+it for the reader: plain words over fancy synonyms, active voice with the actor
+named, filler cut, at most one hedge, the mechanism or the number rather than
+the feeling, and nothing that could appear unchanged in any project's report.
+Apply the same standard to delegated work.
 See [citation comparison](../ddd-verify/references/citation-entailment.md)
 and [execution checks](../ddd-verify/references/test-traceability.md) when needed.
 
