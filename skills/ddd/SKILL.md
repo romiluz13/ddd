@@ -60,9 +60,9 @@ selectively; do not inventory unrelated dependencies or manufacture missing diag
 Preflight the research surfaces before grounding the plan: with one cheap check
 each, confirm the available tools can reach what this task needs, official
 indexes, web search, or shipped local material. An unreachable surface moves
-the task to the reduced protocol immediately: official mirrors, then tagged
-source, then shipped material, then a named gap recorded in the note. Plan with
-that question open instead of spending the research budget on retries.
+the affected question to the fallback below, not the whole task: try the other
+reachable official routes for it first. Plan with an unresolved question open
+instead of spending the research budget on retries.
 
 Open supplied links. Find missing official sources through web search or official
 indexes and read the applicable sections before finalizing a technology-dependent
@@ -125,7 +125,11 @@ including consequential assumptions, source conflicts, and unavailable checks.
 Save useful rules, not whole manuals; links alone do not preserve the reasoning.
 Start implementation, comparison, and check results as **pending**. Write observed
 results only after the corresponding read or execution returns; never prefill
-"passed", "compared", or test counts in the proposed plan. After checks, update
+"passed", "compared", or test counts in the proposed plan; the red flags —
+"the docs probably say", "it passed before", "the note already shows it" —
+each mean stop and do the actual read or run. On completion, every claim in
+the note carries a status — passed, failed, or untested with its reason — and
+the revision or artifact identity it was checked against. After checks, update
 the same note from the actual output, correcting stale claims on resumption.
 Update this same note after discoveries, failures, and checks. Replace stale
 pending results and superseded decisions instead of appending contradictory status.
@@ -144,7 +148,9 @@ Implement the grounded plan and run affected native checks. Before a new API,
 option, dependency, or materially different approach, consult its documentation
 and update the note. If unexpected behavior or a failing check challenges an
 assumption, identify the contradicted rule and reread its source; research the
-unanswered question before a workaround. Fix ordinary typos directly when the
+unanswered question before a workaround. When a failing check or unexpected
+behavior will be fixed, save the failing output to the note before the fix;
+the corrected state alone proves less. Fix ordinary typos directly when the
 existing source already explains the correction. Record what changed and why.
 
 For an environment failure, establish the cause from logs, health, statistics,
@@ -156,7 +162,9 @@ code failure. Raise repeated environment failures as a target-environment decisi
 
 ## 5. Compare the actual result
 
-After implementation and checks, perform these actions in order:
+After implementation and checks, perform these actions in order. A step that
+cannot complete stops the sequence and reports the state; it does not continue
+on stale or missing results:
 
 1. Read the actual diff and relevant resulting files, including changed tests.
 2. Reopen the supporting sections named in the plan using read/fetch tools.
@@ -169,27 +177,32 @@ After implementation and checks, perform these actions in order:
 4. Update the note with what those reads and executions actually established.
    Check completion statements against returned tool results: writing a file is
    not reading it back, and a pre-edit fetch is not a post-edit comparison.
-
-Correct authorized discrepancies, rerun affected checks, and compare corrected
-code again. Reenter research if the source cannot explain the result.
-
-For consequential work, an external review is a gate, not a verdict: a clean
-completion claim requires independent review with an iteration cap named in
-advance. Resolve each finding by fixing it or by rebutting it with stated
-grounds; a recorded rebuttal is a valid resolution, and authority settles the
-subject, since user requirements and accepted project decisions outrank a
-reviewer's preference. Never accept a wrong finding to reach a clean score.
-When the cap is reached with findings unresolved, stop and report the state.
+5. Correct authorized discrepancies, rerun affected checks, and compare
+   corrected code again. Reenter research if the source cannot explain the
+   result.
+6. For consequential work, an external review is a gate, not a verdict: a clean
+   completion claim requires independent review with an iteration cap named in
+   advance. Review the two axes separately — conformance to the cited
+   sources, and conformance to the requirements — so a pass on one cannot
+   mask a fail on the other. Resolve each finding by fixing it or by
+   rebutting it with stated grounds; a recorded rebuttal is a valid
+   resolution, and authority settles the
+   subject, since user requirements and accepted project decisions outrank a
+   reviewer's preference. Never accept a wrong finding to reach a clean score.
+   If no independent reviewer is available, record the gate as waived with its
+   reason instead of claiming it clean. When the cap is reached with findings
+   unresolved, stop and report the state.
 
 Record compared files/APIs and sources, corrections or findings, actual
-commands/results, and unresolved limitations in the note. An unsupported consequential assumption,
-relevant mismatch, failing check, or blocked part prevents a clean completion claim.
+commands/results, and unresolved limitations in the note. An unsupported
+consequential assumption, relevant mismatch, failing check, or blocked part
+prevents a clean completion claim.
 Report checked behavior separately from what remains unverified; citations alone
 are not execution results. Before citing an evidence artifact in that report,
-re-open it and confirm it shows the claimed result; a pointer is not a check,
-and a timestamp records when a claim was made, not that it was true. In the
-final response, connect the important source rules to the resulting behavior
-and actual checks, with corrections and gaps; include the task note path. Write
+re-open it and confirm it shows the claimed result; a pointer is not a check.
+In the final response, connect the important source rules to the resulting
+behavior and actual checks, with corrections and gaps; include the task note
+path. Write
 it for the reader: plain words over fancy synonyms, active voice with the actor
 named, filler cut, at most one hedge, the mechanism or the number rather than
 the feeling, and nothing that could appear unchanged in any project's report.
