@@ -5,9 +5,11 @@ description: >
   requested behavior, plan with cited snippets, keep one persistent task note,
   implement, and compare code against the sources. Also use when resuming work
   or debugging unexpected behavior that challenges an implementation assumption.
+license: MIT
+compatibility: Install together with sibling skills ddd-scope, ddd-ground, and ddd-verify; their reference files are reached by relative path.
 metadata:
   author: ddd-methodology
-  version: "0.7.6"
+  version: "0.7.7"
 ---
 
 # Documentation-driven development

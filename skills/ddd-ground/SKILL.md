@@ -3,9 +3,11 @@ name: ddd-ground
 description: >
   Produce a documentation-grounded plan with cited decisions and integration
   snippets, save its research, or continue an authorized implementation.
+license: MIT
+compatibility: Install together with sibling skills ddd, ddd-scope, ddd-ground, and ddd-verify; the main procedure is referenced at ../ddd/SKILL.md.
 metadata:
   author: ddd-methodology
-  version: "0.7.6"
+  version: "0.7.7"
 ---
 
 # Ground the plan and implementation

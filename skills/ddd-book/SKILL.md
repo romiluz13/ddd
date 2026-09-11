@@ -3,9 +3,11 @@ name: ddd-book
 description: >
   Use only when explicitly asked to initialize or maintain the optional
   experimental Proofline CLI Book, references, or compatibility artifacts.
+license: MIT
+compatibility: Optional experimental tooling; requires a Proofline CLI checkout with cli/README.md and cli/SPEC.md. Install together with the ddd skill.
 metadata:
   author: ddd-methodology
-  version: "0.7.6"
+  version: "0.7.7"
 ---
 
 # Manage Proofline storage

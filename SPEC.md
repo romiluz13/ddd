@@ -1,6 +1,6 @@
 # Documentation-driven development specification
 
-**Methodology version:** 0.7.6
+**Methodology version:** 0.7.7
 
 DDD is a cooperative workflow performed by a coding agent using its existing
 file, search, browsing, and execution tools. It applies across languages.

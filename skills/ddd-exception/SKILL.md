@@ -4,9 +4,11 @@ description: >
   Use only when explicitly asked to manage a waiver, goal, or open obligation
   in the optional experimental Proofline CLI. Missing documentation in an
   ordinary coding task is handled by DDD discovery.
+license: MIT
+compatibility: Optional experimental tooling; requires a Proofline CLI checkout with cli/README.md and cli/SPEC.md. Install together with the ddd skill.
 metadata:
   author: ddd-methodology
-  version: "0.7.6"
+  version: "0.7.7"
 ---
 
 # Record a gap or waiver

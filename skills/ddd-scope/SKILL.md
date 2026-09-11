@@ -4,9 +4,11 @@ description: >
   Discover the documentation needed for a coding task's behavior and constraints.
   Use for documentation discovery only, including relevant language rules and
   interactions between technologies.
+license: MIT
+compatibility: Install together with sibling skills ddd, ddd-scope, ddd-ground, and ddd-verify; the main procedure is referenced at ../ddd/SKILL.md.
 metadata:
   author: ddd-methodology
-  version: "0.7.6"
+  version: "0.7.7"
 ---
 
 # Discover the documentation

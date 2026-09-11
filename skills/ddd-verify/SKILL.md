@@ -4,9 +4,11 @@ description: >
   Compare finished code against requirements and applicable official docs,
   research unexplained discrepancies, correct authorized changes, and run
   affected checks. Use for verification or review of an implementation.
+license: MIT
+compatibility: Install together with sibling skills ddd, ddd-scope, ddd-ground, and ddd-verify; the main procedure is referenced at ../ddd/SKILL.md.
 metadata:
   author: ddd-methodology
-  version: "0.7.6"
+  version: "0.7.7"
 ---
 
 # Compare code with documentation
