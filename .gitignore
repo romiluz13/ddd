@@ -17,3 +17,9 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Local working notes and lessons (kept locally, never published)
+METHODOLOGY_ASSESSMENT.md
+_sol_*.md
+.ddd/notes/mdbrain-research-audit.md
+.ddd/reports/CASE-901.assurance.json

@@ -5,7 +5,7 @@ Date: 2026-09-05. Working directory: `/tmp/ddd-walkthroughs.SIARed/typescript`
 
 ## Task and boundaries
 
-Read `/Users/rom.iluz/Dev/DDD/skills/ddd/SKILL.md`, then `TASK.md`.
+Read `~/Dev/DDD/skills/ddd/SKILL.md`, then `TASK.md`.
 Implemented the requested `parseAccount`: valid email, numeric age-string
 coercion, minimum age 18, invalid-input rejection, and unknown-field stripping.
 Only this temporary project was edited. No DDD CLI, Book, dependencies, or

@@ -11,7 +11,7 @@ Project directory: `/tmp/ddd-walkthroughs.SIARed/python` (macOS resolves this to
 ## Observed project state
 
 - `pyproject.toml` declares `requires-python = ">=3.11,<3.12"`; there are no declared dependencies or lockfiles in the inspected project inventory.
-- `uv python find 3.11` resolved `/Users/rom.iluz/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11`. Running that interpreter with `--version` returned `Python 3.11.15`.
+- `uv python find 3.11` resolved `~/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11`. Running that interpreter with `--version` returned `Python 3.11.15`.
 - `settings.py` contains only `def load_settings(path):` and `raise NotImplementedError`.
 - `test_settings.py` uses standard-library `unittest`, `tempfile`, and `pathlib`. Its two tests check nested UTF-8 TOML data (`café`, integer workers) using a `Path`, and propagation of `FileNotFoundError`.
 - No code or tests have been changed, and no application tests have run in this planning session.
@@ -40,7 +40,7 @@ def load_settings(path):
 Run from the project directory using the Python 3.11 interpreter. Re-resolve it with `uv python find 3.11` if the recorded path no longer exists.
 
 ```sh
-/Users/rom.iluz/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11 -m unittest -v test_settings
+~/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11 -m unittest -v test_settings
 ```
 
 This is the project's native test suite. The [unittest command-line interface](https://docs.python.org/3.11/library/unittest.html#command-line-interface) supports module selection and verbose output. Expected, not observed: both existing tests pass. Also exercise an invalid TOML file and confirm `tomllib.TOMLDecodeError` propagates; keep the existing test style if adding this case. Neither this additional case nor the command above has been executed.
@@ -76,7 +76,7 @@ Final comparison inspected the full function and unchanged surrounding tests:
 Executed from the project directory:
 
 ```text
-$ /Users/rom.iluz/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11 -m unittest -v test_settings
+$ ~/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11 -m unittest -v test_settings
 test_missing_file_propagates (test_settings.SettingsTest.test_missing_file_propagates) ... ok
 test_reads_utf8_toml (test_settings.SettingsTest.test_reads_utf8_toml) ... ok
 

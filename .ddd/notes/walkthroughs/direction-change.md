@@ -7,7 +7,7 @@ No optional DDD CLI, Book, lock, or repository edits were used.
 
 ## Observed sequence
 
-1. Read `/Users/rom.iluz/Dev/DDD/skills/ddd/SKILL.md` and this project's TASK.md.
+1. Read `~/Dev/DDD/skills/ddd/SKILL.md` and this project's TASK.md.
    Listed project files with `rg --files`, then read existing PLAN.md, entries.py,
    caller.py, test_entries.py, and pyproject.toml before any edit. One orchestration
    call had a JavaScript parenthesis syntax error and executed no commands; the
@@ -72,7 +72,7 @@ No optional DDD CLI, Book, lock, or repository edits were used.
 Command run from the project directory:
 
 ```sh
-/Users/rom.iluz/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11 -m unittest -v
+~/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11 -m unittest -v
 ```
 
 ```text

@@ -6,7 +6,7 @@ The persistent plan, cited decisions, proposed snippet, Documentation basis, and
 
 ## Observed actions
 
-1. Read `/Users/rom.iluz/Dev/DDD/skills/ddd/SKILL.md` and this project's `TASK.md`. The DDD skill explicitly ends a plan-only request after planning and asks for a `.ddd/notes/` note when a handoff is needed.
+1. Read `~/Dev/DDD/skills/ddd/SKILL.md` and this project's `TASK.md`. The DDD skill explicitly ends a plan-only request after planning and asks for a `.ddd/notes/` note when a handoff is needed.
 2. Inventoried files with `rg --files`; read `pyproject.toml`, `settings.py`, and `test_settings.py`. Identified a Python 3.11-only range, an unimplemented function, and two existing unittest cases.
 3. Ran `uv python find 3.11`, then the returned interpreter with `--version`: both succeeded; selected version is Python 3.11.15. This resolves the task's target runtime without installing packages.
 4. Opened and read the official [Python 3.11 tomllib documentation](https://docs.python.org/3.11/library/tomllib.html): module availability, `load` binary-file requirement, dictionary return, parse errors, example, and conversions.

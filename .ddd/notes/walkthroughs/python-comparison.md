@@ -6,13 +6,13 @@ on Python 3.11 and propagate errors. Scope is this disposable project only.
 
 ## Observed discovery
 
-1. Read `/Users/rom.iluz/Dev/DDD/skills/ddd/SKILL.md`, then this project's `TASK.md`.
+1. Read `~/Dev/DDD/skills/ddd/SKILL.md`, then this project's `TASK.md`.
 2. Ran `pwd` and `rg --files -g '!WALKTHROUGH.md' -g '!__pycache__/**' -g '!.venv/**'`.
    Found `settings.py`, `test_settings.py`, `pyproject.toml`, and `TASK.md`.
 3. Read all three Python/project files. No dependency or lockfile was supplied.
    Manifest declares `requires-python = ">=3.11,<3.12"`; no third-party packages.
 4. Ran `uv python find 3.11`; output:
-   `/Users/rom.iluz/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11`.
+   `~/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11`.
 5. Ran `uv run --python 3.11 python --version`; resolved runtime is Python 3.11.15.
    uv created the local `.venv`. This is the target environment and matches the
    manifest. Only Python standard-library TOML parsing and file I/O are involved.

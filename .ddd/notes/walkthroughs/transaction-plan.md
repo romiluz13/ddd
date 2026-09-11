@@ -69,7 +69,7 @@ def import_entries(connection, entries):
   in_transaction, fetchall and exceptions, plus SQLite savepoints/ABORT and
   version-3.50.4 savepoint tests. No discrepancies found for the active caller
   transaction. No correction was needed after implementation.
-- Actual check: `/Users/rom.iluz/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11 -m unittest -v`
+- Actual check: `~/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11 -m unittest -v`
   passed all 4 tests (0.003s, exit 0). The integration snippet above was then
   exercised as entries.py; its label preserves its status when the plan was written.
 - Limitations: evidence covers this in-memory schema and caller-owned transaction;

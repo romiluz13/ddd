@@ -1,6 +1,6 @@
 # Unavailable private service walkthrough
 
-Date: 2026-09-05. Procedure: `/Users/rom.iluz/Dev/DDD/skills/ddd/SKILL.md` (DDD 0.7.0).
+Date: 2026-09-05. Procedure: `~/Dev/DDD/skills/ddd/SKILL.md` (DDD 0.7.0).
 
 ## Task and status
 
