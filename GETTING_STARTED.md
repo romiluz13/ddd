@@ -21,7 +21,7 @@ and execution tools; DDD requires no Proofline CLI or Bun runtime.
 
 The agent follows the task through the code and identifies the questions it
 needs to answer. It reads the applicable official sections for the installed
-versions, saves the resulting rules and decisions, and plans with cited snippets.
+versions, saves the resulting rules and decisions, and plans with cited decisions and snippets only when useful.
 It implements, returns to research when assumptions fail, then compares the actual
 code against reopened sources and runs the project's checks.
 
@@ -40,7 +40,8 @@ implementation and final checks remain pending until actually performed.
 > Use DDD to review the finished settings loader against its official docs.
 > Report discrepancies without changing code.
 
-This ends with findings and proposed corrections. An authorized implementation
+This ends with findings and proposed corrections, without editing application
+code or documentation. An authorized implementation
 or fix instead continues through corrections and verification without another
 routine approval stage. To invoke one phase explicitly, use `ddd-scope`,
 `ddd-ground`, or `ddd-verify`; each follows the same main skill.
@@ -57,6 +58,29 @@ Add this instruction once to your project's agent instructions:
 
 Install the skill directories together through your agent's existing mechanism.
 DDD requires no global agent configuration changes.
+
+## Build understanding across tasks
+
+On adoption, the agent reuses your documentation entry point or starts a small
+map in `docs/README.md`. It links that entry point from existing project guidance
+when edits are authorized. Keep short explanations there until splitting helps.
+
+The map identifies purpose, components and flows, version locations, existing
+explanations, and known limits. It does not certify untouched code. Each task
+finds the relevant explanations, checks them against code and requirements, and
+updates connections between behavior, rationale, sources, implementation, and
+checks. Removed behavior loses its current guidance; historical evidence stays.
+
+Try a different task in a fresh session:
+
+> Use DDD. Add validation for the settings consumed by the startup command.
+
+The agent discovers the settings explanation through the map, checks it against
+the current loader and versions, then researches only the new questions. The
+prior task note remains investigation history; it is linked, not copied into
+the current explanation. Greenfield plans remain labeled proposed until built
+and checked. See [two worked examples](skills/ddd/references/application-knowledge.md)
+for a small change and an integration across components.
 
 ## Resume a task
 

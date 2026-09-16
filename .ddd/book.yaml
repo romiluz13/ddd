@@ -2,7 +2,7 @@
 schema_version: 0.1.0
 version: 0.5.0
 released_at: null
-manifest_digest: sha256:85370155772da8b1ee5724bdb5b326f06b2095fe137931763ef6881cb81c055f
+manifest_digest: sha256:b604ef640baea59aaac0f2124f262233cdca6eb21fd9ba582aff88b0aa1dc5c2
 
 requirements:
   - path: cli/SPEC.md
@@ -14,32 +14,32 @@ requirements:
   - path: SPEC.md
     authority: product-approved
     independence: agent-proposed-human-approved
-    digest: sha256:8044f498e79a88d8ab356d0e69bac2e284510a7d56771c8d574177385333de6d
-    description: "DDD methodology contract, v0.7.3; not evidence of its own correctness"
+    digest: sha256:e498b3ba2ba2c87b1ebd2c810b6134c361c65efff31d3ffc9d09ea2723d3a2dc
+    description: "DDD methodology contract, v0.8.0; not evidence of its own correctness"
 
   - path: CONTEXT.md
     authority: product-approved
     independence: agent-proposed-human-approved
-    digest: sha256:8517aa9f977121d87a5ba161fbe5984cb3632b7199d102a0194e96bf8fd74354
+    digest: sha256:d2ac369503f29ac5ec1da8057bd5ec6e4310fbdd737e624d30a750ccfbf8137c
     description: "Current product vocabulary and decisions"
 
 agent_context:
   - path: AGENTS.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:d8b66e80c444fac4299acbf43534f23b4919d385c051ee66ad3d8a05f4cc803d
+    digest: sha256:02a8ef132cc2aefdab2b9043a4a1d34fe10c0dbaf78dd8e76c2c63f5e8c3b29d
     description: "Agent runtime instructions"
 
   - path: SKILLS.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:cfa5d57df248c0bec4fcceeda7e2e02d8f1628cf22893678a9eb9693435db826
+    digest: sha256:9be590d5f4d249060df778a06021f334a49355c2649ebd7217d05ec8e80e6a1b
     description: "Default, optional, and research skill boundaries"
 
   - path: skills/ddd/SKILL.md
     status: working-document
     independence: agent-proposed-human-approved
-    digest: sha256:aa42c5a19ae531ac09f3fb2f8c6e2f448a7ff939f195bbf6c848659940008c3f
+    digest: sha256:03bbccd26ec19e62835c363be3918cb404dada9467a962f28d422b01aa527190
     description: "Complete DDD documentation workflow"
 
 evidence_lock: evidence.lock

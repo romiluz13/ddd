@@ -8,7 +8,7 @@ license: MIT
 compatibility: Optional experimental tooling; requires a Proofline CLI checkout with cli/README.md and cli/SPEC.md. Install together with the ddd skill.
 metadata:
   author: ddd-methodology
-  version: "0.7.7"
+  version: "0.8.0"
 ---
 
 # Record a gap or waiver

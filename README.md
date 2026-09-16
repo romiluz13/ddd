@@ -1,13 +1,14 @@
 # Docs-Driven Development (DDD)
 
-**Methodology and skills: v0.7.7**
+**Methodology and skills: v0.8.0**
 
 Give your coding agent an ordinary task and say: **“Use DDD for this task.”**
 
 DDD guides the agent to find and read the right documentation, produce a grounded
-plan with useful code snippets, implement with those docs, and compare the
-finished code against them. It uses the agent's existing tools and works across
-languages. The agent maintains the research context and corrects discrepancies.
+plan, implement with those docs, and compare the finished code against them.
+It also grows a current explanation of the application: what it does, why,
+where behavior lives, and what evidence supports it. It uses the agent's existing
+tools and works across languages. The agent maintains the research context and corrects discrepancies.
 
 ## Start
 
@@ -38,6 +39,20 @@ add this one-time instruction to your project's agent instructions:
 > authorization. Keep one task plan and report sources actually read, the decisions
 > they support, and gaps in the main chat.
 
+## Application knowledge that grows with the work
+
+DDD starts with a small map in your existing documentation entry point, or
+`docs/README.md` if none serves that purpose. It records purpose, components and
+flows, version locations, existing explanations, and known limits. Adoption does
+not claim that the whole application has been researched.
+
+On each task, the agent finds relevant explanations, checks their applicability,
+and connects behavior and rationale to sources, implementation, and actual checks.
+It updates affected explanations and retires obsolete guidance while preserving
+history. Task notes retain investigation details; current application explanations
+link to them. Existing projects need no bulk migration. Proposed designs and
+unchecked areas remain visibly distinct from implemented, checked behavior.
+
 ## What to expect
 
 1. **Inspect:** follow the requested behavior through the code and identify what
@@ -45,13 +60,14 @@ add this one-time instruction to your project's agent instructions:
 2. **Research:** find and read official documentation for those questions and the
    actual versions; resolve conflicts and name unanswered questions.
 3. **Save and plan:** keep one persistent task note linking sources to decisions,
-   with cited integration snippets and checks to run.
+   with cited decisions, useful snippets when needed, and checks to run.
 4. **Implement and revisit:** research new APIs and unexplained failed assumptions
    before workarounds, updating the same note.
 5. **Compare:** inspect the actual code against reopened sources and requirements,
-   correct discrepancies, run affected checks, and report limitations.
+   update affected explanations, correct discrepancies, run checks, and report limits.
 
-A plan-only request stops with the plan. Implementation requests continue through
+A plan-only request stops with the plan; review-only work leaves application
+code and documentation unchanged. Implementation requests continue through
 verification under your existing authorization. Missing documentation triggers
 investigation; the agent asks only when access or a decision needs you.
 
@@ -68,7 +84,10 @@ coordinator checks their source evidence and brings it into the same task plan.
 The final response connects those decisions to the actual code and check results.
 
 See [Getting started](GETTING_STARTED.md), the [methodology contract](SPEC.md),
-and the [skill guide](SKILLS.md). The [0.7.3 walkthrough](.ddd/notes/visible-research-0.7.3.md)
+the [repository map and terminology](CONTEXT.md), and the [skill guide](SKILLS.md).
+The [0.8.0 validation record](.ddd/notes/application-knowledge-0.8.0.md) covers
+paired knowledge-lifecycle, authorization, diagnosis and integration scenarios.
+The [0.7.3 walkthrough](.ddd/notes/visible-research-0.7.3.md)
 checks activation, visible research and continuation. The earlier
 [installed-host walkthrough](.ddd/notes/host-workflow-walkthrough.md) retains its
 actual tool actions, including failed attempts; the

@@ -8,7 +8,7 @@ license: MIT
 compatibility: Install together with sibling skills ddd, ddd-scope, ddd-ground, and ddd-verify; the main procedure is referenced at ../ddd/SKILL.md.
 metadata:
   author: ddd-methodology
-  version: "0.7.7"
+  version: "0.8.0"
 ---
 
 # Discover the documentation
@@ -24,3 +24,6 @@ authorized the whole task, continue through DDD.
 
 Use [where to look](references/stack-detection.md) and
 [source retrieval](references/adapters.md) when needed. No CLI setup is required.
+
+Find the documentation entry point and relevant application explanations during
+inspection; check applicability before expanding research.

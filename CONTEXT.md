@@ -3,7 +3,7 @@
 ## Product
 
 **Docs-Driven Development (DDD)** is a cooperative coding methodology: discover
-applicable official documentation, plan with cited integration snippets,
+applicable official documentation, plan with cited decisions,
 implement with continued consultation, then compare the finished code against
 the docs and correct discrepancies. It works across languages using the agent's
 existing tools. [SPEC.md](SPEC.md) defines the current methodology contract.
@@ -19,13 +19,27 @@ schemas and verdict semantics live in [cli/SPEC.md](cli/SPEC.md). Earlier CLI
 and Book material in this repository is historical evidence with its original
 scope, not proof of the current methodology.
 
+The existing [README](README.md) is this project's documentation entry point:
+methodology behavior flows from SPEC.md to the main skill and its phase entry
+points, then to agent-host execution. Skills carry their own release metadata;
+Proofline metadata lives separately in cli/package.json; the CI runtime is pinned
+in .github/workflows/ddd.yml. The CLI has no dependency lockfile. SKILLS.md explains distribution, GETTING_STARTED.md explains adoption,
+and .ddd/notes/ retains bounded validation history. CLI tests and declared-scope
+evidence do not verify every agent host or consumer application.
+
 ## Methodology terms
 
+- **Application map:** a small discoverable orientation linking purpose, components,
+  flows, version locations, existing explanations, and known limits.
+- **Application explanation:** current behavior and rationale connected to sources,
+  implementation, and checks with their limitations; distinct from task history.
+- **Disposable probe:** a bounded experiment answering a specific uncertainty;
+  its conditions and observations do not establish universal guarantees.
 - **Documentation basis:** task questions linked to sources and applicable
-  versions, rules and implementation decisions, snippets, and actual checks or
+  versions, rules and implementation decisions, useful snippets, and actual checks or
   open questions. Persistence is automatic; unsupported assumptions stay visible.
-- **Grounded plan:** implementation decisions and concrete integration snippets
-  supported by applicable official documentation; proposed code remains untested
+- **Grounded plan:** implementation decisions supported by applicable official
+  documentation, with snippets when they clarify a consequential choice; proposed code remains untested
   until execution is recorded.
 - **Final comparison:** inspection of actual changed code against reopened docs,
   including relevant API details, lifecycle, platform constraints, and interactions.

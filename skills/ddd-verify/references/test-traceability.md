@@ -14,11 +14,12 @@ behavioral failure; avoid tests that merely repeat the implementation or assert
 that documentation contains a phrase. Inspect changed test code against the
 same applicable API documentation.
 
-A new test that has never failed has not been shown to detect anything. Run it
-against the unfixed code (the previous revision, or the implementation with the
-specific behavior removed) and require the exact failure it claims to catch. A
-test written from the same assumption as the implementation passes for the same
-wrong reason, so a first run that is already green distinguishes nothing.
+For bugs, preserve the original failing output, reproduce with the narrowest
+check, and rerun it plus relevant regressions after the fix. Demonstrate that a
+regression test catches the reported bug against the unfixed behavior when
+feasible; name any reproduction limitation. A meaningful characterization test
+of already-correct behavior needs no manufactured failure. Judge it by the
+behavior and boundaries it exercises, not by whether it began red.
 
 After correcting a discrepancy, rerun affected checks and record the command,
 actual result, and execution limitations in the Documentation basis. A passing

@@ -2,14 +2,14 @@
 name: ddd
 description: >
   Use DDD for coding tasks: discover the official documentation needed for the
-  requested behavior, plan with cited snippets, keep one persistent task note,
-  implement, and compare code against the sources. Also use when resuming work
-  or debugging unexpected behavior that challenges an implementation assumption.
+  requested behavior, maintain application knowledge, plan with cited decisions,
+  implement, and compare code and explanations against the sources. Also use
+  when resuming work or debugging unexpected behavior that challenges an implementation assumption.
 license: MIT
 compatibility: Install together with sibling skills ddd-scope, ddd-ground, and ddd-verify; their reference files are reached by relative path.
 metadata:
   author: ddd-methodology
-  version: "0.7.7"
+  version: "0.8.0"
 ---
 
 # Documentation-driven development
@@ -17,17 +17,18 @@ metadata:
 Ask: **What must be true for this change to work, and where can I verify it?**
 Use the agent's existing file, search, browsing, and execution tools. The agent
 owns research, the task note, and verification; the user supplies the outcome.
-Before coding, save the source-backed plan and integration snippet. After coding,
-read the resulting files and reopen the sources before recording the comparison.
+Before coding, save the source-backed plan; include snippets when they clarify
+a consequential choice. After coding, read the resulting code and explanations
+and reopen supporting material before recording the comparison.
 These are tool actions, not statements that research or comparison happened.
 
 Follow existing authorization. Plan-only ends with a saved plan; review-only
-reports findings without editing application code. Authorized implementation
-continues through corrections and checks without another routine approval stage.
+reports findings without editing application code or application documentation.
+Authorized implementation continues through corrections and checks without another routine approval stage.
 DDD owns this sequence; use other skills for technical guidance within the same
 authorization, not to insert conflicting workflows or routine approval stages.
-Respect explicit no-file-change requests; provide the note inline and state that
-it was not saved. A source, test, or declared assumption is not proof of perfect code.
+Apply explicit write restrictions to documentation too. For no-file-change
+requests, provide the note inline and state that it was not saved. A source, test, or declared assumption is not proof of perfect code.
 
 ## 1. Inspect the task and its surroundings
 
@@ -38,6 +39,22 @@ and read it before research or edits. Before reusing its research or editing,
 read the current dependency/version files or query the runtime; compare them
 and the current code with the note. Do not rely on the note's old version alone.
 
+On adoption, inspect existing documentation, structure, configuration, and
+version locations. Reuse the documentation entry point; if none serves this
+purpose, use `docs/README.md`, extending it if present. Start with a small map:
+purpose, major components and flows, technology/version locations, existing
+explanations, and known limits. Link it from existing project guidance when
+adoption edits are authorized. This is orientation, not whole-application research.
+Keep explanations there initially; split only when useful. Adopt existing
+projects incrementally; old task notes need no bulk migration.
+
+Before researching, find explanations by affected behavior and component through
+that entry point, alongside the task note. Check them against current code,
+requirements, and actual versions. Greenfield descriptions remain visibly
+**proposed** until implemented and checked; untouched areas stay outside the
+verified scope. For compact examples of adoption and maintenance, see
+[application knowledge](references/application-knowledge.md).
+
 Follow the requested behavior through the affected code and callers. Inspect
 relevant contracts, configuration, tests, and existing project decisions. Resolve
 actual dependency and runtime versions; a manifest range is not an installed
@@ -46,7 +63,8 @@ version. Resolve lockfile/environment differences before choosing versioned APIs
 Turn what you find into concrete questions: which behavior or constraint must
 hold, which component supplies it, and what could invalidate it? At each changed
 connection between components, check the data passed and ownership of completion,
-errors, permissions, and resource lifetime. Include language/standard-library rules
+errors, permissions, state, and resource lifetime. Include accessibility and
+operational constraints when relevant. Include language/standard-library rules
 when correctness depends on them, such as async execution, mutation, or conversion.
 Cover both sides of a changed connection: for example, a database row's shape and
 lifetime as well as the web framework's JSON conversion. An existing helper does
@@ -80,7 +98,9 @@ writing a remembered guarantee into the note.
 Match authority to the question: requirements and accepted project decisions for
 intended behavior; official docs/contracts for technology guarantees; code, tests,
 and runtime observations for current behavior. Explain inferred connections.
-Existing behavior may be wrong. Apply project conventions and useful patterns with
+Existing behavior may be wrong. Conflicting explanations do not silently become
+accepted requirements; record consequential unresolved intent and continue
+independent work. Apply project conventions and useful patterns with
 a stated reason; a named pattern is not a requirement or correctness evidence.
 
 Resolve conflicting versions, scope, configuration, and intent before relying on
@@ -88,6 +108,13 @@ disputed behavior. For unavailable docs, try official mirrors, tagged source, an
 shipped material. Record attempted sources and the exact remaining gap. Ask only
 when access, a product choice, or a consequential contradiction needs the user;
 continue independent work and leave dependent work visibly blocked.
+
+After relevant documentation and source inspection, use a bounded, disposable
+probe if it can answer a specific remaining question. Record the question,
+conditions (versions, inputs, configuration), observed result, and limits in the
+task note. A successful experiment establishes an observation, not an undocumented
+universal guarantee. Required correctness that remains uncertain keeps dependent
+work incomplete.
 
 Stop expanding research when important decisions have applicable support and
 remaining questions are explicit. A question affecting correctness keeps that
@@ -109,6 +136,8 @@ relying on them; reopen the relevant source if evidence is missing. A worker's
 "docs checked" assertion alone is not verified research. Keep unsupported claims
 open. The coordinator owns the main-chat update and consolidates findings into
 the same task plan; link worker detail rather than create another research ledger.
+One coordinator integrates shared application explanations after checking worker
+evidence and the final code; assign one writer per shared document.
 
 ## 3. Keep one persistent note and ground the plan
 
@@ -137,10 +166,22 @@ Update this same note after discoveries, failures, and checks. Replace stale
 pending results and superseded decisions instead of appending contradictory status.
 Name its path when pausing or finishing so the user can find the research.
 
-Explain the plan with section citations beside important decisions and concrete
-integration snippets. Label snippets **official example**, **adapted snippet**, or
+Keep the task note as investigation/execution history and application explanations
+as current understanding. Link between them instead of duplicating the research.
+In concise prose or a small table, preserve meaningful connections:
+**intended behavior and rationale → applicable source/version → implementation
+location → check and limitation**. Prefer stable file/symbol references. Explain
+meaningful behaviors and decisions, not every code line; no empty template sections.
+
+Before adding a dependency, abstraction, or process step, name the requirement it
+serves and consider whether an existing mechanism suffices. Simplicity is a design
+constraint alongside correctness, not a reason to omit necessary evidence.
+
+Explain the plan with section citations beside important decisions. Include
+integration snippets only when they clarify consequential implementation choices.
+Label snippets **official example**, **adapted snippet**, or
 **proposed code (untested)**; attribute examples and describe meaningful changes.
-Include the snippet in the saved plan before editing application code.
+Save any useful snippet in the plan before editing application code.
 Name the native checks that exercise the decisions. Plan-only stops here with
 implementation and final comparison explicitly pending.
 
@@ -167,18 +208,27 @@ code failure. Raise repeated environment failures as a target-environment decisi
 
 ## 5. Compare the actual result
 
-After implementation and checks, perform these actions in order. A step that
-cannot complete stops the sequence and reports the state; it does not continue
-on stale or missing results:
+For each change, search for explanations affected by changed behavior, APIs,
+configuration, or assumptions. Update current guidance, explicitly mark unresolved
+discrepancies, and retire guidance for removed behavior while preserving historical
+evidence. Respect write restrictions; report needed documentation updates when
+editing is unauthorized.
 
-1. Read the actual diff and relevant resulting files, including changed tests.
+After implementation and checks, perform these actions for each affected part.
+If one source or behavior is blocked, continue independent comparisons and keep
+the overall result visibly partial; never substitute stale or missing evidence:
+
+1. Read the actual diff and relevant resulting files, including changed tests
+   and application explanations; check that the entry point reaches them.
 2. Reopen the supporting sections named in the plan using read/fetch tools.
-   If unavailable, use version-matched official source or shipped material that
-   covers the same rules; record any remaining gaps. Earlier planning reads do
+   Applicable local supporting material suffices; no new network fetch is needed
+   merely for freshness. If unavailable, use version-matched official source or
+   shipped material that covers the same rules; record any remaining gaps. Earlier planning reads do
    not perform this step, and a short docstring cannot establish rules it omits.
 3. Compare imports, signatures, configuration, return values, async/error behavior,
    lifecycle, language semantics, platform restrictions, and technology connections
-   relevant to the change. Compare intended behavior to requirements as well.
+   relevant to the change. Compare intended behavior to requirements as well,
+   and updated explanations to the final implementation and actual checks.
 4. Update the note with what those reads and executions actually established.
    Check completion statements against returned tool results: writing a file is
    not reading it back, and a pre-edit fetch is not a post-edit comparison.

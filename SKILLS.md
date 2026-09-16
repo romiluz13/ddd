@@ -18,7 +18,9 @@ Install the skill directories together so phase skills and supporting references
 can resolve the main procedure. The agent maintains the Documentation basis in
 the existing persistent plan or one `.ddd/notes/<task>.md` file on every task.
 The note connects questions, sources, rules, decisions, and checks; the agent
-finds it on resumption and updates it when assumptions fail.
+finds it on resumption and updates it when assumptions fail. It also discovers
+and maintains current application explanations through the project documentation
+entry point; task history and current understanding link without duplication.
 
 ## Optional experimental tooling skills
 
@@ -33,7 +35,8 @@ CLI commands and limitations are documented in [cli/README.md](cli/README.md),
 with schemas and verdict semantics in [cli/SPEC.md](cli/SPEC.md). The CLI retains
 its existing behavior; its declared-scope reports are not repository-wide proof.
 Repository maintainers run `ddd doctor` through the local CLI to check installed
-copies and lock hashes. Users of the methodology do not need this command.
+copies and lock hashes within its configured repository boundary, not every
+host's active skills. Users of the methodology do not need this command.
 
 ## Research
 
